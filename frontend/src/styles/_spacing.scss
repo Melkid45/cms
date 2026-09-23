@@ -1,0 +1,47 @@
+$gaps: (
+  2xs: var(--gap-2xs),
+  xs: var(--gap-xs),
+  sm: var(--gap-sm),
+  medium: var(--gap-md),
+  base: var(--gap-base),
+  lg: var(--gap-lg),
+  xl: var(--gap-xl),
+  4xl: var(--gap-4xl),
+);
+
+$paddings: (
+  sm: var(--gap-sm),
+  medium: var(--space-4),
+  base: var(--space-8),
+  lg: var(--space-12),
+  xl: var(--space-16),
+);
+
+$radii: (
+  full: var(--radius-full),
+  xs: var(--radius-xs),
+  sm: var(--radius-sm),
+  md: var(--radius-md),
+  lg: var(--radius-lg),
+  xl: var(--radius-xl),
+);
+
+@layer utilities {
+  @each $name, $value in $gaps {
+    .spacing--#{$name} {
+      gap: $value;
+    }
+  }
+
+  @each $name, $value in $paddings {
+    .padding--#{$name} {
+      padding: $value;
+    }
+  }
+
+  @each $name, $value in $radii {
+    .rounded--#{$name} {
+      border-radius: $value;
+    }
+  }
+}

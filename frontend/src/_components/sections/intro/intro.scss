@@ -1,0 +1,38 @@
+@layer blocks {
+  .intro {
+    display: grid;
+    min-height: 100vh;
+    align-items: center;
+  }
+
+  .intro__inner {
+    display: grid;
+    grid-template-columns: minmax(0, 1.4fr) minmax(18rem, 0.6fr);
+    gap: var(--space-12);
+    align-items: center;
+  }
+
+  .intro__content {
+    --flow-space: var(--space-6);
+    max-width: 48rem;
+  }
+
+  .intro__eyebrow {
+    color: var(--color-primary);
+    font-size: var(--font-size-sm);
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+
+  .intro__lead {
+    max-width: 42rem;
+    font-size: var(--font-size-lg);
+  }
+
+  @media (max-width: 48rem) {
+    .intro__inner {
+      grid-template-columns: 1fr;
+    }
+  }
+}

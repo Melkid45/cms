@@ -1,0 +1,13 @@
+@use './tokens';
+
+@layer utilities {
+  @each $name, $_ in tokens.$color-tokens {
+    .background-\[--#{$name}\] {
+      background-color: var(--#{$name});
+    }
+
+    .color-\[--#{$name}\] {
+      color: var(--#{$name});
+    }
+  }
+}

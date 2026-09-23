@@ -1,0 +1,82 @@
+@layer utilities {
+  .grid {
+    --grid-columns: 1;
+    --grid-gap: var(--gap-base);
+
+    display: grid;
+    grid-template-columns: repeat(var(--grid-columns), minmax(0, 1fr));
+    gap: var(--grid-gap);
+    min-width: 0;
+
+    &--2 {
+      --grid-columns: 2;
+    }
+
+    &--3 {
+      --grid-columns: 3;
+    }
+
+    &--4 {
+      --grid-columns: 4;
+    }
+
+    &--5 {
+      --grid-columns: 5;
+    }
+
+    &--lg {
+      --grid-gap: var(--space-40);
+    }
+
+    &--xl {
+      --grid-gap: var(--space-60);
+    }
+
+    &--item {
+      display: flex;
+      flex-direction: column;
+      min-width: 0;
+    }
+
+    &--item-pt {
+      gap: var(--gap-xs);
+      padding-top: 2.5rem;
+      border-top: 1px solid var(--color-border);
+    }
+
+    &--span-2 {
+      grid-column: span 2;
+    }
+
+    &--span-3 {
+      grid-column: span 3;
+    }
+  }
+
+  @media (max-width: 64rem) {
+    .grid--3,
+    .grid--4,
+    .grid--5 {
+      --grid-columns: 2;
+    }
+
+    .grid--lg,
+    .grid--xl {
+      --grid-gap: var(--gap-xl);
+    }
+  }
+
+  @media (max-width: 48rem) {
+    .grid--2,
+    .grid--3,
+    .grid--4,
+    .grid--5 {
+      --grid-columns: 1;
+    }
+
+    .grid--span-2,
+    .grid--span-3 {
+      grid-column: span 1;
+    }
+  }
+}

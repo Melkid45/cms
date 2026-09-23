@@ -1,0 +1,46 @@
+@layer utilities {
+  .flex {
+    display: flex;
+    min-width: 0;
+
+    &.row {
+      flex-direction: row;
+    }
+
+    &.column {
+      flex-direction: column;
+    }
+
+    &--center {
+      align-items: center;
+      justify-content: center;
+    }
+
+    &--sb {
+      justify-content: space-between;
+    }
+
+    &--end {
+      align-items: flex-end;
+      justify-content: flex-end;
+    }
+
+    &--wrap {
+      flex-wrap: wrap;
+    }
+
+    &--1 {
+      flex: 1 1 0;
+    }
+  }
+
+  @media (max-width: 48rem) {
+    .flex.row {
+      flex-direction: column;
+    }
+
+    .flex--end {
+      align-items: flex-start;
+    }
+  }
+}

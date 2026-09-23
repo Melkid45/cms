@@ -1,0 +1,21 @@
+@layer base {
+  body {
+    min-height: 100vh;
+    color: var(--color-text);
+    background-color: var(--color-bg);
+    font-family: var(--font-family-base);
+    font-size: var(--font-size-base);
+    line-height: var(--line-height-base);
+    text-rendering: optimizeLegibility;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  #app {
+    min-height: 100vh;
+  }
+
+  ::selection {
+    color: var(--color-on-primary);
+    background-color: var(--color-primary);
+  }
+}
