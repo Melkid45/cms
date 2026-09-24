@@ -1,72 +1,72 @@
 <link rel="stylesheet" href="./testimonials.scss" />
 
-<section class="block testimonials" aria-labelledby="testimonials-title" data-testimonials>
+<section class="block testimonials hidden" aria-labelledby="testimonials-title" data-testimonials>
     <div class="container">
-        <div class="block__body">
+        <div class="block__body spacing--base">
             <div class="testimonials__head flex flex--sb flex--al-center">
                 <h2 class="heading heading--2 heading--line-height" id="testimonials-title">What clients say</h2>
-                <div class="testimonials__controls flex spacing--sm" aria-label="Testimonial navigation">
-                    <button class="testimonials__control" type="button" data-testimonial-prev aria-label="Previous testimonial">
+                <div class="flex spacing--sm shrink-0" aria-label="Testimonial navigation">
+                    <button class="testimonials__control flex flex--al-center flex-ju-center" type="button" data-testimonial-prev aria-label="Previous testimonial">
                         <i data-lucide="chevron-left" width="16" height="16"></i>
                     </button>
-                    <button class="testimonials__control" type="button" data-testimonial-next aria-label="Next testimonial">
+                    <button class="testimonials__control flex flex--al-center flex-ju-center" type="button" data-testimonial-next aria-label="Next testimonial">
                         <i data-lucide="chevron-right" width="16" height="16"></i>
                     </button>
                 </div>
             </div>
 
             <div class="testimonials__viewport" data-testimonials-viewport tabindex="0" aria-label="Client testimonials carousel">
-                <div class="testimonials__track" data-testimonials-track>
-                    <article class="testimonial-card">
-                        <div class="testimonial-card__author">
-                            <figure class="testimonial-card__avatar" aria-hidden="true">
+                <div class="testimonials__track spacing--content" data-testimonials-track>
+                    <article class="testimonial-card grid spacing--content padding--base rounded--xs background-[--gray-100]">
+                        <div class="flex spacing--medium">
+                            <figure class="testimonial-card__avatar media media--square shrink-0" aria-hidden="true">
                                 <img src="@/assets/images/quote.png" alt="">
                             </figure>
-                            <div class="testimonial-card__details">
+                            <div class="flex column">
                                 <h3 class="text text--base text--medium">Marina Sokolova</h3>
                                 <p class="text text--sm text--opacity-50">Manhattan, 2 years</p>
-                                <span class="testimonial-card__rating" aria-label="4 out of 5 stars">
-                                    <span aria-hidden="true">★★★★</span><span class="testimonial-card__star-muted" aria-hidden="true">★</span>
+                                <span class="testimonial-card__rating flex" aria-label="4 out of 5 stars">
+                                    <span aria-hidden="true">★★★★</span><span class="color-[--gray-300]" aria-hidden="true">★</span>
                                 </span>
                             </div>
                         </div>
-                        <blockquote class="text text--base">
+                        <blockquote class="text text--base text--italic color-[--gray-500]">
                             “CleanSpace is the only one where I don't have to write a list of things they missed.”
                         </blockquote>
                     </article>
 
-                    <article class="testimonial-card">
-                        <div class="testimonial-card__author">
-                            <figure class="testimonial-card__avatar" aria-hidden="true">
+                    <article class="testimonial-card grid spacing--content padding--base rounded--xs background-[--gray-100]">
+                        <div class="flex spacing--medium">
+                            <figure class="testimonial-card__avatar media media--square shrink-0" aria-hidden="true">
                                 <img src="@/assets/images/quote.png" alt="">
                             </figure>
-                            <div class="testimonial-card__details">
+                            <div class="flex column">
                                 <h3 class="text text--base text--medium">David Park</h3>
                                 <p class="text text--sm text--opacity-50">Midtown office</p>
-                                <span class="testimonial-card__rating" aria-label="4 out of 5 stars">
-                                    <span aria-hidden="true">★★★★</span><span class="testimonial-card__star-muted" aria-hidden="true">★</span>
+                                <span class="testimonial-card__rating flex" aria-label="4 out of 5 stars">
+                                    <span aria-hidden="true">★★★★</span><span class="color-[--gray-300]" aria-hidden="true">★</span>
                                 </span>
                             </div>
                         </div>
-                        <blockquote class="text text--base">
+                        <blockquote class="text text--base text--italic color-[--gray-500]">
                             “14 months, not a single missed visit, not a single complaint.”
                         </blockquote>
                     </article>
 
-                    <article class="testimonial-card">
-                        <div class="testimonial-card__author">
-                            <figure class="testimonial-card__avatar" aria-hidden="true">
+                    <article class="testimonial-card grid spacing--content padding--base rounded--xs background-[--gray-100]">
+                        <div class="flex spacing--medium">
+                            <figure class="testimonial-card__avatar media media--square shrink-0" aria-hidden="true">
                                 <img src="@/assets/images/quote.png" alt="">
                             </figure>
-                            <div class="testimonial-card__details">
+                            <div class="flex column">
                                 <h3 class="text text--base text--medium">Sophie Martin</h3>
                                 <p class="text text--sm text--opacity-50">Brooklyn Heights</p>
-                                <span class="testimonial-card__rating" aria-label="5 out of 5 stars">
+                                <span class="testimonial-card__rating flex" aria-label="5 out of 5 stars">
                                     <span aria-hidden="true">★★★★★</span>
                                 </span>
                             </div>
                         </div>
-                        <blockquote class="text text--base">
+                        <blockquote class="text text--base text--italic color-[--gray-500]">
                             “Clear pricing, thoughtful products and zero chasing. Everything simply works.”
                         </blockquote>
                     </article>
