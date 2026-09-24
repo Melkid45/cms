@@ -81,8 +81,8 @@
 .testimonial-card {
   display: grid;
   min-height: 17rem;
-  grid-template-rows: auto auto 1fr;
-  gap: var(--space-3);
+  grid-template-rows: auto 1fr;
+  gap: var(--space-6);
   padding: var(--space-8);
   border-radius: var(--radius-xs);
   background: var(--gray-100);
@@ -91,8 +91,15 @@
 
 .testimonial-card__author {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   gap: var(--space-4);
+}
+
+.testimonial-card__details {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  align-items: flex-start;
 }
 
 .testimonial-card__avatar {
@@ -111,6 +118,7 @@
 
 .testimonial-card__rating {
   display: flex;
+  margin-top: var(--space-3);
   color: var(--gray-900);
   font-size: 0.75rem;
   letter-spacing: 0.08em;
