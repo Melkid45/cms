@@ -3,6 +3,7 @@ $gaps: (
   xs: var(--gap-xs),
   sm: var(--gap-sm),
   medium: var(--gap-md),
+  content: var(--gap-content),
   base: var(--gap-base),
   lg: var(--gap-lg),
   xl: var(--gap-xl),
@@ -12,6 +13,7 @@ $gaps: (
 $paddings: (
   sm: var(--gap-sm),
   medium: var(--space-4),
+  content: var(--space-6),
   base: var(--space-8),
   lg: var(--space-12),
   xl: var(--space-16),
@@ -36,6 +38,12 @@ $radii: (
   @each $name, $value in $paddings {
     .padding--#{$name} {
       padding: $value;
+    }
+    .padding--y-#{$name} {
+      padding: $value 0;
+    }
+    .padding--x-#{$name} {
+      padding: 0 $value;
     }
   }
 

@@ -1,0 +1,35 @@
+.partners--line {
+  min-height: 2.25rem;
+
+  img {
+    width: auto;
+    height: 2.25rem;
+    max-width: 13.75rem;
+    opacity: 0.78;
+  }
+}
+
+@media (max-width: 64rem) {
+  .partners--line {
+    justify-content: flex-start;
+  }
+}
+
+@media (max-width: 48rem) {
+  .partners--line {
+    flex-direction: row;
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    padding-bottom: var(--space-2);
+    scrollbar-width: none;
+
+    &::-webkit-scrollbar {
+      display: none;
+    }
+
+    img {
+      height: 1.75rem;
+      flex: 0 0 auto;
+    }
+  }
+}

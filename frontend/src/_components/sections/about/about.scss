@@ -1,0 +1,15 @@
+.about-promise {
+  .heading {
+    max-width: 56rem;
+  }
+
+  .block__body > div:last-child {
+    justify-content: center;
+  }
+}
+
+@media (max-width: 48rem) {
+  .about-promise .block__body {
+    gap: var(--space-8);
+  }
+}

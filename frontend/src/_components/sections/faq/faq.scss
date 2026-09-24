@@ -1,0 +1,31 @@
+.faq--item{
+    &.current{
+        .faq--item-top{
+            svg{
+                rotate: 135deg;
+            }
+        }
+    }
+    &-top{
+        cursor: pointer;
+        outline: none;
+
+        &:focus-visible {
+            border-radius: var(--radius-button);
+            outline: 2px solid var(--gray-900);
+            outline-offset: 0.5rem;
+        }
+
+        svg{
+            transition: var(--transition-base);
+        }
+    }
+    &-bot{
+        overflow: hidden;
+        max-height: 0;
+        transition: var(--transition-base);
+        p{
+            padding-top: 1.5rem;
+        }
+    }
+}

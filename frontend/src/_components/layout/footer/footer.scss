@@ -1,0 +1,42 @@
+.footer {
+  border-top: 1px solid var(--gray-200);
+  background: var(--gray-100);
+}
+
+.footer__body > .flex:first-child {
+  gap: var(--space-16);
+}
+
+.footer__map {
+  width: 20.75rem;
+  min-height: 8rem;
+  background:
+    linear-gradient(rgb(255 255 255 / 20%), rgb(255 255 255 / 20%)),
+    url('@/assets/images/map.png') center / cover;
+  filter: grayscale(1);
+}
+
+@media (max-width: 64rem) {
+  .footer__body > .flex:first-child,
+  .footer__body > .flex:first-child > .flex {
+    flex-direction: column;
+  }
+
+  .footer__body > .flex:first-child > .flex {
+    gap: var(--space-12);
+  }
+}
+
+@media (max-width: 48rem) {
+  .footer__body {
+    padding-block: var(--space-16);
+  }
+
+  .footer__body nav + nav {
+    margin-top: var(--space-8);
+  }
+
+  .footer__map {
+    width: 100%;
+  }
+}

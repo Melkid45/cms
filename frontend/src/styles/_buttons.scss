@@ -51,6 +51,39 @@
       }
     }
 
+    &--white {
+      border-color: var(--color-bg);
+      background-color: var(--color-bg);
+      color: var(--color-primary);
+
+      &:hover {
+        border-color: var(--gray-200);
+        background-color: var(--gray-100);
+      }
+
+      &:active {
+        border-color: var(--gray-300);
+        background-color: var(--gray-200);
+      }
+    }
+
+    &--outline-white {
+      border-color: var(--color-bg);
+      color: var(--color-bg);
+
+      &:hover {
+        border-color: var(--color-bg);
+        background-color: var(--color-bg);
+        color: var(--color-primary);
+      }
+
+      &:active {
+        border-color: var(--gray-200);
+        background-color: var(--gray-200);
+        color: var(--color-primary);
+      }
+    }
+
     &--full {
       border-radius: var(--radius-full);
     }
@@ -84,7 +117,10 @@
       min-height: 3.5rem;
       padding-inline: 3rem;
     }
-
+    &--size-full{
+      max-width: none;
+      width: 100%;
+    }
     &:focus-visible {
       outline: 3px solid color-mix(in srgb, var(--color-primary) 35%, transparent);
       outline-offset: 3px;

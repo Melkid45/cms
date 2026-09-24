@@ -6,13 +6,17 @@
     &.row {
       flex-direction: row;
     }
-
+    &.wrap{
+      flex-wrap: wrap;
+    }
     &.column {
       flex-direction: column;
     }
 
-    &--center {
+    &--al-center {
       align-items: center;
+    }
+    &-ju-center {
       justify-content: center;
     }
 

@@ -1,0 +1,84 @@
+/*
+ * One predictable API for every image in the builder.
+ * Override --media-aspect, --media-height or --media-position per block.
+ */
+.media {
+    --media-aspect: 16 / 9;
+    --media-height: auto;
+    --media-fit: cover;
+    --media-position: center;
+    --media-radius: var(--radius-xs);
+
+    position: relative;
+    width: 100%;
+    min-width: 0;
+    height: var(--media-height);
+    aspect-ratio: var(--media-aspect);
+    overflow: hidden;
+    border-radius: var(--media-radius);
+    background: var(--gray-100);
+
+    > img,
+    > picture,
+    > video {
+      width: 100%;
+      height: 100%;
+      object-fit: var(--media-fit);
+      object-position: var(--media-position);
+    }
+
+    > picture > img {
+      width: 100%;
+      height: 100%;
+      object-fit: var(--media-fit);
+      object-position: var(--media-position);
+    }
+
+    &[data-fit='contain'] {
+      --media-fit: contain;
+    }
+
+    &[data-position='top'] {
+      --media-position: center top;
+    }
+
+    &[data-position='bottom'] {
+      --media-position: center bottom;
+    }
+
+    &--hero {
+      --media-aspect: 1856 / 710;
+      --media-radius: var(--radius-sm);
+    }
+
+    &--landscape {
+      --media-aspect: 764 / 400;
+    }
+
+    &--card {
+      --media-aspect: 366 / 300;
+    }
+
+    &--strip {
+      --media-aspect: 498 / 108;
+    }
+
+    &--square {
+      --media-aspect: 1;
+    }
+
+    &--portrait {
+      --media-aspect: 3 / 4;
+    }
+}
+
+@media (max-width: 48rem) {
+  .media--hero {
+    --media-aspect: 4 / 3;
+    --media-radius: var(--radius-xs);
+  }
+
+  .media--strip {
+    --media-aspect: 16 / 7;
+  }
+}

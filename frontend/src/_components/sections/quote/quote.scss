@@ -1,0 +1,16 @@
+.quote-spotlight .block__body {
+  padding-block: clamp(2rem, 4vw, 5rem);
+}
+
+.quote--image {
+  --media-radius: 50%;
+
+  width: 6.25rem;
+  flex: 0 0 6.25rem;
+}
+
+@media (max-width: 48rem) {
+  .quote-spotlight .heading br {
+    display: none;
+  }
+}

@@ -1,0 +1,40 @@
+.hero__head {
+  padding-inline: 9.25rem;
+  gap: clamp(2rem, 8vw, 10rem);
+
+  .heading {
+    flex: 1 1 58%;
+    max-width: 56rem;
+  }
+
+  .text {
+    flex: 1 1 42%;
+    max-width: 39rem;
+  }
+}
+
+.hero .block__body {
+  gap: 3rem;
+}
+
+@media (max-width: 75rem) {
+  .hero__head {
+    padding-inline: var(--container-padding);
+  }
+}
+
+@media (max-width: 48rem) {
+  .hero__head {
+    align-items: flex-start;
+    padding-inline: 0;
+    gap: var(--space-6);
+
+    .text {
+      font-size: var(--font-size-lg);
+    }
+  }
+
+  .hero .block__body {
+    gap: var(--space-8);
+  }
+}

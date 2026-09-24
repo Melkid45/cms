@@ -9,5 +9,9 @@
     .color-\[--#{$name}\] {
       color: var(--#{$name});
     }
+
+    .border-\[--#{$name}\] {
+      border: 1px solid var(--#{$name});
+    }
   }
 }

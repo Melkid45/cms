@@ -45,6 +45,60 @@ src/
 
 Стили блока и всех вложенных компонентов будут добавлены автоматически.
 
+## Отступ 24px
+
+Для частого интервала в 24px используйте семантические утилиты:
+
+```html
+<div class="flex column spacing--content padding--content">...</div>
+```
+
+`spacing--content` задаёт `gap: 24px`, а `padding--content` — внутренний
+отступ 24px. Значение хранится в токене `--gap-content`.
+
+## Изображения
+
+Все контентные изображения помещаются в единый компонент `.media`. Размер
+задаётся контейнеру, а изображение автоматически получает корректный crop:
+
+```html
+<figure class="media media--landscape" data-position="top">
+  <img src="..." alt="Описание изображения">
+</figure>
+```
+
+Готовые размеры: `media--hero`, `media--landscape`, `media--card`,
+`media--strip`, `media--square`, `media--portrait`. Для уникального блока можно
+переопределить CSS-переменные без изменения глобальных стилей:
+
+```html
+<figure class="media" style="--media-aspect: 4 / 3; --media-height: 420px;">
+  <img src="..." alt="">
+</figure>
+```
+
+Доступны `data-fit="contain"`, `data-position="top"` и
+`data-position="bottom"`.
+
+## Кнопки и рамки
+
+У кнопок есть основной, контурный и белый варианты. Эти же классы работают
+одинаково для `<button>` и `<a>` и включают hover/focus-состояния:
+
+```html
+<a class="button button--primary" href="#contact">Book now</a>
+<a class="button button--secondary" href="tel:+12125550198">Call us</a>
+<button class="button button--white">Get started</button>
+<a class="button button--outline-white" href="tel:+12125550198">Call us</a>
+```
+
+Цвет рамки можно задать любым цветовым токеном:
+
+```html
+<div class="border-[--gray-300]">...</div>
+<a class="button button--white border-[--color-bg]" href="#contact">Book now</a>
+```
+
 ## Новая страница
 
 Создайте HTML-файл в корне проекта и укажите layout:

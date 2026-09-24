@@ -1,0 +1,29 @@
+.advantages .grid > div {
+  min-height: 13.75rem;
+  transition: transform var(--transition-base), box-shadow var(--transition-base);
+
+  &:hover {
+    transform: translateY(-0.25rem);
+    box-shadow: var(--shadow-sm);
+  }
+}
+
+.icon {
+  display: grid;
+  width: 3rem;
+  min-width: 3rem;
+  height: 3rem;
+  min-height: 3rem;
+  flex: 0 0 3rem;
+  place-items: center;
+  max-width: none;
+  padding: 0;
+
+  svg {
+    width: 1.5rem;
+    min-width: 1.5rem;
+    height: 1.5rem;
+    flex: none;
+    max-width: none;
+  }
+}

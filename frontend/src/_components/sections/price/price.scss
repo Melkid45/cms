@@ -1,0 +1,25 @@
+.tag--price {
+  position: absolute;
+  right: 0;
+}
+
+.price-card {
+  min-height: 36.3125rem;
+  border: 1px solid transparent;
+  transition: transform var(--transition-base), box-shadow var(--transition-base);
+
+  &:hover {
+    transform: translateY(-0.25rem);
+    box-shadow: var(--shadow-sm);
+  }
+}
+
+.price-card--featured {
+  box-shadow: 0 1.5rem 4rem rgb(17 24 39 / 14%);
+}
+
+@media (max-width: 48rem) {
+  .price-card {
+    min-height: 33rem;
+  }
+}

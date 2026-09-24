@@ -1,0 +1,23 @@
+.cases .divider {
+  margin-block: var(--space-8);
+  background: var(--gray-200);
+}
+
+.cases .media {
+  transition: transform 500ms ease;
+}
+
+.cases .media:hover {
+  transform: scale(0.995);
+}
+
+@media (max-width: 48rem) {
+  .cases .block__body > .flex:first-child {
+    align-items: center;
+  }
+
+  .cases .block__body > .flex:first-child .button {
+    min-height: 3rem;
+    padding-inline: var(--space-6);
+  }
+}

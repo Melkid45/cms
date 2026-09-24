@@ -1,0 +1,62 @@
+<link rel="stylesheet" href="./testimonials.scss" />
+
+<section class="block testimonials" aria-labelledby="testimonials-title" data-testimonials>
+    <div class="container">
+        <div class="block__body">
+            <div class="testimonials__head flex flex--sb flex--al-center">
+                <h2 class="heading heading--2 heading--line-height" id="testimonials-title">What clients say</h2>
+                <div class="testimonials__controls flex spacing--sm" aria-label="Testimonial navigation">
+                    <button class="testimonials__control" type="button" data-testimonial-prev aria-label="Previous testimonial">
+                        <i data-lucide="chevron-left" width="16" height="16"></i>
+                    </button>
+                    <button class="testimonials__control" type="button" data-testimonial-next aria-label="Next testimonial">
+                        <i data-lucide="chevron-right" width="16" height="16"></i>
+                    </button>
+                </div>
+            </div>
+
+            <div class="testimonials__viewport" data-testimonials-viewport tabindex="0" aria-label="Client testimonials carousel">
+                <div class="testimonials__track" data-testimonials-track>
+                    <article class="testimonial-card">
+                        <div>
+                            <h3 class="text text--base text--medium">Marina Sokolova</h3>
+                            <p class="text text--sm text--opacity-50">Manhattan, 2 years</p>
+                        </div>
+                        <span class="testimonial-card__rating" aria-label="4 out of 5 stars">
+                            <span aria-hidden="true">★★★★</span><span class="testimonial-card__star-muted" aria-hidden="true">★</span>
+                        </span>
+                        <blockquote class="text text--base">
+                            “CleanSpace is the only one where I don't have to write a list of things they missed.”
+                        </blockquote>
+                    </article>
+
+                    <article class="testimonial-card">
+                        <div>
+                            <h3 class="text text--base text--medium">David Park</h3>
+                            <p class="text text--sm text--opacity-50">Midtown office</p>
+                        </div>
+                        <span class="testimonial-card__rating" aria-label="4 out of 5 stars">
+                            <span aria-hidden="true">★★★★</span><span class="testimonial-card__star-muted" aria-hidden="true">★</span>
+                        </span>
+                        <blockquote class="text text--base">
+                            “14 months, not a single missed visit, not a single complaint.”
+                        </blockquote>
+                    </article>
+
+                    <article class="testimonial-card">
+                        <div>
+                            <h3 class="text text--base text--medium">Sophie Martin</h3>
+                            <p class="text text--sm text--opacity-50">Brooklyn Heights</p>
+                        </div>
+                        <span class="testimonial-card__rating" aria-label="5 out of 5 stars">
+                            <span aria-hidden="true">★★★★★</span>
+                        </span>
+                        <blockquote class="text text--base">
+                            “Clear pricing, thoughtful products and zero chasing. Everything simply works.”
+                        </blockquote>
+                    </article>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
