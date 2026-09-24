@@ -23,21 +23,21 @@
 }
 
 .timeline__track {
-  --timeline-items: 4;
   --timeline-line-start: 0.3125rem;
-  --timeline-line-width: calc(100% - 0.625rem);
+  --timeline-line-width: calc(75% - 0.625rem);
   --timeline-fill: 0px;
 
   position: relative;
-  display: grid;
-  grid-template-columns: repeat(var(--timeline-items), minmax(0, 1fr));
+  display: flex;
+  align-items: flex-start;
   min-width: 100%;
 }
 
 .timeline__item {
   position: relative;
   z-index: 1;
-  min-width: 0;
+  min-width: 25%;
+  flex: 0 0 25%;
 }
 
 .timeline__line,
@@ -126,14 +126,9 @@
 }
 
 @media (max-width: 48rem) {
-  .timeline__track {
-    grid-template-columns: repeat(var(--timeline-items), 13.5rem);
-    width: max-content;
-    min-width: 100%;
-  }
-
-  .timeline__point {
-    padding-right: var(--space-8);
+  .timeline__item {
+    min-width: 13.5rem;
+    flex-basis: 13.5rem;
   }
 
   .timeline__year {

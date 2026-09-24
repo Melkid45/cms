@@ -140,8 +140,6 @@ if (timeline) {
   let startedAt = 0
   let paused = false
 
-  track?.style.setProperty('--timeline-items', String(points.length))
-
   const pointCenter = (index) => {
     const point = points[index]
     const marker = point?.querySelector('.timeline__marker')
@@ -152,7 +150,7 @@ if (timeline) {
   const updateGeometry = () => {
     if (!track || !fill || !points.length) return
     const lineStart = pointCenter(0)
-    const lineWidth = Math.max(track.scrollWidth - lineStart, 0)
+    const lineWidth = Math.max(pointCenter(points.length - 1) - lineStart, 0)
     track.style.setProperty('--timeline-line-start', `${lineStart}px`)
     track.style.setProperty('--timeline-line-width', `${lineWidth}px`)
     fill.style.setProperty('--timeline-fill', `${Math.max(pointCenter(activeIndex) - lineStart, 0)}px`)
@@ -244,6 +242,6 @@ if (timeline) {
     else startTimeline()
   })
 
-  selectPoint(activeIndex, false)
+  selectPoint(activeIndex)
   startTimeline()
 }
