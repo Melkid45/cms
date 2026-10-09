@@ -11,13 +11,13 @@
   transform: scale(0.995);
 }
 
-@media (max-width: 48rem) {
-  .cases .block__body > .flex:first-child {
+@container (max-width: 768px) {
+  .cases__head {
     align-items: center;
   }
 
-  .cases .block__body > .flex:first-child .button {
-    min-height: 3rem;
+  .cases__head .button {
+    min-height: 48px;
     padding-inline: var(--space-6);
   }
 }

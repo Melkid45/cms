@@ -7,14 +7,14 @@
 
   .intro__inner {
     display: grid;
-    grid-template-columns: minmax(0, 1.4fr) minmax(18rem, 0.6fr);
+    grid-template-columns: minmax(0, 1.4fr) minmax(288px, 0.6fr);
     gap: var(--space-12);
     align-items: center;
   }
 
   .intro__content {
     --flow-space: var(--space-6);
-    max-width: 48rem;
+    max-width: 768px;
   }
 
   .intro__eyebrow {
@@ -26,11 +26,11 @@
   }
 
   .intro__lead {
-    max-width: 42rem;
+    max-width: 672px;
     font-size: var(--font-size-lg);
   }
 
-  @media (max-width: 48rem) {
+  @container (max-width: 768px) {
     .intro__inner {
       grid-template-columns: 1fr;
     }

@@ -1,0 +1,114 @@
+<link rel="stylesheet" href="./footer.scss">
+
+
+<footer class="footer padding--y-xl background-[--gray-900]">
+    <div class="container">
+        <div class="flex--column spacing--xl">
+            <div class="footer__top flex--row flex--sb">
+                <div class="flex--column spacing--lg">
+                    <a class="" href="">
+                        <img class="footer__logo" src="@/assets/images/logo3.svg" alt="">
+                    </a>
+                    <div class="flex--row spacing--4xl responsive">
+                        <nav class="flex--column spacing--medium">
+                            <span class="text--xl color-[--color-bg]">
+                                Services
+                            </span>
+                            <ul class="flex--column spacing--sm">
+                                <li class="text--sm text--opacity-50 color-[--color-bg]">
+                                    <a href="">Strength training</a>
+                                </li>
+                                <li class="text--sm text--opacity-50 color-[--color-bg]">
+                                    <a href="">Nutrition coaching</a>
+                                </li>
+                                <li class="text--sm text--opacity-50 color-[--color-bg]">
+                                    <a href="">Online programs</a>
+                                </li>
+                                <li class="text--sm text--opacity-50 color-[--color-bg]">
+                                    <a href="">Body composition</a>
+                                </li>
+                                <li class="text--sm text--opacity-50 color-[--color-bg]">
+                                    <a href="">Mobility work</a>
+                                </li>
+                            </ul>
+                        </nav>
+                        <nav class="flex--column spacing--medium">
+                            <span class="text--xl color-[--color-bg]">
+                                About
+                            </span>
+                            <ul class="flex--column spacing--sm">
+                                <li class="text--sm text--opacity-50 color-[--color-bg]">
+                                    <a href="">Client results</a>
+                                </li>
+                                <li class="text--sm text--opacity-50 color-[--color-bg]">
+                                    <a href="">Blog</a>
+                                </li>
+                                <li class="text--sm text--opacity-50 color-[--color-bg]">
+                                    <a href="">Podcast</a>
+                                </li>
+                                <li class="text--sm text--opacity-50 color-[--color-bg]">
+                                    <a href="">Contact</a>
+                                </li>
+                            </ul>
+                        </nav>
+                        <nav class="flex--column spacing--medium">
+                            <span class="text--xl color-[--color-bg]">
+                                Follow us
+                            </span>
+                            <ul class="flex--column spacing--sm">
+                                <li class="text--sm text--opacity-50 color-[--color-bg]">
+                                    <a href="">Telegram</a>
+                                </li>
+                                <li class="text--sm text--opacity-50 color-[--color-bg]">
+                                    <a href="">Twitter</a>
+                                </li>
+                                <li class="text--sm text--opacity-50 color-[--color-bg]">
+                                    <a href="">Pinterest</a>
+                                </li>
+                            </ul>
+                        </nav>
+                    </div>
+                </div>
+                <form class="form form--inverse form--narrow flex--column spacing--base" data-validate data-success="Thanks! We'll contact you shortly." novalidate>
+                    <div class="form__group">
+                        <div class="field" data-field>
+                            <label class="sr-only" for="footer-name">Name</label>
+                            <input class="field__control" id="footer-name" name="name" type="text" placeholder="Name" autocomplete="name" minlength="2" maxlength="80" required data-validate-trim data-error-required="Enter your name." data-error-too-short="Use at least 2 characters.">
+                        </div>
+                        <div class="field" data-field>
+                            <label class="sr-only" for="footer-phone">Phone</label>
+                            <input class="field__control" id="footer-phone" name="phone" type="tel" placeholder="Phone" autocomplete="tel" inputmode="tel" required data-validate-phone data-error-required="Enter your phone number." data-error-pattern="Enter a valid phone number.">
+                        </div>
+                    </div>
+
+                    <div class="field" data-field>
+                        <label class="checkbox" for="footer-consent">
+                            <input class="checkbox__input" id="footer-consent" name="consent" type="checkbox" required data-error-required="Consent is required.">
+                            <span class="checkbox__mark" aria-hidden="true"></span>
+                            <span>I agree to the processing of <a href="">personal data</a></span>
+                        </label>
+                    </div>
+
+                    <button class="button button--white button--lg button--size-full" type="submit">Book a session</button>
+                    <p class="form__status" data-form-status role="status" aria-live="polite"></p>
+                </form>
+            </div>
+            <div class="flex--column spacing--base">
+                <div class="divider background-[--gray-500]"></div>
+                <nav class="">
+                    <ul class="flex--row spacing--lg">
+                        <li class="text--sm text--opacity-50 color-[--color-bg]">
+                            <a href="">Privacy Policy</a>
+                        </li>
+                        <li class="text--sm text--opacity-50 color-[--color-bg]">
+                            <a href="">Career</a>
+                        </li>
+                        <li class="text--sm text--opacity-50 color-[--color-bg]">
+                            <a href="">Press</a>
+                        </li>
+                    </ul>
+                </nav>
+            </div>
+        </div>
+    </div>
+</footer>

@@ -1,0 +1,11 @@
+.play {
+    position: absolute;
+    width: 72px;
+    aspect-ratio: 1/1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: none;
+    z-index: 1;
+    cursor: pointer;
+}

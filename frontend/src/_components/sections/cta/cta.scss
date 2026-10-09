@@ -1,5 +1,5 @@
 .cta .block__body {
-  min-height: 26rem;
+  min-height: 416px;
   justify-content: center;
   isolation: isolate;
 }
@@ -17,18 +17,14 @@
   z-index: 2;
 }
 
-@media (max-width: 48rem) {
+@container (max-width: 768px) {
   .cta .block__body {
-    min-height: 30rem;
+    min-height: 480px;
     padding: var(--space-6);
   }
 
-  .cta--content:last-child {
-    flex-direction: column;
-  }
-
-  .cta--content .heading br,
-  .cta--content .text br {
+  .cta--content h2 br,
+  .cta--content p br {
     display: none;
   }
 }

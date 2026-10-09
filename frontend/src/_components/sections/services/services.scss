@@ -6,7 +6,7 @@
   transition: border-color var(--transition-base), transform var(--transition-base), box-shadow var(--transition-base);
 
   &:hover {
-    transform: translateY(-0.25rem);
+    transform: translateY(-04px);
     border-color: var(--gray-200);
     box-shadow: var(--shadow-sm);
   }
@@ -24,8 +24,8 @@
   }
 }
 
-@media (max-width: 48rem) {
-  .services .grid--2 > .text {
-    max-width: 36rem;
+@container (max-width: 768px) {
+  .services__intro > p {
+    max-width: 576px;
   }
 }

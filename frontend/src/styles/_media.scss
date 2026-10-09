@@ -1,12 +1,12 @@
 /*
  * One predictable API for every image in the builder.
- * Override --media-aspect, --media-height or --media-position per block.
+ * Override --media-aspect or --media-height per block.
  */
-.media {
+@layer utilities {
+  .media {
     --media-aspect: 16 / 9;
     --media-height: auto;
     --media-fit: cover;
-    --media-position: center;
     --media-radius: var(--radius-xs);
 
     position: relative;
@@ -19,19 +19,17 @@
     background: var(--gray-100);
 
     > img,
-    > picture,
-    > video {
-      width: 100%;
-      height: 100%;
-      object-fit: var(--media-fit);
-      object-position: var(--media-position);
-    }
-
+    > video,
     > picture > img {
       width: 100%;
       height: 100%;
       object-fit: var(--media-fit);
-      object-position: var(--media-position);
+      object-position: center;
+    }
+
+    > picture {
+      width: 100%;
+      height: 100%;
     }
 
     &[data-fit='contain'] {
@@ -39,11 +37,19 @@
     }
 
     &[data-position='top'] {
-      --media-position: center top;
+      > img,
+      > video,
+      > picture > img {
+        object-position: center top;
+      }
     }
 
     &[data-position='bottom'] {
-      --media-position: center bottom;
+      > img,
+      > video,
+      > picture > img {
+        object-position: center bottom;
+      }
     }
 
     &--hero {
@@ -70,15 +76,20 @@
     &--portrait {
       --media-aspect: 3 / 4;
     }
-}
 
-@media (max-width: 48rem) {
-  .media--hero {
-    --media-aspect: 4 / 3;
-    --media-radius: var(--radius-xs);
+    &--sharp {
+      --media-radius: 0;
+    }
   }
 
-  .media--strip {
-    --media-aspect: 16 / 7;
+  @container (max-width: 768px) {
+    .media--hero {
+      --media-aspect: 4 / 3;
+      --media-radius: var(--radius-xs);
+    }
+
+    .media--strip {
+      --media-aspect: 16 / 7;
+    }
   }
 }

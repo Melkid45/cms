@@ -14,11 +14,15 @@
 
   .section,
   .block {
+    container-type: inline-size;
     padding-block: var(--section-space);
   }
   .block {
     &--hero {
       padding-block: var(--hero-space) 0;
+    }
+    &--none {
+      padding-block: 0;
     }
   }
   .block__body {
@@ -28,7 +32,7 @@
     min-width: 0;
   }
 
-  @media (max-width: 48rem) {
+  @media (max-width: 768px) {
     .section,
     .block {
       padding-block: var(--space-16);

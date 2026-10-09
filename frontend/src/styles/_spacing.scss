@@ -52,4 +52,12 @@ $radii: (
       border-radius: $value;
     }
   }
+
+  @container (max-width: 768px) {
+    .spacing--lg.responsive,
+    .spacing--xl.responsive,
+    .spacing--4xl.responsive {
+      gap: var(--gap-base);
+    }
+  }
 }

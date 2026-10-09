@@ -15,8 +15,8 @@
 }
 
 .timeline__track {
-  --timeline-line-start: 0.3125rem;
-  --timeline-line-width: calc(75% - 0.625rem);
+  --timeline-line-start: 5px;
+  --timeline-line-width: calc(75% - 10px);
   --timeline-fill: 0px;
 
   align-items: flex-start;
@@ -32,7 +32,7 @@
 .timeline__line,
 .timeline__fill {
   position: absolute;
-  top: 0.3125rem;
+  top: 5px;
   left: var(--timeline-line-start);
   height: 1px;
   pointer-events: none;
@@ -86,8 +86,8 @@
 }
 
 .timeline__marker {
-  width: 0.625rem;
-  height: 0.625rem;
+  width: 10px;
+  height: 10px;
   margin-bottom: var(--space-6);
   border: 1px solid var(--gray-300);
   border-radius: 50%;
@@ -99,14 +99,14 @@
 }
 
 .timeline__description {
-  max-width: 12.5rem;
+  max-width: 200px;
   margin-top: var(--space-3);
 }
 
-@media (max-width: 48rem) {
+@container (max-width: 768px) {
   .timeline__item {
-    min-width: 13.5rem;
-    flex-basis: 13.5rem;
+    min-width: 216px;
+    flex-basis: 216px;
   }
 }
 

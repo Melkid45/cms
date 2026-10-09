@@ -1,0 +1,126 @@
+@layer components {
+  .slider {
+    --slider-column: 100%;
+    --slider-gap: var(--gap-content);
+  }
+
+  .slider--2 {
+    --slider-column: calc((100% - var(--slider-gap)) / 2);
+  }
+
+  .slider--3 {
+    --slider-column: calc((100% - var(--slider-gap) - var(--slider-gap)) / 3);
+  }
+
+  .slider--gap-base {
+    --slider-gap: var(--gap-base);
+  }
+
+  .slider__controls {
+    display: flex;
+    gap: var(--gap-xs);
+  }
+
+  .slider__control {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
+    flex-shrink: 0;
+    border: 1px solid transparent;
+    border-radius: 8px;
+    background: var(--gray-100);
+    color: var(--gray-900);
+    cursor: pointer;
+    transition:
+      color var(--transition-fast),
+      background-color var(--transition-fast),
+      border-color var(--transition-fast),
+      transform var(--transition-fast);
+
+    &:hover:not(:disabled) {
+      border-color: var(--gray-300);
+      background: var(--color-bg);
+    }
+
+    &:active:not(:disabled) {
+      transform: translateY(1px);
+    }
+
+    &:focus-visible {
+      outline: 2px solid var(--gray-900);
+      outline-offset: 2px;
+    }
+
+    &:disabled {
+      color: var(--gray-300);
+      cursor: not-allowed;
+      opacity: 0.72;
+    }
+
+    &--lg {
+      width: 64px;
+      height: 64px;
+      border-radius: 12px;
+    }
+  }
+
+  .slider__viewport {
+    overflow-x: auto;
+    overscroll-behavior-inline: contain;
+    scroll-behavior: smooth;
+    scroll-snap-type: x mandatory;
+    scrollbar-width: none;
+
+    &::-webkit-scrollbar {
+      display: none;
+    }
+
+    &:focus-visible {
+      outline: 2px solid var(--gray-900);
+      outline-offset: var(--space-2);
+    }
+
+    &.is-dragging {
+      cursor: grabbing;
+      scroll-behavior: auto;
+      scroll-snap-type: none;
+      user-select: none;
+    }
+  }
+
+  .slider__track {
+    display: grid;
+    grid-auto-columns: var(--slider-column);
+    grid-auto-flow: column;
+    gap: var(--slider-gap);
+  }
+
+  .slider__item {
+    min-width: 0;
+    scroll-snap-align: start;
+  }
+
+  @container (max-width: 768px) {
+    .slider.responsive .slider__track {
+      --slider-column: min(88%, 320px);
+      --slider-gap: var(--space-4);
+    }
+
+    .slider.responsive .slider__control--lg {
+      width: 48px;
+      height: 48px;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .slider__viewport {
+      scroll-behavior: auto;
+    }
+
+    .slider__control {
+      transition: none;
+    }
+  }
+}

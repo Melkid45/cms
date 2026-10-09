@@ -1,33 +1,38 @@
 .footer {
+  container-type: inline-size;
   border-top: 1px solid var(--gray-200);
-  background: var(--gray-100);
 }
 
-.footer__body > .flex:first-child {
+.footer__logo {
+  width: auto;
+  height: auto;
+}
+
+.footer__top {
   gap: var(--space-16);
 }
 
 .footer__map {
-  width: 20.75rem;
-  min-height: 8rem;
+  width: 332px;
+  min-height: 128px;
   background:
     linear-gradient(rgb(255 255 255 / 20%), rgb(255 255 255 / 20%)),
     url('@/assets/images/map.png') center / cover;
   filter: grayscale(1);
 }
 
-@media (max-width: 64rem) {
-  .footer__body > .flex:first-child,
-  .footer__body > .flex:first-child > .flex {
+@media (max-width: 1024px) {
+  .footer__top,
+  .footer__content {
     flex-direction: column;
   }
 
-  .footer__body > .flex:first-child > .flex {
+  .footer__content {
     gap: var(--space-12);
   }
 }
 
-@media (max-width: 48rem) {
+@media (max-width: 768px) {
   .footer__body {
     padding-block: var(--space-16);
   }

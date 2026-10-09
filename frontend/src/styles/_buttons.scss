@@ -6,7 +6,7 @@
     width: max-content;
     max-height: max-content;
     max-width: 100%;
-    min-height: 4rem;
+    min-height: 64px;
     padding: var(--space-3) var(--space-12);
     border: 1px solid transparent;
     border-radius: var(--radius-button);
@@ -89,33 +89,37 @@
     }
 
     &--xs {
-      border-radius: 0.25rem;
+      border-radius: 4px;
     }
 
     &--sm {
-      border-radius: 0.5rem;
+      border-radius: 8px;
     }
 
     &--md {
-      border-radius: 0.75rem;
+      border-radius: 12px;
     }
 
     &--lg {
-      border-radius: 1rem;
+      border-radius: 16px;
     }
 
     &--xl {
-      border-radius: 1.5rem;
+      border-radius: 24px;
     }
 
     &--size-xs {
-      min-height: 3rem;
-      padding-inline: 2.5rem;
+      min-height: 48px;
+      padding-inline: 40px;
     }
 
     &--size-sm {
-      min-height: 3.5rem;
-      padding-inline: 3rem;
+      min-height: 56px;
+      padding-inline: 48px;
+    }
+    &--size-md {
+      min-height: 64px;
+      padding-inline: 82px;
     }
     &--size-full{
       max-width: none;
@@ -131,6 +135,13 @@
       opacity: 0.5;
       cursor: not-allowed;
       pointer-events: none;
+    }
+  }
+
+  @container (max-width: 768px) {
+    .button.responsive {
+      min-height: 48px;
+      padding-inline: var(--space-6);
     }
   }
 

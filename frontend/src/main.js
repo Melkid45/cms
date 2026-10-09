@@ -42,7 +42,7 @@ faqItems.forEach((item, index) => {
 })
 
 
-import { createIcons, Check, ChevronLeft, ChevronRight, Plus, Quote } from 'lucide';
+import { createIcons, Check, ChevronLeft, ChevronRight, Plus, Quote, Play } from 'lucide';
 
 createIcons({
   icons: {
@@ -50,79 +50,145 @@ createIcons({
     ChevronLeft,
     ChevronRight,
     Plus,
-    Quote
+    Quote,
+    Play
   }
 });
 
-/* Testimonials */
+/* Sliders */
 
-const testimonials = document.querySelector('[data-testimonials]')
-const testimonialViewport = document.querySelector('[data-testimonials-viewport]')
-const testimonialTrack = document.querySelector('[data-testimonials-track]')
-const testimonialPrev = document.querySelector('[data-testimonial-prev]')
-const testimonialNext = document.querySelector('[data-testimonial-next]')
+document.querySelectorAll('[data-slider]').forEach((slider) => {
+  const viewport = slider.querySelector('[data-slider-viewport]')
+  const track = slider.querySelector('[data-slider-track]')
+  const previous = slider.querySelector('[data-slider-prev]')
+  const next = slider.querySelector('[data-slider-next]')
 
-function moveTestimonials(direction) {
-  if (!testimonialTrack || !testimonialViewport) return
+  if (!viewport || !track) return
 
-  const card = testimonialTrack.querySelector('.testimonial-card')
-  const styles = window.getComputedStyle(testimonialTrack)
-  const gap = Number.parseFloat(styles.columnGap || styles.gap) || 24
-  const distance = card ? card.getBoundingClientRect().width + gap : testimonialViewport.clientWidth
+  const move = (direction) => {
+    const item = track.querySelector('[data-slider-item]')
+    const styles = window.getComputedStyle(track)
+    const gap = Number.parseFloat(styles.columnGap || styles.gap) || 0
+    const distance = item ? item.getBoundingClientRect().width + gap : viewport.clientWidth
 
-  testimonialViewport.scrollBy({ left: distance * direction, behavior: 'smooth' })
-}
+    viewport.scrollBy({ left: distance * direction, behavior: 'smooth' })
+  }
 
-function updateTestimonialControls() {
-  if (!testimonialViewport || !testimonialPrev || !testimonialNext) return
+  const updateControls = () => {
+    const maxScroll = viewport.scrollWidth - viewport.clientWidth
+    if (previous) previous.disabled = viewport.scrollLeft <= 2
+    if (next) next.disabled = viewport.scrollLeft >= maxScroll - 2
+  }
 
-  const maxScroll = testimonialViewport.scrollWidth - testimonialViewport.clientWidth
-  testimonialPrev.disabled = testimonialViewport.scrollLeft <= 2
-  testimonialNext.disabled = testimonialViewport.scrollLeft >= maxScroll - 2
-}
+  previous?.addEventListener('click', () => move(-1))
+  next?.addEventListener('click', () => move(1))
+  viewport.addEventListener('scroll', updateControls, { passive: true })
+  viewport.addEventListener('keydown', (event) => {
+    if (event.key !== 'ArrowLeft' && event.key !== 'ArrowRight') return
+    event.preventDefault()
+    move(event.key === 'ArrowRight' ? 1 : -1)
+  })
 
-testimonialPrev?.addEventListener('click', () => moveTestimonials(-1))
-testimonialNext?.addEventListener('click', () => moveTestimonials(1))
-testimonialViewport?.addEventListener('scroll', updateTestimonialControls, { passive: true })
-testimonialViewport?.addEventListener('keydown', (event) => {
-  if (event.key !== 'ArrowLeft' && event.key !== 'ArrowRight') return
-  event.preventDefault()
-  moveTestimonials(event.key === 'ArrowRight' ? 1 : -1)
-})
-
-if (testimonialViewport && testimonials) {
   let pointerStart = 0
   let scrollStart = 0
   let dragging = false
 
-  testimonialViewport.addEventListener('pointerdown', (event) => {
-    if (event.pointerType !== 'mouse') return
+  viewport.addEventListener('pointerdown', (event) => {
+    if (event.pointerType !== 'mouse' || event.button !== 0) return
     dragging = true
     pointerStart = event.clientX
-    scrollStart = testimonialViewport.scrollLeft
-    testimonialViewport.classList.add('is-dragging')
-    testimonialViewport.setPointerCapture(event.pointerId)
+    scrollStart = viewport.scrollLeft
+    viewport.classList.add('is-dragging')
+    viewport.setPointerCapture(event.pointerId)
   })
 
-  testimonialViewport.addEventListener('pointermove', (event) => {
+  viewport.addEventListener('pointermove', (event) => {
     if (!dragging) return
-    testimonialViewport.scrollLeft = scrollStart - (event.clientX - pointerStart)
+    viewport.scrollLeft = scrollStart - (event.clientX - pointerStart)
   })
 
   const finishDrag = (event) => {
     if (!dragging) return
     dragging = false
-    testimonialViewport.classList.remove('is-dragging')
-    if (testimonialViewport.hasPointerCapture(event.pointerId)) {
-      testimonialViewport.releasePointerCapture(event.pointerId)
+    viewport.classList.remove('is-dragging')
+    if (viewport.hasPointerCapture(event.pointerId)) {
+      viewport.releasePointerCapture(event.pointerId)
     }
   }
 
-  testimonialViewport.addEventListener('pointerup', finishDrag)
-  testimonialViewport.addEventListener('pointercancel', finishDrag)
-  new ResizeObserver(updateTestimonialControls).observe(testimonialViewport)
-  updateTestimonialControls()
-}
+  viewport.addEventListener('pointerup', finishDrag)
+  viewport.addEventListener('pointercancel', finishDrag)
+  new ResizeObserver(updateControls).observe(viewport)
+  updateControls()
+})
+
+/* Forms */
+
+document.querySelectorAll('form[data-validate]').forEach((form) => {
+  const controls = [...form.querySelectorAll('input, textarea, select')]
+  const status = form.querySelector('[data-form-status]')
+
+  const applyCustomRules = (control) => {
+    control.setCustomValidity('')
+    const value = control.value.trim()
+
+    if (control.hasAttribute('data-validate-trim') && control.value && !value) {
+      control.setCustomValidity(control.dataset.errorRequired || 'This field is required.')
+      return
+    }
+
+    if (control.hasAttribute('data-validate-trim') && value && control.minLength > 0 && value.length < control.minLength) {
+      control.setCustomValidity(control.dataset.errorTooShort || `Use at least ${control.minLength} characters.`)
+      return
+    }
+
+    if (control.hasAttribute('data-validate-phone') && value) {
+      const allowedCharacters = /^[0-9+()\-\s]+$/.test(value)
+      const digitCount = value.replace(/\D/g, '').length
+
+      if (!allowedCharacters || digitCount < 7 || digitCount > 15) {
+        control.setCustomValidity(control.dataset.errorPattern || 'Enter a valid phone number.')
+      }
+    }
+  }
+
+  const validate = (control) => {
+    const field = control.closest('[data-field]')
+    applyCustomRules(control)
+    const valid = control.checkValidity()
+
+    field?.classList.toggle('is-invalid', !valid)
+    control.setAttribute('aria-invalid', String(!valid))
+
+    return valid
+  }
+
+  controls.forEach((control) => {
+    control.addEventListener('blur', () => validate(control))
+    control.addEventListener('input', () => {
+      if (control.getAttribute('aria-invalid') === 'true') validate(control)
+      if (status) status.textContent = ''
+    })
+  })
+
+  form.addEventListener('submit', (event) => {
+    event.preventDefault()
+    const validationResults = controls.map((control) => validate(control))
+    const firstInvalid = controls[validationResults.indexOf(false)]
+
+    if (firstInvalid) {
+      firstInvalid.focus()
+      return
+    }
+
+    form.reset()
+    controls.forEach((control) => {
+      control.removeAttribute('aria-invalid')
+      control.closest('[data-field]')?.classList.remove('is-invalid')
+    })
+    if (status) status.textContent = form.dataset.success || 'Form submitted successfully.'
+  })
+})
 
 /* Timeline — interaction model adapted from Harbstone */
 
@@ -244,4 +310,18 @@ if (timeline) {
 
   selectPoint(activeIndex)
   startTimeline()
+}
+
+
+const headerFixed = document.querySelector('.header.fixed')
+
+
+if (headerFixed) {
+  window.addEventListener('scroll', function(e){
+    if (this.window.scrollY) {
+      headerFixed.classList.add('active')
+    }else{
+      headerFixed.classList.remove('active')
+    }
+  })
 }

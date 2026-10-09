@@ -1,6 +1,7 @@
 import { existsSync, readFileSync, readdirSync } from 'node:fs'
 import path from 'node:path'
 import { defineConfig, normalizePath } from 'vite'
+import tailwindcss from '@tailwindcss/vite'
 
 const root = process.cwd()
 const srcDir = path.resolve(root, 'src')
@@ -142,7 +143,7 @@ function getHtmlEntries() {
 }
 
 export default defineConfig({
-  plugins: [htmlLayouts()],
+  plugins: [htmlLayouts(), tailwindcss()],
   resolve: {
     alias: {
       '@': srcDir,

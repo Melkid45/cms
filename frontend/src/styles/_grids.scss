@@ -1,5 +1,9 @@
 @layer utilities {
-  .grid {
+  .grid--1,
+  .grid--2,
+  .grid--3,
+  .grid--4,
+  .grid--5 {
     --grid-columns: 1;
     --grid-gap: var(--gap-base);
 
@@ -7,76 +11,126 @@
     grid-template-columns: repeat(var(--grid-columns), minmax(0, 1fr));
     gap: var(--grid-gap);
     min-width: 0;
-
-    &--2 {
-      --grid-columns: 2;
-    }
-
-    &--3 {
-      --grid-columns: 3;
-    }
-
-    &--4 {
-      --grid-columns: 4;
-    }
-
-    &--5 {
-      --grid-columns: 5;
-    }
-
-    &--lg {
-      --grid-gap: var(--space-40);
-    }
-
-    &--xl {
-      --grid-gap: var(--space-60);
-    }
-
-    &--item {
-      display: flex;
-      flex-direction: column;
-      min-width: 0;
-    }
-
-    &--item-pt {
-      gap: var(--gap-xs);
-      padding-top: 2.5rem;
-      border-top: 1px solid var(--color-border);
-    }
-
-    &--span-2 {
-      grid-column: span 2;
-    }
-
-    &--span-3 {
-      grid-column: span 3;
-    }
   }
 
-  @media (max-width: 64rem) {
-    .grid--3,
-    .grid--4,
-    .grid--5 {
+  .grid--2 {
+    --grid-columns: 2;
+  }
+
+  .grid--3 {
+    --grid-columns: 3;
+  }
+
+  .grid--4 {
+    --grid-columns: 4;
+  }
+
+  .grid--5 {
+    --grid-columns: 5;
+  }
+
+  .grid--lg {
+    --grid-gap: var(--space-40);
+  }
+
+  .grid--xl {
+    --grid-gap: var(--space-60);
+  }
+
+  .grid--item {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+  }
+
+  .grid--item-pt {
+    gap: var(--gap-xs);
+    padding-top: 40px;
+    border-top: 1px solid var(--color-border);
+  }
+
+  .grid--span-2 {
+    grid-column: span 2;
+  }
+
+  .grid--span-3 {
+    grid-column: span 3;
+  }
+
+  /*
+   * Gallery grids reuse `.media` for image sizing and cropping.
+   * Combine a column modifier with optional span modifiers on individual media.
+   */
+  .gallery-grid--2,
+  .gallery-grid--3,
+  .gallery-grid--4 {
+    --gallery-columns: 2;
+    --gallery-gap: var(--gap-base);
+
+    display: grid;
+    grid-template-columns: repeat(var(--gallery-columns), minmax(0, 1fr));
+    gap: var(--gallery-gap);
+    min-width: 0;
+  }
+
+  .gallery-grid--3 {
+    --gallery-columns: 3;
+  }
+
+  .gallery-grid--4 {
+    --gallery-columns: 4;
+  }
+
+  .gallery-grid__item--wide,
+  .gallery-grid__item--featured {
+    grid-column: span 2;
+  }
+
+  .gallery-grid__item--tall,
+  .gallery-grid__item--featured {
+    grid-row: span 2;
+  }
+
+  @container (max-width: 1024px) {
+    .grid--3.responsive,
+    .grid--4.responsive,
+    .grid--5.responsive {
       --grid-columns: 2;
     }
 
-    .grid--lg,
-    .grid--xl {
+    .responsive.grid--lg,
+    .responsive.grid--xl {
       --grid-gap: var(--gap-xl);
     }
+
+    .gallery-grid--3.responsive,
+    .gallery-grid--4.responsive {
+      --gallery-columns: 2;
+    }
+
+    .responsive > .gallery-grid__item--featured {
+      grid-row: span 1;
+      --media-aspect: 2 / 1;
+    }
   }
 
-  @media (max-width: 48rem) {
-    .grid--2,
-    .grid--3,
-    .grid--4,
-    .grid--5 {
+  @container (max-width: 768px) {
+    .grid--2.responsive,
+    .grid--3.responsive,
+    .grid--4.responsive,
+    .grid--5.responsive {
       --grid-columns: 1;
     }
 
-    .grid--span-2,
-    .grid--span-3 {
+    .responsive > .grid--span-2,
+    .responsive > .grid--span-3 {
       grid-column: span 1;
+    }
+
+    .gallery-grid--2.responsive,
+    .gallery-grid--3.responsive,
+    .gallery-grid--4.responsive {
+      --gallery-gap: var(--space-4);
     }
   }
 }

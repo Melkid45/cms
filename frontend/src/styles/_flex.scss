@@ -1,49 +1,46 @@
 @layer utilities {
-  .flex {
+  .flex--row,
+  .flex--column {
     display: flex;
     min-width: 0;
-
-    &.row {
-      flex-direction: row;
-    }
-    &.wrap{
-      flex-wrap: wrap;
-    }
-    &.column {
-      flex-direction: column;
-    }
-
-    &--al-center {
-      align-items: center;
-    }
-    &-ju-center {
-      justify-content: center;
-    }
-
-    &--sb {
-      justify-content: space-between;
-    }
-
-    &--end {
-      align-items: flex-end;
-      justify-content: flex-end;
-    }
-
-    &--wrap {
-      flex-wrap: wrap;
-    }
-
-    &--1 {
-      flex: 1 1 0;
-    }
   }
 
-  @media (max-width: 48rem) {
-    .flex.row {
-      flex-direction: column;
-    }
+  .flex--row {
+    flex-direction: row;
+  }
 
-    .flex--end {
+  .flex--column {
+    flex-direction: column;
+  }
+
+  .flex--al-center {
+    align-items: center;
+  }
+
+  .flex--ju-center {
+    justify-content: center;
+  }
+
+  .flex--sb {
+    justify-content: space-between;
+  }
+
+  .flex--end {
+    align-items: flex-end;
+    justify-content: flex-end;
+  }
+
+  .flex--wrap {
+    flex-wrap: wrap;
+  }
+
+  .flex--1 {
+    flex: 1 1 0;
+  }
+
+  @container (max-width: 768px) {
+    .flex--row.responsive {
+      flex-direction: column;
       align-items: flex-start;
     }
   }
