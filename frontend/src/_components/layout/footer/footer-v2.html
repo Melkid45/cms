@@ -1,13 +1,13 @@
 <link rel="stylesheet" href="./footer.scss">
 
 
-<footer class="footer padding--y-xl background-[--gray-900]">
+<footer id="contact" class="footer padding--y-xl background-[--gray-900]">
     <div class="container">
         <div class="flex--column spacing--xl">
             <div class="footer__top flex--row flex--sb">
                 <div class="flex--column spacing--lg">
-                    <a class="" href="">
-                        <img class="footer__logo" src="@/assets/images/logo3.svg" alt="">
+                    <a class="" href="#contact">
+                        <img class="footer__logo" src="@/assets/images/logo3.svg" alt="FormFit">
                     </a>
                     <div class="flex--row spacing--4xl responsive">
                         <nav class="flex--column spacing--medium">
@@ -16,19 +16,19 @@
                             </span>
                             <ul class="flex--column spacing--sm">
                                 <li class="text--sm text--opacity-50 color-[--color-bg]">
-                                    <a href="">Strength training</a>
+                                    <a href="#programs">Strength training</a>
                                 </li>
                                 <li class="text--sm text--opacity-50 color-[--color-bg]">
-                                    <a href="">Nutrition coaching</a>
+                                    <a href="#programs">Nutrition coaching</a>
                                 </li>
                                 <li class="text--sm text--opacity-50 color-[--color-bg]">
-                                    <a href="">Online programs</a>
+                                    <a href="#programs">Online programs</a>
                                 </li>
                                 <li class="text--sm text--opacity-50 color-[--color-bg]">
-                                    <a href="">Body composition</a>
+                                    <a href="#included">Body composition</a>
                                 </li>
                                 <li class="text--sm text--opacity-50 color-[--color-bg]">
-                                    <a href="">Mobility work</a>
+                                    <a href="#included">Mobility work</a>
                                 </li>
                             </ul>
                         </nav>
@@ -38,38 +38,23 @@
                             </span>
                             <ul class="flex--column spacing--sm">
                                 <li class="text--sm text--opacity-50 color-[--color-bg]">
-                                    <a href="">Client results</a>
+                                    <a href="#results">Client results</a>
                                 </li>
                                 <li class="text--sm text--opacity-50 color-[--color-bg]">
-                                    <a href="">Blog</a>
+                                    <a href="#insights">Blog</a>
                                 </li>
                                 <li class="text--sm text--opacity-50 color-[--color-bg]">
-                                    <a href="">Podcast</a>
+                                    <a href="#session">Inside the studio</a>
                                 </li>
                                 <li class="text--sm text--opacity-50 color-[--color-bg]">
-                                    <a href="">Contact</a>
+                                    <a href="#contact">Contact</a>
                                 </li>
                             </ul>
                         </nav>
-                        <nav class="flex--column spacing--medium">
-                            <span class="text--xl color-[--color-bg]">
-                                Follow us
-                            </span>
-                            <ul class="flex--column spacing--sm">
-                                <li class="text--sm text--opacity-50 color-[--color-bg]">
-                                    <a href="">Telegram</a>
-                                </li>
-                                <li class="text--sm text--opacity-50 color-[--color-bg]">
-                                    <a href="">Twitter</a>
-                                </li>
-                                <li class="text--sm text--opacity-50 color-[--color-bg]">
-                                    <a href="">Pinterest</a>
-                                </li>
-                            </ul>
-                        </nav>
+                        <nav class="flex--column spacing--medium"><span class="text--xl color-[--color-bg]">Explore</span><a class="text--sm color-[--color-bg]" href="#pricing">Pricing</a><a class="text--sm color-[--color-bg]" href="#faq">FAQ</a><a class="text--sm color-[--color-bg]" href="#story">Our story</a></nav>
                     </div>
                 </div>
-                <form class="form form--inverse form--narrow flex--column spacing--base" data-validate data-success="Thanks! We'll contact you shortly." novalidate>
+                <form class="form form--inverse form--narrow flex--column spacing--base" data-validate data-success="Form checked successfully. This is a design demo; no request has been sent." novalidate>
                     <div class="form__group">
                         <div class="field" data-field>
                             <label class="sr-only" for="footer-name">Name</label>
@@ -85,12 +70,12 @@
                         <label class="checkbox" for="footer-consent">
                             <input class="checkbox__input" id="footer-consent" name="consent" type="checkbox" required data-error-required="Consent is required.">
                             <span class="checkbox__mark" aria-hidden="true"></span>
-                            <span>I agree to the processing of <a href="">personal data</a></span>
+                            <span>I agree to the processing of <button type="button" data-open-privacy>personal data</button></span>
                         </label>
                     </div>
 
                     <button class="button button--white button--lg button--size-full" type="submit">Book a session</button>
-                    <p class="form__status" data-form-status role="status" aria-live="polite"></p>
+                    <p class="demo-note color-[--color-bg]">Design demo. This form validates locally; no information is sent or stored.</p><p class="form__status" data-form-status role="status" aria-live="polite"></p>
                 </form>
             </div>
             <div class="flex--column spacing--base">
@@ -98,13 +83,13 @@
                 <nav class="">
                     <ul class="flex--row spacing--lg">
                         <li class="text--sm text--opacity-50 color-[--color-bg]">
-                            <a href="">Privacy Policy</a>
+                            <button type="button" data-open-privacy>Privacy information</button>
                         </li>
                         <li class="text--sm text--opacity-50 color-[--color-bg]">
-                            <a href="">Career</a>
+                            <a href="/design-preview.html">Version 2</a>
                         </li>
                         <li class="text--sm text--opacity-50 color-[--color-bg]">
-                            <a href="">Press</a>
+                            <a href="/design-preview-v3.html">Version 3</a>
                         </li>
                     </ul>
                 </nav>

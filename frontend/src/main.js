@@ -11,7 +11,10 @@ function setFaqState(item, expanded) {
 
   item.classList.toggle('current', expanded)
   trigger?.setAttribute('aria-expanded', String(expanded))
-  if (content) content.style.maxHeight = expanded ? `${content.scrollHeight}px` : '0px'
+  if (content) {
+    content.style.maxHeight = expanded ? `${content.scrollHeight}px` : '0px'
+    content.setAttribute('aria-hidden', String(!expanded))
+  }
 }
 
 faqItems.forEach((item, index) => {
@@ -26,6 +29,7 @@ faqItems.forEach((item, index) => {
   trigger.setAttribute('aria-controls', contentId)
   trigger.setAttribute('aria-expanded', 'false')
   content.id = contentId
+  content.setAttribute('aria-hidden', 'true')
 
   const toggle = () => {
     const willExpand = !item.classList.contains('current')
@@ -41,6 +45,11 @@ faqItems.forEach((item, index) => {
   })
 })
 
+window.addEventListener('resize', () => {
+  faqItems.forEach((item) => {
+    if (item.classList.contains('current')) setFaqState(item, true)
+  })
+})
 
 import { createIcons, Check, ChevronLeft, ChevronRight, Plus, Quote, Play } from 'lucide';
 
@@ -216,7 +225,8 @@ if (timeline) {
   const updateGeometry = () => {
     if (!track || !fill || !points.length) return
     const lineStart = pointCenter(0)
-    const lineWidth = Math.max(track.scrollWidth - lineStart, 0)
+    const lastItem = points.at(-1).parentElement
+    const lineWidth = Math.max(lastItem.offsetLeft + lastItem.offsetWidth - lineStart, 0)
     track.style.setProperty('--timeline-line-start', `${lineStart}px`)
     track.style.setProperty('--timeline-line-width', `${lineWidth}px`)
     fill.style.setProperty('--timeline-fill', `${Math.max(pointCenter(activeIndex) - lineStart, 0)}px`)
