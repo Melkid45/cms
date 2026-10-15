@@ -16,6 +16,11 @@
 }
 
 @layer base {
+  :root {
+    --section-space: clamp(32px, calc(5.556vw - 16px), 88px);
+    --layout-gap: clamp(24px, 3vw, 48px);
+    --section-gap: clamp(24px, 2.5vw, 40px);
+  }
   html { scroll-behavior: smooth; scroll-padding-top: 24px; }
   body { font-family: var(--font-sans); background: var(--color-paper); color: var(--color-ink); }
   button, a, summary { -webkit-tap-highlight-color: transparent; }
@@ -31,11 +36,12 @@
   padding-inline: clamp(24px, 4vw, 80px);
 }
 
-@utility section-space { padding-block: clamp(64px, 8vw, 128px); }
+@utility section-space { padding-block: var(--section-space); }
+@utility layout-gap { gap: var(--layout-gap); }
 
 @layer components {
-  .section-title { @apply text-3xl leading-tight font-medium tracking-[-0.035em] md:text-4xl xl:text-5xl; }
-  .copy { @apply text-base leading-relaxed text-muted md:text-lg; }
+  .section-title { @apply leading-tight font-medium tracking-[-0.035em]; font-size: clamp(28px, 2.8vw, 48px); }
+  .copy { @apply leading-relaxed text-muted; font-size: clamp(16px, 1.25vw, 18px); }
   .button-primary { @apply inline-flex min-h-12 items-center justify-center rounded-md border border-ink bg-ink px-6 py-3 text-sm font-medium text-paper transition-colors hover:bg-neutral-700; }
   .button-secondary { @apply inline-flex min-h-12 items-center justify-center rounded-md border border-line px-6 py-3 text-sm font-medium transition-colors hover:border-ink hover:bg-surface; }
   .button-light { @apply inline-flex min-h-12 items-center justify-center rounded-md border border-paper bg-paper px-6 py-3 text-sm font-medium text-ink transition-colors hover:bg-neutral-200; }
@@ -62,5 +68,5 @@
   .timeline__fill { width: var(--timeline-fill); max-width: var(--timeline-line-width); background: color-mix(in srgb, var(--color-ink) 22%, var(--color-line)); }
   @media (max-width: 767px) { .timeline__item { flex-basis: 216px; } }
   .editorial-label { @apply text-xs font-medium uppercase tracking-[0.12em] text-muted; }
-  .editorial-heading { @apply text-4xl leading-[1.1] font-medium tracking-[-0.045em] md:text-5xl xl:text-6xl; }
+  .editorial-heading { @apply leading-[1.1] font-medium tracking-[-0.045em]; font-size: clamp(30px, 3.35vw, 60px); }
 }

@@ -24,6 +24,9 @@ const sectionIds = [
 ];
 for (const page of pages) {
   const html = readFileSync(resolve("dist", page), "utf8");
+  for (const hook of ["landing-masthead", "landing-hero", "hero-grid", "hero-copy", "hero-media"]) {
+    assert(html.includes(hook), `${page}: missing responsive ${hook}`);
+  }
   assert.equal(
     (html.match(/<section\b/g) || []).length,
     14,
@@ -73,8 +76,9 @@ for (const page of pages) {
   ])
     assert(html.includes(name), `${page}: review ${name}`);
   assert(
-    html.replace(/\s+/g, " ").includes("no information is sent or stored"),
-    `${page}: demo form notice`,
+    html.includes("data-demo-form") || html.includes("data-validate"),
+    `${page}: local form validation`,
   );
+  assert(!/<figcaption\b|Sample pricing|Illustrative client stories|Design by Ilya Melman/.test(html), `${page}: no decorative footnotes`);
   console.log(`${page}: 14 sections, valid anchors/assets/content`);
 }

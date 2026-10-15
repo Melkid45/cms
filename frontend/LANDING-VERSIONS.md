@@ -15,5 +15,17 @@ No video file was supplied, so the studio section uses photography instead of an
 inactive play button. Insights expand locally; no missing article pages are linked.
 
 Run `npm run build` and `node scripts/check-landings.mjs` from `frontend`.
-Responsive QA covers 390, 768, 1024 and 1440px; slider, timeline, FAQ, mobile menus
-and local form validation have been exercised in the browser.
+Responsive spacing uses a shared fluid scale: 88px per section edge at 1920px,
+64px at 1440px, 41px at 1024px and 32px on narrow screens. Structural gaps and
+headings scale independently from readable body text. Editorial image offsets
+use the same spacing scale rather than fixed 64/128px steps.
+
+All hero compositions share a viewport-height contract that includes the header.
+Portrait tablets and phones stack copy above the available image area. Desktop
+and short landscape screens retain two columns. Decorative hero labels disappear
+on small/short screens instead of reducing body copy below 16px.
+
+Responsive QA includes 1920×1080, 1440×900, 1440×800, 1366×768, 1024×768,
+768×1024, 390×844, 375×667, 320×568 and 844×390. Check actual hero content
+bounds and image area, not just document overflow. Slider, timeline, FAQ, mobile
+menus and local form validation have also been exercised in the browser.

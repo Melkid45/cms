@@ -3,19 +3,47 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta name="description" content="Harbstone design exploration: considered personal training, built around you." />
+    <meta
+      name="description"
+      content="Harbstone design exploration: considered personal training, built around you."
+    />
     <link rel="stylesheet" href="@/styles/tailwind.css" />
     <title>FormFit — Version 2</title>
   </head>
   <body>
-    <header class="page-shell flex min-h-24 items-center justify-between gap-6 border-b border-line py-5">
-      <a href="#home" class="text-2xl font-semibold tracking-tight" aria-label="FormFit home">FormFit</a>
-      <nav aria-label="Main navigation" class="hidden items-center gap-8 text-sm md:flex">
-        <a href="#programs" class="transition-colors hover:text-muted">Programs</a>
-        <a href="#coach" class="transition-colors hover:text-muted">Your coach</a>
-        <a href="mailto:hello@example.com" class="button-secondary">Get in touch</a>
+    <header
+      class="landing-masthead page-shell flex min-h-24 items-center justify-between gap-6 border-b border-line py-5"
+    >
+      <a
+        href="#home"
+        class="text-2xl font-semibold tracking-tight"
+        aria-label="FormFit home"
+        >FormFit</a
+      >
+      <nav
+        aria-label="Main navigation"
+        class="hidden items-center gap-8 text-sm md:flex"
+      >
+        <a href="#programs" class="transition-colors hover:text-muted"
+          >Programs</a
+        >
+        <a href="#coach" class="transition-colors hover:text-muted"
+          >Your coach</a
+        >
+        <a href="mailto:hello@example.com" class="button-secondary"
+          >Get in touch</a
+        >
       </nav>
-      <details class="relative md:hidden"><summary class="cursor-pointer text-sm">Menu</summary><nav aria-label="Mobile navigation" class="absolute right-0 top-full z-20 mt-4 flex w-52 flex-col gap-4 rounded-xl border border-line bg-paper p-5 shadow-lg"><a href="#approach">Our approach</a><a href="#coach">Your coach</a><a href="mailto:hello@example.com">Let’s talk ↗</a></nav></details>
+      <details class="relative md:hidden">
+        <summary class="cursor-pointer text-sm">Menu</summary>
+        <nav
+          aria-label="Mobile navigation"
+          class="absolute right-0 top-full z-20 mt-4 flex w-52 flex-col gap-4 rounded-xl border border-line bg-paper p-5 shadow-lg"
+        >
+          <a href="#approach">Our approach</a><a href="#coach">Your coach</a
+          ><a href="mailto:hello@example.com">Let’s talk ↗</a>
+        </nav>
+      </details>
     </header>
     <main>
       <!-- @include src/_components/experimental/hero.html -->
