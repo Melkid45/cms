@@ -1,0 +1,145 @@
+<link rel="stylesheet" href="./reviews.scss" />
+
+<section
+  id="testimonials"
+  class="block reviews reviews--split"
+  aria-labelledby="testimonials-v2-title"
+  data-slider
+>
+  <div class="container">
+    <div class="block__body block__grid">
+      <div class="testimonials__intro">
+        <h2 class="block__title" id="testimonials-v2-title">
+          What clients say
+        </h2>
+        <div class="slider__controls" aria-label="Testimonial navigation">
+          <button
+            class="slider__control slider__control--lg"
+            type="button"
+            data-slider-prev
+            aria-label="Previous testimonial"
+          >
+            <i data-lucide="chevron-left" width="16" height="16"></i>
+          </button>
+          <button
+            class="slider__control slider__control--lg"
+            type="button"
+            data-slider-next
+            aria-label="Next testimonial"
+          >
+            <i data-lucide="chevron-right" width="16" height="16"></i>
+          </button>
+        </div>
+      </div>
+
+      <div
+        class="slider__viewport"
+        data-slider-viewport
+        tabindex="0"
+        aria-label="Client testimonials carousel"
+      >
+        <div class="slider__track" data-slider-track>
+          <article class="slider__item testimonial-card" data-slider-item>
+            <div class="testimonial-card__profile">
+              <figure class="testimonial-card__avatar" aria-hidden="true">
+                <img src="@/assets/images/testimonial-avatar.png" alt="" />
+              </figure>
+              <div class="block__content">
+                <div class="block__content">
+                  <h3>Priya Nair</h3>
+                  <p>Online coaching · 6 months</p>
+                </div>
+                <span
+                  class="testimonial-card__rating"
+                  role="img"
+                  aria-label="5 out of 5 stars"
+                  >★★★★★</span
+                >
+              </div>
+            </div>
+            <blockquote>
+              “Training online sounded like a compromise. It wasn't. The
+              check-ins, the form videos, the constant adjustments — it's more
+              personal than any gym I've ever been to.”
+            </blockquote>
+          </article>
+
+          <article class="slider__item testimonial-card" data-slider-item>
+            <div class="testimonial-card__profile">
+              <figure class="testimonial-card__avatar" aria-hidden="true">
+                <img src="@/assets/images/testimonial-avatar.png" alt="" />
+              </figure>
+              <div class="block__content">
+                <div class="block__content">
+                  <h3>Daniel Brooks</h3>
+                  <p>Strength program · 4 months</p>
+                </div>
+                <span
+                  class="testimonial-card__rating"
+                  role="img"
+                  aria-label="5 out of 5 stars"
+                  >★★★★★</span
+                >
+              </div>
+            </div>
+            <blockquote>
+              “Every session had a purpose. I got stronger without feeling
+              broken, and for the first time the progress was obvious both in
+              the numbers and in the mirror.”
+            </blockquote>
+          </article>
+
+          <article class="slider__item testimonial-card" data-slider-item>
+            <div class="testimonial-card__profile">
+              <figure class="testimonial-card__avatar" aria-hidden="true">
+                <img src="@/assets/images/testimonial-avatar.png" alt="" />
+              </figure>
+              <div class="block__content">
+                <div class="block__content">
+                  <h3>Maya Chen</h3>
+                  <p>Nutrition coaching · 5 months</p>
+                </div>
+                <span
+                  class="testimonial-card__rating"
+                  role="img"
+                  aria-label="5 out of 5 stars"
+                  >★★★★★</span
+                >
+              </div>
+            </div>
+            <blockquote>
+              “No banned foods and no guilt. The plan finally fit my schedule,
+              my training improved, and the habits stayed even after the
+              coaching ended.”
+            </blockquote>
+          </article>
+
+          <article class="slider__item testimonial-card" data-slider-item>
+            <div class="testimonial-card__profile">
+              <figure class="testimonial-card__avatar" aria-hidden="true">
+                <img src="@/assets/images/testimonial-avatar.png" alt="" />
+              </figure>
+              <div class="block__content">
+                <div class="block__content">
+                  <h3>Alex Romero</h3>
+                  <p>Personal training · 8 months</p>
+                </div>
+                <span
+                  class="testimonial-card__rating"
+                  role="img"
+                  aria-label="5 out of 5 stars"
+                  >★★★★★</span
+                >
+              </div>
+            </div>
+            <blockquote>
+              “The plan changed whenever life changed. That flexibility kept me
+              consistent, and consistency delivered more than any aggressive
+              challenge ever did.”
+            </blockquote>
+          </article>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>

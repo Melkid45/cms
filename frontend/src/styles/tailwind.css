@@ -1,8 +1,11 @@
 @import "@fontsource-variable/manrope";
 @import "tailwindcss" source(none);
+@import "../cms/styles.css";
 
 @source "../../design-preview.html";
 @source "../../design-preview-v3.html";
+@source "../../block-library.html";
+@source "../cms";
 @source "../_components/experimental/**/*.html";
 
 @theme {
@@ -12,7 +15,7 @@
   --color-muted: #6b6b6b;
   --color-line: #e2e2e2;
   --color-accent: #d4ec9b;
-  --color-surface: #f5f5f3;
+  --color-surface: #f6f6f4;
 }
 
 @layer base {
@@ -46,7 +49,7 @@
   .button-secondary { @apply inline-flex min-h-12 items-center justify-center rounded-md border border-line px-6 py-3 text-sm font-medium transition-colors hover:border-ink hover:bg-surface; }
   .button-light { @apply inline-flex min-h-12 items-center justify-center rounded-md border border-paper bg-paper px-6 py-3 text-sm font-medium text-ink transition-colors hover:bg-neutral-200; }
   .button-outline-light { @apply inline-flex min-h-12 items-center justify-center rounded-md border border-paper/60 px-6 py-3 text-sm font-medium text-paper transition-colors hover:bg-paper/10 hover:border-paper; }
-  .review-control { @apply grid size-12 shrink-0 cursor-pointer place-items-center rounded-full border border-line text-xl transition-colors hover:bg-ink hover:text-paper disabled:cursor-default disabled:opacity-30 disabled:hover:bg-transparent disabled:hover:text-ink; }
+  .review-control, .carousel-control { @apply grid size-12 shrink-0 cursor-pointer place-items-center rounded-md border border-line text-xl transition-colors hover:bg-ink hover:text-paper disabled:cursor-default disabled:opacity-30 disabled:hover:bg-transparent disabled:hover:text-ink; }
   .landing-form input:not([type="checkbox"]) { @apply min-h-12 w-full rounded-none border-0 border-b border-line bg-transparent px-0 py-3 text-base outline-none placeholder:text-muted focus:border-ink; }
   .landing-form input[aria-invalid="true"] { @apply border-red-500; }
   .landing-form input[type="checkbox"] { accent-color: var(--color-ink); }

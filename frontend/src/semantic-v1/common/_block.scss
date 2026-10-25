@@ -1,0 +1,33 @@
+.block {
+  padding-block: var(--section-space);
+}
+.block__body {
+  display: grid;
+  gap: var(--content-gap);
+}
+.block__content {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  min-width: 0;
+}
+.block__row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+}
+.block__header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+  margin-bottom: var(--content-gap);
+}
+
+@media (max-width: 1024px) {
+  .block__row {
+    flex-wrap: wrap;
+  }
+}

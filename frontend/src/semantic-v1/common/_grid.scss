@@ -1,0 +1,8 @@
+@use "mixins";
+.block__grid {
+  @include mixins.columns(2);
+  align-items: start;
+}
+.block__cards {
+  @include mixins.columns(3);
+}

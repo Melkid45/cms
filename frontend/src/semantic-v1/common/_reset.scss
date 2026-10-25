@@ -1,0 +1,90 @@
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+html {
+  scroll-behavior: smooth;
+  scroll-padding-top: calc(var(--header-height) + 16px);
+}
+body {
+  margin: 0;
+  color: var(--ink);
+  background: white;
+  font:
+    16px/1.6 "Manrope Variable",
+    sans-serif;
+  overflow-wrap: anywhere;
+}
+ul {
+  padding: 0;
+  list-style: none;
+}
+a {
+  color: inherit;
+  text-decoration: none;
+}
+button,
+input {
+  font: inherit;
+}
+button {
+  cursor: pointer;
+}
+button,
+summary {
+  color: inherit;
+}
+button {
+  border: 0;
+  background: none;
+}
+img {
+  display: block;
+  max-width: 100%;
+  object-fit: cover;
+}
+svg {
+  flex-shrink: 0;
+}
+input {
+  min-width: 0;
+}
+:focus-visible {
+  outline: 2px solid currentColor;
+  outline-offset: 4px;
+}
+.divider {
+  height: 1px;
+  background: var(--line);
+}
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+}
+dialog {
+  max-width: min(600px, calc(100% - 32px));
+  padding: 32px;
+  border: 0;
+  border-radius: var(--radius);
+}
+dialog::backdrop {
+  background: #0006;
+}
+dialog p {
+  margin-block: 24px;
+}
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+  *,
+  *::before,
+  *::after {
+    transition: none !important;
+    animation: none !important;
+  }
+}

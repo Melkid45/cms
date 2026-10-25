@@ -1,55 +1,96 @@
-<section id="results" class="">
+<section id="results" data-carousel>
   <div class="page-shell section-space">
-    <div class="mb-[var(--section-gap)] grid gap-6 lg:grid-cols-[1fr_2fr]">
-      <p class="editorial-label mb-5">06 / Real progress</p>
+    <div
+      class="mb-[var(--section-gap)] flex flex-wrap items-end justify-between gap-6"
+    >
       <div>
         <h2 class="editorial-heading">Client results</h2>
         <p class="copy mt-5 max-w-xl">
           Different starting points. A shared commitment to showing up.
         </p>
       </div>
+      <div class="flex gap-2">
+        <button
+          class="carousel-control"
+          type="button"
+          data-carousel-prev
+          aria-label="Previous result"
+        >
+          ←</button
+        ><button
+          class="carousel-control"
+          type="button"
+          data-carousel-next
+          aria-label="Next result"
+        >
+          →
+        </button>
+      </div>
     </div>
-    <div class="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5 lg:gap-6">
-      <figure>
-        <img
-          class="w-full object-cover aspect-[4/5]"
-          src="@/assets/images/result-woman-4-months-crop.png"
-          alt="Four months of consistent training"
-          loading="lazy"
-        />
-      </figure>
-      <figure>
-        <img
-          class="w-full object-cover aspect-[4/5]"
-          src="@/assets/images/result-woman-comparison-crop.png"
-          alt="Building strength and confidence"
-          loading="lazy"
-        />
-      </figure>
-      <figure>
-        <img
-          class="w-full object-cover aspect-[4/5]"
-          src="@/assets/images/result-man-18kg-crop.png"
-          alt="A sustainable change in routine"
-          loading="lazy"
-        />
-      </figure>
-      <figure>
-        <img
-          class="w-full object-cover aspect-[4/5]"
-          src="@/assets/images/result-man-30kg-crop.png"
-          alt="Long-term progress, one session at a time"
-          loading="lazy"
-        />
-      </figure>
-      <figure>
-        <img
-          class="w-full object-cover aspect-[4/5]"
-          src="@/assets/images/result-woman-detail-crop.png"
-          alt="Small habits. Lasting results."
-          loading="lazy"
-        />
-      </figure>
+    <div
+      class="overflow-x-auto overscroll-x-contain snap-x snap-mandatory [scrollbar-width:none]"
+      data-carousel-viewport
+      tabindex="0"
+      role="region"
+      aria-label="Client results gallery"
+    >
+      <div class="flex items-stretch gap-6">
+        <figure
+          class="w-[82%] shrink-0 snap-start sm:w-[calc((100%-24px)/2)] lg:w-[calc((100%-48px)/3)]"
+          data-carousel-item
+        >
+          <img
+            class="w-full object-cover aspect-[4/5]"
+            src="@/assets/images/result-woman-4-months-crop.png"
+            alt="Four months of consistent training"
+            loading="lazy"
+          />
+        </figure>
+        <figure
+          class="w-[82%] shrink-0 snap-start sm:w-[calc((100%-24px)/2)] lg:w-[calc((100%-48px)/3)]"
+          data-carousel-item
+        >
+          <img
+            class="w-full object-cover aspect-[4/5]"
+            src="@/assets/images/result-woman-comparison-crop.png"
+            alt="Building strength and confidence"
+            loading="lazy"
+          />
+        </figure>
+        <figure
+          class="w-[82%] shrink-0 snap-start sm:w-[calc((100%-24px)/2)] lg:w-[calc((100%-48px)/3)]"
+          data-carousel-item
+        >
+          <img
+            class="w-full object-cover aspect-[4/5]"
+            src="@/assets/images/result-man-18kg-crop.png"
+            alt="A sustainable change in routine"
+            loading="lazy"
+          />
+        </figure>
+        <figure
+          class="w-[82%] shrink-0 snap-start sm:w-[calc((100%-24px)/2)] lg:w-[calc((100%-48px)/3)]"
+          data-carousel-item
+        >
+          <img
+            class="w-full object-cover aspect-[4/5]"
+            src="@/assets/images/result-man-30kg-crop.png"
+            alt="Long-term progress, one session at a time"
+            loading="lazy"
+          />
+        </figure>
+        <figure
+          class="w-[82%] shrink-0 snap-start sm:w-[calc((100%-24px)/2)] lg:w-[calc((100%-48px)/3)]"
+          data-carousel-item
+        >
+          <img
+            class="w-full object-cover aspect-[4/5]"
+            src="@/assets/images/result-woman-detail-crop.png"
+            alt="Small habits. Lasting results."
+            loading="lazy"
+          />
+        </figure>
+      </div>
     </div>
   </div>
 </section>

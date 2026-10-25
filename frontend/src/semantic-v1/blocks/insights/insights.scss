@@ -1,0 +1,22 @@
+.insight {
+  padding-block: 24px;
+  summary {
+    display: flex;
+    justify-content: space-between;
+    gap: 24px;
+    cursor: pointer;
+    list-style: none;
+  }
+  summary::-webkit-details-marker {
+    display: none;
+  }
+  &__copy {
+    display: grid;
+    gap: 16px;
+    max-width: 800px;
+    padding-top: 24px;
+  }
+  &[open] &__icon {
+    transform: rotate(45deg);
+  }
+}

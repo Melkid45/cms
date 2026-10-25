@@ -1,0 +1,9 @@
+.studio {
+  .block__row p {
+    max-width: 480px;
+  }
+  img {
+    width: 100%;
+    height: clamp(260px, 38vw, 480px);
+  }
+}

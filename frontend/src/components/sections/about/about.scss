@@ -1,0 +1,78 @@
+.about {
+  &__layout { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--layout-gap); align-items: center; }
+  &__content { width: 100%; max-width: 720px; margin-inline: auto; }
+  &__media { position: relative; margin: 0; overflow: hidden; border-radius: var(--radius); }
+  &__image { width: 100%; height: 100%; object-fit: cover; }
+  &__quote { margin: 0; display: flex; flex-direction: column; gap: 28px; }
+  &__quote > blockquote { margin: 0; }
+  &__author { display: flex; flex-direction: column; gap: 4px; }
+  &__facts { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 24px; margin: 0; padding-top: 32px; border-top: 1px solid var(--color-border); }
+  &__fact { display: flex; flex-direction: column; gap: 12px; }
+  &__fact dd { margin: 0; color: var(--color-muted); }
+  &__intro { display: grid; grid-template-columns: 1fr 2fr; gap: var(--layout-gap); margin-bottom: 48px; }
+  &__story { display: flex; flex-direction: column; gap: 24px; max-width: 640px; }
+
+  // Large media + a quiet quote card, inspired by Alture's about composition.
+  &--quote {
+    .about__media { height: clamp(560px, 47vw, 820px); display: flex; align-items: center; justify-content: center; padding: 40px; }
+    .about__image { position: absolute; inset: 0; }
+    .about__quote { position: relative; background: #252720ed; color: white; border-radius: var(--radius); padding: clamp(24px, 3vw, 48px); max-width: 560px; }
+    .about__author { color: #dce0d4; }
+    .about__content { padding-inline: clamp(0px, 2vw, 32px); }
+  }
+  // An editorial statement with a wide image and a compact evidence column.
+  &--editorial {
+    .about__intro { grid-template-columns: 1fr; }
+    .about__layout { grid-template-columns: 1.35fr 1fr; align-items: stretch; }
+    .about__media { min-height: 460px; }
+    .about__image { position: absolute; inset: 0; }
+    .about__story { justify-content: space-between; padding-block: 8px; gap: 48px; }
+  }
+  // Text-led introduction with an offset pair of photographs.
+  &--paired {
+    .about__media { display: grid; grid-template-columns: 1fr 1fr; align-items: end; gap: 20px; height: 640px; border-radius: 0; }
+    .about__image { min-height: 0; border-radius: var(--radius); }
+    .about__image:last-child { height: 74%; }
+    .about__facts { width: 100%; margin-top: 16px; }
+  }
+  // One shared surface, balanced image and a personal point of view.
+  &--panel {
+    .about__panel { border-radius: var(--radius); background: var(--color-surface); padding: clamp(24px, 4vw, 64px); }
+    .about__media { min-height: 620px; align-self: stretch; }
+    .about__image { position: absolute; inset: 0; }
+    .about__quote { border-top: 1px solid var(--color-border); padding-top: 28px; margin-top: 8px; }
+  }
+  // A broad introduction followed by a photo and an unframed company story.
+  &--story {
+    .about__intro { grid-template-columns: 1fr; }
+    .about__layout { grid-template-columns: 1.2fr 1fr; align-items: stretch; }
+    .about__media { min-height: 480px; }
+    .about__image { position: absolute; inset: 0; }
+    .about__story { justify-content: center; margin-inline: auto; }
+  }
+}
+@media (max-width: 1100px) {
+  .about {
+    &__facts { gap: 16px; }
+    &--quote .about__media { padding: 24px; }
+    &--paired .about__media { height: 520px; gap: 12px; }
+    &--panel .about__media { min-height: 540px; }
+  }
+}
+@media (max-width: 767px) {
+  .about {
+    &__layout, &__intro,
+    &--editorial .about__layout,
+    &--story .about__intro,
+    &--story .about__layout { grid-template-columns: 1fr; }
+    &__intro { margin-bottom: 28px; gap: 24px; }
+    &__content { max-width: none; }
+    &--quote .about__media { height: 520px; }
+    &--quote .about__content { padding-inline: 0; }
+    &--editorial .about__media { min-height: 320px; }
+    &--editorial .about__story { gap: 32px; }
+    &--paired .about__media { height: 360px; }
+    &--panel .about__media { min-height: 360px; }
+    &--story .about__media { min-height: 320px; }
+  }
+}

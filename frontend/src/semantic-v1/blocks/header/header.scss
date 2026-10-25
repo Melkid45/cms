@@ -1,0 +1,53 @@
+.site-header {
+  position: fixed;
+  inset: 0 0 auto;
+  z-index: 50;
+  background: white;
+  > .container {
+    display: flex;
+    height: var(--header-height);
+    align-items: center;
+    justify-content: space-between;
+    gap: 32px;
+  }
+  &__brand img {
+    width: 132px;
+    height: auto;
+  }
+  &__nav {
+    display: flex;
+    gap: clamp(20px, 3vw, 48px);
+    font-size: 15px;
+  }
+  a:hover {
+    opacity: 0.6;
+  }
+  &__toggle {
+    display: none;
+    width: 44px;
+    height: 44px;
+    align-items: center;
+    justify-content: center;
+  }
+  &__panel {
+    position: fixed;
+    inset: var(--header-height) 0 0;
+    padding: 32px var(--page-gutter);
+    background: white;
+    overflow: auto;
+  }
+  &__panel:not([hidden]) {
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+    font-size: 28px;
+  }
+  @media (max-width: 1024px) {
+    &__nav {
+      display: none;
+    }
+    &__toggle {
+      display: flex;
+    }
+  }
+}

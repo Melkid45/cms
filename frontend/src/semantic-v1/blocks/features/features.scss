@@ -1,0 +1,8 @@
+.features {
+  background: var(--surface);
+  &__item {
+    display: grid;
+    align-content: start;
+    gap: 16px;
+  }
+}

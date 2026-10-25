@@ -1,14 +1,22 @@
 import Link from "next/link";
-import { ArrowRight, CircleUserRound, Globe2, KeyRound, SlidersHorizontal } from "lucide-react";
+import { ArrowRight, CircleUserRound, Globe, Globe2, KeyRound, LucideIcon, SlidersHorizontal } from "lucide-react";
 import { PageHeader } from "@/components/admin/page-header";
 import { Card, CardContent } from "@/components/ui/card";
 
+interface SettingsItem {
+  title: string;
+  text: string;
+  icon: LucideIcon;
+  href: string;
+}
+
 const settings = [
   { title: "Profile", text: "Email, password, avatar, and notifications", icon: CircleUserRound, href: "/dashboard/settings/profile" },
-  { title: "Project", text: "Name, domain, and system preferences", icon: SlidersHorizontal, href: "#" },
+  { title: "Project", text: "Website, online store, regional settings, and SMTP", icon: SlidersHorizontal, href: "/dashboard/settings/project" },
   { title: "Localization", text: "Languages and regional formats", icon: Globe2, href: "#" },
   { title: "API tokens", text: "Access keys for external applications", icon: KeyRound, href: "#" },
-];
+  { title: "Brand", text: "Logo and website color palette", icon: Globe, href: "/dashboard/settings/setup" },
+] satisfies readonly SettingsItem[];
 
 export default function SettingsPage() {
   return (

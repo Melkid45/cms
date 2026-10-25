@@ -1,0 +1,74 @@
+.advantages {
+  &__header { display: grid; grid-template-columns: 1.2fr 1fr; gap: var(--layout-gap); align-items: end; margin-bottom: 56px; }
+  &__header > .section__description { justify-self: end; max-width: 600px; }
+  &__grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 40px; }
+  &__item { display: flex; flex-direction: column; align-items: flex-start; gap: 32px; padding-top: 32px; border-top: 1px solid var(--color-border); }
+  &__icon { display: block; width: 36px; height: 36px; flex: 0 0 36px; color: #5f7040; }
+  &--grid {
+    .advantages__grid { gap: 24px; }
+    .advantages__item { padding: clamp(24px, 2vw, 36px); border: 1px solid var(--color-border); border-radius: var(--radius); }
+    .advantages__icon-wrap { display: flex; align-items: center; justify-content: center; width: 64px; height: 64px; flex: 0 0 64px; border-radius: 14px; background: var(--color-surface); }
+  }
+  &__copy { display: flex; flex-direction: column; gap: 16px; min-width: 0; }
+  &__layout { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--layout-gap); align-items: stretch; }
+  &__visual { position: relative; margin: 0; min-height: 600px; overflow: hidden; border-radius: var(--radius); }
+  &__image { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+  &__content { display: flex; flex-direction: column; gap: 40px; }
+  &__row { display: flex; gap: 24px; align-items: flex-start; padding-block: 24px; border-top: 1px solid var(--color-border); }
+  &__row:last-child { padding-bottom: 0; }
+  &__panel { border-radius: var(--radius); background: var(--color-surface); padding: clamp(24px, 4vw, 64px); }
+  &--panel {
+    .advantages__grid { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 24px; }
+    .advantages__card { display: flex; flex-direction: column; gap: 40px; padding: clamp(24px, 2.5vw, 40px); background: var(--color-bg); border-radius: var(--radius); }
+    .advantages__card > .section__description { margin-top: auto; }
+  }
+  &--numbers {
+    .advantages__layout { align-items: start; }
+    .advantages__intro { max-width: 640px; }
+  }
+  &__facts { margin: 0; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 48px 40px; }
+  &__fact { display: flex; flex-direction: column; gap: 24px; border-top: 1px solid var(--color-border); padding-top: 28px; }
+  &__fact > dd { margin: 0; }
+  &__tabs { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 16px; margin-bottom: 24px; }
+  &__tab { display: flex; align-items: center; gap: 20px; min-width: 0; padding: 24px; border: 1px solid var(--color-border); border-radius: var(--radius); color: var(--color-ink); background: transparent; text-align: left; cursor: pointer; transition: background .2s, border-color .2s; }
+  &__tab:hover { background: var(--color-surface); }
+  &__tab[aria-selected="true"] { background: var(--color-accent); border-color: var(--color-accent); }
+  &__panels { display: grid; gap: 24px; }
+  &__detail { display: grid; grid-template-columns: 1.2fr 1fr; background: var(--color-surface); border-radius: var(--radius); overflow: hidden; }
+  &__detail .advantages__visual { min-height: 480px; border-radius: 0; }
+  &__detail-copy { justify-content: center; padding: clamp(24px, 4vw, 64px); }
+  &--interactive.is-enhanced {
+    .advantages__panels { gap: 0; }
+    .advantages__detail { grid-area: 1 / 1; visibility: hidden; pointer-events: none; }
+    .advantages__detail.is-active { visibility: visible; pointer-events: auto; }
+  }
+}
+@media (max-width: 1100px) {
+  .advantages {
+    &__tabs { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    &__grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 40px 32px; }
+    &--panel .advantages__grid { grid-template-columns: 1fr; }
+    &--panel .advantages__card { display: grid; grid-template-columns: 1fr 1fr; align-items: start; gap: 32px; }
+    &--panel .advantages__card > .section__description { margin-top: 0; }
+    &__facts { gap: 32px 24px; }
+  }
+}
+@media (max-width: 767px) {
+  .advantages {
+    &__tab { flex-direction: column; align-items: flex-start; gap: 16px; padding: 20px; }
+    &__detail { grid-template-columns: 1fr; }
+    &__detail .advantages__visual { min-height: 280px; }
+    &__header, &__layout { grid-template-columns: 1fr; }
+    &__header { gap: 24px; margin-bottom: 32px; }
+    &__header > .section__description { justify-self: start; }
+    &__grid { grid-template-columns: 1fr; gap: 32px; }
+    &__item { gap: 24px; padding-top: 24px; }
+    &__visual { min-height: 360px; }
+    &__content { gap: 32px; }
+    &__row { gap: 20px; }
+    &--panel .advantages__card { grid-template-columns: 1fr; gap: 24px; }
+  }
+}
+@media (max-width: 380px) {
+  .advantages__facts { grid-template-columns: 1fr; }
+}

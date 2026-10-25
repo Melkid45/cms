@@ -1,0 +1,77 @@
+import assert from "node:assert/strict";
+import { readFileSync } from "node:fs";
+import { createRequire } from "node:module";
+import { fileURLToPath } from "node:url";
+const require = createRequire(import.meta.url);
+const ts = require("typescript");
+const loaded = new Map();
+function load(url) {
+  const filename = fileURLToPath(url);
+  if (loaded.has(filename)) return loaded.get(filename);
+  const exports = {};
+  loaded.set(filename, exports);
+  const js = ts.transpileModule(readFileSync(url, "utf8"), { compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2022 } }).outputText;
+  new Function("require", "exports", js)((name) => name.startsWith(".") ? load(new URL(name + ".ts", url)) : require(name), exports);
+  return exports;
+}
+const schema = load(new URL("../../frontend/src/cms/schema.ts", import.meta.url));
+const { renderBlock } = load(new URL("../../frontend/src/cms/render.ts", import.meta.url));
+assert.equal(schema.blockDefinitions.length, 10);
+for (const definition of schema.blockDefinitions) {
+  const content = schema.createContent("cms/" + definition.id);
+  const html = renderBlock("cms/" + definition.id, content, { training: "/training.png", strength: "/strength.png", nutrition: "/nutrition.png", online: "/online.png" });
+  assert.match(html, /cms-section/);
+  assert.ok(html.includes(content.title));
+}
+const first = schema.createContent("cms/about-split");
+first.title = "Changed";
+assert.notEqual(schema.createContent("cms/about-split").title, "Changed");
+for (const unsafe of ["javascript:alert(1)", "data:text/html,test", "//evil.example", "/\\evil.example"]) assert.equal(schema.safeUrl(unsafe), "");
+assert.equal(schema.safeUrl("#coach"), "#coach");
+assert.equal(schema.safeUrl("mailto:hello@example.com"), "mailto:hello@example.com");
+assert.equal(schema.safeUrl("mailto:hello@example.com", true), "");
+const malicious = { ...first, title: '<script>alert("test")</script>', image: "javascript:alert(1)", buttonLabel: "Click", buttonUrl: "javascript:alert(1)" };
+const html = renderBlock("cms/about-split", malicious, {});
+assert.ok(!html.includes("<script>"));
+assert.ok(!html.includes("<a "));
+assert.ok(!html.includes("<img "));
+assert.ok(html.includes("&lt;script&gt;"));
+const storage = load(new URL("../src/lib/page-storage.ts", import.meta.url));
+assert.deepEqual(storage.readSavedPages("broken-json"), []);
+assert.deepEqual(storage.readSavedPages('{"version":2,"pages":[]}'), []);
+assert.deepEqual(storage.readSavedPages(JSON.stringify({ version: 1, pages: [{ title: "Invalid", slug: "../unsafe", locale: "en", status: "Draft", blocks: [] }] })), []);
+const layouts = load(new URL("../../frontend/src/cms/layout.ts", import.meta.url));
+assert.equal(layouts.headerVariants.length, 7);
+assert.equal(layouts.footerVariants.length, 7);
+const layoutStorage = load(new URL("../src/lib/layout-storage.ts", import.meta.url));
+for (const header of layouts.headerVariants) {
+  const html = layouts.renderHeader({ ...layouts.defaultLayout, header: header.id });
+  assert.match(html, /Mobile navigation/);
+  assert.match(html, /Main navigation/);
+  assert.match(html, /data-site-header class="cms-fixed-header/);
+  assert.match(html, /data-menu-open/);
+  assert.match(html, /<dialog data-site-menu/);
+  assert.match(html, /@min-\[1025px\]:hidden/);
+  assert.ok(!html.includes("bg-neutral-950"));
+  assert.equal(html.includes("border-black/10"), ["business", "band", "centered", "split"].includes(header.id));
+}
+for (const footer of layouts.footerVariants) assert.match(layouts.renderFooter({ ...layouts.defaultLayout, footer: footer.id }), /Footer navigation/);
+const hostileLayout = { ...layouts.defaultLayout, brand: '<script>alert(1)</script>', actionUrl: 'javascript:alert(1)', menus: { header: [{ slug: 'studio', label: '<img onerror=alert(1)>' }, { slug: 'services', label: 'Child', parentSlug: 'studio' }], footer: [] } };
+const safeHeader = layouts.renderHeader(hostileLayout);
+assert.ok(!safeHeader.includes('<script>') && !safeHeader.includes('<img') && !safeHeader.includes('javascript:'));
+assert.match(safeHeader, /<details/);
+assert.deepEqual(layoutStorage.readLayout('broken'), layouts.defaultLayout);
+assert.deepEqual(layoutStorage.readLayout(JSON.stringify({ version: 1, layout: layouts.defaultLayout })), layouts.defaultLayout);
+assert.deepEqual(layoutStorage.readLayout(JSON.stringify({ version: 1, layout: { ...layouts.defaultLayout, header: 'unknown' } })), layouts.defaultLayout);
+assert.deepEqual(layoutStorage.readLayout(JSON.stringify({ version: 1, layout: { ...layouts.defaultLayout, menus: null } })), layouts.defaultLayout);
+const legacyLayout = { ...layouts.defaultLayout, header: "centered", footer: "contact" };
+delete legacyLayout.phone; delete legacyLayout.address; delete legacyLayout.hours;
+const migrated = layoutStorage.readLayout(JSON.stringify({ version: 1, layout: legacyLayout }));
+assert.equal(migrated.header, "centered");
+assert.equal(migrated.footer, "contact");
+assert.equal(migrated.phone, layouts.defaultLayout.phone);
+const business = layouts.renderHeader({ ...layouts.defaultLayout, header: "business" });
+assert.match(business, /tel:\+15550102040/);
+assert.ok(business.indexOf('Harbstone') < business.indexOf('Main navigation'));
+for (const header of layouts.headerVariants) assert.ok(!layouts.renderHeader({ ...layouts.defaultLayout, header: header.id, phone: "", actionLabel: "" }).includes('href="tel:'));
+console.log("10 blocks, 14 global layouts, migration, optional contacts, nested navigation and security: passed.");

@@ -1,0 +1,27 @@
+@layer components {
+  .cms-site { font-family: "Manrope Variable", Arial, sans-serif; overflow-wrap: anywhere; }
+  .cms-shell { width: 100%; max-width: 1440px; margin-inline: auto; padding-inline: clamp(24px, 4cqw, 64px); }
+  .cms-section { padding-block: clamp(48px, 7cqw, 104px); }
+  .cms-heading { @apply whitespace-pre-line text-[clamp(32px,4.5cqw,64px)] leading-[1.08] font-medium tracking-[-0.045em]; }
+  .cms-eyebrow { @apply mb-6 text-xs font-medium uppercase tracking-[0.12em] opacity-55; }
+  .cms-copy { @apply text-lg leading-relaxed opacity-60; }
+  .cms-button { @apply mt-7 inline-flex min-h-12 max-w-full items-center justify-center gap-8 rounded-md border border-current px-6 py-3 text-sm font-medium transition-opacity hover:opacity-65; }
+  .cms-site :focus-visible { outline: 2px solid currentColor; outline-offset: 4px; }
+  .cms-nav-link { @apply block py-2 text-sm transition-opacity hover:opacity-60; }
+  .cms-layout-action { @apply inline-flex min-h-11 items-center justify-center rounded-md bg-neutral-900 px-5 py-3 text-sm font-medium text-white transition-opacity hover:opacity-75; }
+  .cms-nav-group { position: relative; }
+  .cms-menu-toggle { @apply flex size-11 cursor-pointer items-center justify-center text-neutral-900 transition-opacity hover:opacity-60; }
+  .cms-close-icon, .cms-menu-toggle[aria-expanded="true"] .cms-menu-icon { display: none; }
+  .cms-menu-toggle[aria-expanded="true"] .cms-close-icon { display: block; }
+  .cms-menu-dialog { position: fixed; inset: var(--cms-header-height, 80px) auto auto 0; width: 100%; height: calc(100dvh - var(--cms-header-height, 80px)); max-width: none; max-height: none; margin: 0; padding: 0 clamp(24px, 4cqw, 64px); border: 0; background: white; color: #171717; overflow-y: auto; overscroll-behavior: contain; }
+  .cms-menu-dialog[open] { display: flex; flex-direction: column; }
+  .cms-menu-dialog::backdrop { background: transparent; }
+  .cms-menu-links { @apply flex flex-col items-start gap-3 py-8; }
+  .cms-menu-links > .cms-nav-link, .cms-menu-links > details > summary { @apply text-[clamp(24px,4cqw,40px)] leading-tight tracking-tight; }
+  .cms-fixed-header { position: fixed; inset: 0 0 auto; z-index: 40; }
+  .cms-site [id] { scroll-margin-top: calc(var(--cms-header-height, 80px) + 16px); }
+  [aria-hidden="true"] .cms-fixed-header { position: relative; inset: auto; }
+  .cms-nav-group > summary::after, .cms-mobile-menu > summary::after { content: "⌄"; margin-left: 8px; }
+  .cms-submenu { @apply absolute left-0 top-full z-30 min-w-48 rounded-lg border border-neutral-200 bg-white p-3 text-neutral-900 shadow-lg; }
+  .cms-nav-group--mobile .cms-submenu { @apply static mt-2 border-0 border-l pl-5 shadow-none; }
+}

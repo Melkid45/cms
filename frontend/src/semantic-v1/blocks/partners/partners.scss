@@ -1,0 +1,18 @@
+.partners {
+  padding-block: 32px;
+  &__list {
+    display: flex;
+    flex-wrap: nowrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 32px;
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+  img {
+    width: 120px;
+    height: 40px;
+    object-fit: contain;
+    flex-shrink: 0;
+  }
+}

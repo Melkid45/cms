@@ -1,0 +1,152 @@
+<link rel="stylesheet" href="./footer.scss" />
+
+<footer id="contact" class="footer footer--columns">
+  <div class="container">
+    <div class="block__content">
+      <div class="footer__top">
+        <div class="block__content">
+          <a href="#contact">
+            <img
+              class="footer__logo"
+              src="@/assets/images/logo3.svg"
+              alt="FormFit"
+            />
+          </a>
+          <div class="block__row">
+            <nav class="block__content">
+              <span> Services </span>
+              <ul class="block__content">
+                <li>
+                  <a href="#programs">Strength training</a>
+                </li>
+                <li>
+                  <a href="#programs">Nutrition coaching</a>
+                </li>
+                <li>
+                  <a href="#programs">Online programs</a>
+                </li>
+                <li>
+                  <a href="#included">Body composition</a>
+                </li>
+                <li>
+                  <a href="#included">Mobility work</a>
+                </li>
+              </ul>
+            </nav>
+            <nav class="block__content">
+              <span> About </span>
+              <ul class="block__content">
+                <li>
+                  <a href="#results">Client results</a>
+                </li>
+                <li>
+                  <a href="#insights">Blog</a>
+                </li>
+                <li>
+                  <a href="#session">Inside the studio</a>
+                </li>
+                <li>
+                  <a href="#contact">Contact</a>
+                </li>
+              </ul>
+            </nav>
+            <nav class="block__content">
+              <span>Explore</span><a href="#pricing">Pricing</a
+              ><a href="#faq">FAQ</a><a href="#story">Our story</a>
+            </nav>
+          </div>
+        </div>
+        <form
+          class="form form--inverse form--narrow"
+          data-validate
+          data-success="Form checked successfully. This is a design demo; no request has been sent."
+          novalidate
+        >
+          <div class="form__group">
+            <div class="field" data-field>
+              <label class="sr-only" for="footer-name">Name</label>
+              <input
+                class="field__control"
+                id="footer-name"
+                name="name"
+                type="text"
+                placeholder="Name"
+                autocomplete="name"
+                minlength="2"
+                maxlength="80"
+                required
+                data-validate-trim
+                data-error-required="Enter your name."
+                data-error-too-short="Use at least 2 characters."
+              />
+            </div>
+            <div class="field" data-field>
+              <label class="sr-only" for="footer-phone">Phone</label>
+              <input
+                class="field__control"
+                id="footer-phone"
+                name="phone"
+                type="tel"
+                placeholder="Phone"
+                autocomplete="tel"
+                inputmode="tel"
+                required
+                data-validate-phone
+                data-error-required="Enter your phone number."
+                data-error-pattern="Enter a valid phone number."
+              />
+            </div>
+          </div>
+
+          <div class="field" data-field>
+            <label class="checkbox" for="footer-consent">
+              <input
+                class="checkbox__input"
+                id="footer-consent"
+                name="consent"
+                type="checkbox"
+                required
+                data-error-required="Consent is required."
+              />
+              <span class="checkbox__mark" aria-hidden="true"></span>
+              <span
+                >I agree to the processing of
+                <button type="button" data-open-privacy>
+                  personal data
+                </button></span
+              >
+            </label>
+          </div>
+
+          <button class="button button--white" type="submit">
+            Book a session
+          </button>
+          <p
+            class="form__status"
+            data-form-status
+            role="status"
+            aria-live="polite"
+          ></p>
+        </form>
+      </div>
+      <div class="block__content">
+        <div class="divider"></div>
+        <nav>
+          <ul class="block__row">
+            <li>
+              <button type="button" data-open-privacy>
+                Privacy information
+              </button>
+            </li>
+            <li>
+              <a href="/design-preview.html">Version 2</a>
+            </li>
+            <li>
+              <a href="/design-preview-v3.html">Version 3</a>
+            </li>
+          </ul>
+        </nav>
+      </div>
+    </div>
+  </div>
+</footer>

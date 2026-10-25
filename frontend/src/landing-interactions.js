@@ -1,44 +1,57 @@
 import "./styles/landing-demo.css";
 
 // Presentation interactions only: never transmit or persist contact details.
-document.querySelectorAll("[data-review-slider]").forEach((slider) => {
-  const viewport = slider.querySelector("[data-review-viewport]");
-  const items = [...slider.querySelectorAll("[data-review-item]")];
-  const previous = slider.querySelector("[data-review-prev]");
-  const next = slider.querySelector("[data-review-next]");
-  const status = slider.querySelector("[data-review-status]");
-  const reducedMotion = matchMedia("(prefers-reduced-motion: reduce)");
-  function update() {
-    previous.disabled = viewport.scrollLeft <= 2;
-    next.disabled =
-      viewport.scrollLeft >= viewport.scrollWidth - viewport.clientWidth - 2;
-    const index = Math.min(
-      items.length - 1,
-      Math.max(
-        0,
-        Math.round(viewport.scrollLeft / (items[0].offsetWidth + 24)),
-      ),
+document
+  .querySelectorAll("[data-review-slider], [data-carousel]")
+  .forEach((slider) => {
+    const viewport = slider.querySelector(
+      "[data-review-viewport], [data-carousel-viewport]",
     );
-    status.textContent = `${index + 1} / ${items.length} · Client stories`;
-  }
-  function move(direction) {
-    viewport.scrollBy({
-      left: direction * (items[0].offsetWidth + 24),
-      behavior: reducedMotion.matches ? "instant" : "smooth",
-    });
-  }
-  previous.addEventListener("click", () => move(-1));
-  next.addEventListener("click", () => move(1));
-  viewport.addEventListener("scroll", update, { passive: true });
-  viewport.addEventListener("keydown", (event) => {
-    if (event.key === "ArrowLeft" || event.key === "ArrowRight") {
-      event.preventDefault();
-      move(event.key === "ArrowLeft" ? -1 : 1);
+    const items = [
+      ...slider.querySelectorAll("[data-review-item], [data-carousel-item]"),
+    ];
+    const previous = slider.querySelector(
+      "[data-review-prev], [data-carousel-prev]",
+    );
+    const next = slider.querySelector(
+      "[data-review-next], [data-carousel-next]",
+    );
+    const status = slider.querySelector("[data-review-status]");
+    if (!viewport || !items.length || !previous || !next) return;
+    const distance = () =>
+      items[0].getBoundingClientRect().width +
+      (Number.parseFloat(getComputedStyle(items[0].parentElement).columnGap) ||
+        0);
+    const reducedMotion = matchMedia("(prefers-reduced-motion: reduce)");
+    function update() {
+      previous.disabled = viewport.scrollLeft <= 2;
+      next.disabled =
+        viewport.scrollLeft >= viewport.scrollWidth - viewport.clientWidth - 2;
+      const index = Math.min(
+        items.length - 1,
+        Math.max(0, Math.round(viewport.scrollLeft / distance())),
+      );
+      if (status)
+        status.textContent = `${index + 1} / ${items.length} · Client stories`;
     }
+    function move(direction) {
+      viewport.scrollBy({
+        left: direction * distance(),
+        behavior: reducedMotion.matches ? "instant" : "smooth",
+      });
+    }
+    previous.addEventListener("click", () => move(-1));
+    next.addEventListener("click", () => move(1));
+    viewport.addEventListener("scroll", update, { passive: true });
+    viewport.addEventListener("keydown", (event) => {
+      if (event.key === "ArrowLeft" || event.key === "ArrowRight") {
+        event.preventDefault();
+        move(event.key === "ArrowLeft" ? -1 : 1);
+      }
+    });
+    new ResizeObserver(update).observe(viewport);
+    update();
   });
-  new ResizeObserver(update).observe(viewport);
-  update();
-});
 
 document.querySelectorAll("[data-demo-form]").forEach((form) => {
   const inputs = [...form.querySelectorAll("input")];

@@ -1,0 +1,33 @@
+<link rel="stylesheet" href="./header.scss" />
+
+<header class="site-header">
+  <div class="container">
+    <a class="site-header__brand" href="#home"
+      ><img src="@/assets/images/logo2.svg" alt="FormFit"
+    /></a>
+    <nav class="site-header__nav" aria-label="Main navigation">
+      <a href="#programs">Programs</a><a href="#coach">Your coach</a
+      ><a href="#results">Results</a><a href="#pricing">Pricing</a
+      ><a href="#contact">Contact</a>
+    </nav>
+    <button
+      class="site-header__toggle"
+      type="button"
+      aria-label="Open navigation"
+      aria-expanded="false"
+      aria-controls="site-menu"
+    >
+      <i data-lucide="text-align-justify"></i>
+    </button>
+  </div>
+  <nav
+    class="site-header__panel"
+    id="site-menu"
+    aria-label="Mobile navigation"
+    hidden
+  >
+    <a href="#programs">Programs</a><a href="#coach">Your coach</a
+    ><a href="#results">Results</a><a href="#pricing">Pricing</a
+    ><a href="#contact">Contact</a>
+  </nav>
+</header>

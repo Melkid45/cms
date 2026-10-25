@@ -1,0 +1,51 @@
+@use "../../common/mixins" as grid;
+.programs {
+  &__list {
+    @include grid.columns(3);
+  }
+  &__item {
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    border-radius: var(--radius);
+  }
+  &--cards &__item {
+    background: var(--surface);
+  }
+  &__image {
+    width: 100%;
+    aspect-ratio: 16/10;
+  }
+  &__content {
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+    padding: clamp(20px, 2vw, 32px);
+    flex: 1;
+  }
+  .button {
+    margin-top: auto;
+  }
+  /* One root modifier changes the whole composition; content stays untouched. */
+  &--editorial &__item {
+    background: transparent;
+    border-radius: 0;
+  }
+  &--editorial &__content {
+    padding: 24px 0 0;
+  }
+  &--editorial img {
+    aspect-ratio: 4/5;
+  }
+  &--editorial &__item:nth-child(2) {
+    margin-top: 48px;
+  }
+  &--editorial &__item:nth-child(3) {
+    margin-top: 96px;
+  }
+  @media (max-width: 768px) {
+    &--editorial .programs__item {
+      margin-top: 0;
+    }
+  }
+}

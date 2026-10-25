@@ -1,0 +1,70 @@
+.timeline {
+  &__viewport {
+    overflow-x: auto;
+    scrollbar-width: none;
+    scroll-snap-type: x mandatory;
+  }
+  &__track {
+    position: relative;
+    display: flex;
+    width: 100%;
+    padding-block: 10px 16px;
+  }
+  &__item {
+    position: relative;
+    flex: 0 0 33.333333%;
+    min-width: 0;
+    scroll-snap-align: center;
+  }
+  &__point {
+    display: flex;
+    flex-direction: column;
+    align-items: start;
+    gap: 20px;
+    width: 100%;
+    padding: 0 24px 0 0;
+    text-align: left;
+    position: relative;
+    z-index: 2;
+  }
+  &__point .block__subtitle {
+    font-size: clamp(30px, 3vw, 42px);
+    font-weight: 500;
+  }
+  &__description {
+    max-width: 250px;
+    color: var(--muted);
+  }
+  &__marker {
+    width: 14px;
+    height: 14px;
+    border: 2px solid var(--ink);
+    border-radius: 50%;
+    background: white;
+  }
+  &__point.is-active &__marker,
+  &__point.is-past &__marker {
+    background: var(--ink);
+  }
+  &__line,
+  &__fill {
+    position: absolute;
+    top: 16px;
+    left: var(--timeline-line-start, 7px);
+    height: 2px;
+    pointer-events: none;
+  }
+  &__line {
+    width: var(--timeline-line-width, 100%);
+    background: var(--line);
+  }
+  &__fill {
+    width: var(--timeline-fill, 0px);
+    background: var(--ink);
+  }
+  @media (max-width: 600px) {
+    &__item {
+      flex-basis: 80%;
+    }
+  }
+}

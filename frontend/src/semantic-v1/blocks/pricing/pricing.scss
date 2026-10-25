@@ -1,0 +1,49 @@
+.price-card {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 32px;
+  padding: clamp(24px, 2.5vw, 36px);
+  background: var(--surface);
+  border-radius: var(--radius);
+  .block__subtitle {
+    font-size: clamp(40px, 4vw, 56px);
+    font-weight: 500;
+  }
+  ul {
+    display: grid;
+    gap: 16px;
+  }
+  li {
+    display: flex;
+    justify-content: start;
+    gap: 12px;
+    font-size: 15px;
+  }
+  .button {
+    width: 100%;
+  }
+  &--featured {
+    background: var(--ink);
+    color: white;
+    p {
+      color: #ffffffb3;
+    }
+    .button {
+      background: white;
+      color: var(--ink);
+    }
+  }
+  &__badge {
+    background: white;
+    color: var(--ink);
+    padding: 4px 8px;
+    font-size: 12px;
+    border-radius: 4px;
+  }
+}
+.pricing {
+  .block__row > p {
+    max-width: 460px;
+  }
+}

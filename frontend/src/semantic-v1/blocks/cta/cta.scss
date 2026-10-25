@@ -1,0 +1,24 @@
+.cta {
+  background: var(--ink);
+  color: white;
+  p {
+    color: #ffffffb3;
+  }
+  .block__row {
+    display: grid;
+    grid-template-columns: 1fr 260px;
+    gap: 48px;
+  }
+  .button {
+    width: 100%;
+  }
+  @media (max-width: 768px) {
+    .block__row {
+      grid-template-columns: 1fr;
+      gap: 24px;
+    }
+    .block__row > .block__content:last-child {
+      max-width: 320px;
+    }
+  }
+}

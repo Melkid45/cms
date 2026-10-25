@@ -1,0 +1,20 @@
+/* Shared foundations. No layout utilities or responsive classes in HTML. */
+:root {
+  --ink: #202020;
+  --muted: #686868;
+  --surface: #f6f6f4;
+  --line: #dededb;
+  --page-width: 1920px;
+  --page-gutter: clamp(24px, 4vw, 72px);
+  --section-space: clamp(40px, 5vw, 88px);
+  --content-gap: clamp(24px, 3vw, 48px);
+  --grid-gap: clamp(20px, 2vw, 32px);
+  --radius: 8px;
+  --header-height: 80px;
+}
+
+@media (max-width: 1024px) {
+  :root {
+    --header-height: 72px;
+  }
+}

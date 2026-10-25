@@ -1,0 +1,29 @@
+h1,
+h2,
+h3,
+p,
+ul,
+figure,
+blockquote {
+  margin: 0;
+}
+h1,
+h2 {
+  font-weight: 500;
+  line-height: 1.1;
+  letter-spacing: -0.045em;
+}
+h2,
+.block__title {
+  font-size: clamp(30px, 3.5vw, 52px);
+}
+h3,
+.block__subtitle {
+  font-size: clamp(22px, 2vw, 28px);
+  line-height: 1.25;
+  font-weight: 600;
+  letter-spacing: -0.025em;
+}
+p {
+  color: var(--muted);
+}

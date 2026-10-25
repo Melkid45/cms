@@ -1,0 +1,111 @@
+.hero {
+  height: calc(100vh - var(--header-height));
+  height: calc(100svh - var(--header-height));
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  padding-block: 24px;
+  > .container { flex: 1; min-height: 0; }
+  &__visual { position: relative; overflow: hidden; }
+  &__visual > .hero__media { position: absolute; inset: 0; }
+  &__content { display: flex; flex-direction: column; align-items: flex-start; gap: 24px; }
+  &__description { max-width: 640px; color: var(--color-muted); }
+  &__media { width: 100%; height: 100%; object-fit: cover; border-radius: var(--radius); }
+  &__visual { min-width: 0; margin: 0; }
+  &__split { display: grid; grid-template-columns: 1fr 1fr; gap: var(--layout-gap); align-items: center; }
+  &__tags { display: flex; flex-wrap: wrap; gap: 10px 24px; }
+
+  // V1: Alture-inspired title above one continuous media canvas.
+  &--signature {
+    padding-bottom: 0;
+    > .hero__masthead { flex: none; }
+    .hero__inner { display: flex; flex: 1; flex-direction: column; justify-content: space-between; gap: 24px; }
+    .hero__canvas { flex: 1; }
+    .hero__masthead { display: flex; justify-content: space-between; align-items: baseline; gap: 24px; margin-bottom: 28px; }
+    .hero__canvas { position: relative; isolation: isolate; min-height: 0; border-radius: var(--radius); overflow: hidden; color: white; display: flex; flex-direction: column; padding-block: 32px; }
+    .hero__canvas > .hero__media { position: absolute; inset: 0; z-index: -2; border-radius: 0; }
+    .hero__canvas::after { content: ''; position: absolute; inset: 0; z-index: -1; background: linear-gradient(180deg, #14201655, #14201618 30%, #142016d9); }
+    .hero__tags { display: grid; grid-template-columns: repeat(4, 1fr); }
+    .hero__tags span { padding-top: 12px; border-top: 1px solid #ffffff70; }
+    .hero__bottom { display: flex; justify-content: space-between; align-items: flex-end; gap: 32px; }
+    .hero__content { max-width: 960px; gap: 24px; }
+  }
+  // V2: resilient, equal-column text/image composition.
+  &--split {
+    .hero__split { min-height: 0; }
+    .hero__visual { align-self: stretch; }
+    .hero__content { padding-block: 40px; }
+  }
+  // V3: heading and supporting copy share a row above panoramic media.
+  &--panorama {
+    > .container { display: flex; flex-direction: column; }
+    .hero__intro { display: grid; grid-template-columns: 1.2fr 1fr; gap: var(--layout-gap); align-items: end; margin-bottom: 36px; }
+    .hero__support { display: flex; flex-direction: column; align-items: stretch; gap: 24px; width: max-content; max-width: 100%; justify-self: end; }
+    .hero__description { text-wrap: pretty; }
+    .hero__support > .button { width: 100%; }
+    .hero__visual { flex: 1; min-height: 0; }
+  }
+  // V4: a quiet surface unites the copy and a two-image composition.
+  &--collage {
+    > .container { display: flex; }
+    .hero__panel { width: 100%; padding: clamp(24px, 4vw, 56px); border-radius: var(--radius); background: var(--color-surface); }
+    .hero__visual { display: grid; grid-template-columns: 1.3fr 1fr; gap: 16px; align-items: end; }
+    .hero__visual { height: 100%; }
+    .hero__visual > .hero__media { position: static; min-height: 0; }
+    .hero__media:first-child { height: 100%; }
+    .hero__media:last-child { height: 72%; }
+  }
+  // V5: centered introduction, followed by a simple image pair.
+  &--centered {
+    > .container { display: flex; flex-direction: column; }
+    .hero__intro { display: grid; grid-template-columns: 1.2fr 1fr; align-items: end; gap: var(--layout-gap); margin-bottom: 28px; }
+    .hero__support { display: flex; flex-direction: column; align-items: flex-start; gap: 24px; max-width: 600px; justify-self: end; }
+    .hero__description { max-width: 600px; }
+    .hero__visual { display: grid; grid-template-columns: 1.6fr 1fr; gap: 20px; flex: 1; min-height: 0; }
+    .hero__visual > .hero__media { position: static; min-height: 0; }
+  }
+}
+@media (max-width: 1024px) {
+  .hero {
+    &--collage {
+      .hero__split { grid-template-columns: 1fr 1fr; gap: 28px; }
+      .hero__visual { grid-template-columns: 1fr; }
+      .hero__media:first-child { height: 100%; }
+      .hero__media:last-child { display: none; }
+    }
+  }
+}
+@media (max-width: 767px) {
+  .hero {
+    height: auto;
+    min-height: calc(100svh - var(--header-height));
+    padding-top: 24px;
+    &__split { grid-template-columns: 1fr; }
+    &--signature {
+      .hero__masthead { flex-direction: column; gap: 0; margin-bottom: 24px; }
+      .hero__masthead > :last-child { align-self: flex-end; }
+      .hero__canvas { padding: 24px 0; min-height: 480px; }
+      .hero__inner { gap: 48px; }
+      .hero__tags { grid-template-columns: repeat(2, 1fr); }
+      .hero__bottom { flex-direction: column; align-items: flex-start; }
+    }
+    &--split {
+      .hero__content { padding-block: 8px; }
+      .hero__visual { height: 380px; }
+    }
+    &--panorama .hero__intro { grid-template-columns: 1fr; gap: 24px; }
+    &--panorama .hero__support { justify-self: start; }
+    &--panorama .hero__description br { display: none; }
+    &--panorama .hero__visual { flex: auto; height: 300px; }
+    &--collage {
+      .hero__split { grid-template-columns: 1fr; }
+      .hero__visual { grid-template-columns: 1.3fr 1fr; }
+      .hero__visual { height: 300px; }
+      .hero__media:first-child { height: 300px; }
+      .hero__media:last-child { display: block; height: 220px; }
+    }
+    &--centered .hero__visual { grid-template-columns: 1fr 1fr; gap: 12px; flex: auto; height: 280px; }
+    &--centered .hero__intro { grid-template-columns: 1fr; gap: 24px; }
+    &--centered .hero__support { justify-self: start; }
+  }
+}

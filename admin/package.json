@@ -6,10 +6,12 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "test:blocks": "node scripts/test-block-library.mjs"
   },
   "dependencies": {
     "@base-ui/react": "^1.8.0",
+    "@fontsource-variable/manrope": "^5.3.0",
     "class-variance-authority": "^0.7.1",
     "cn": "^0.4.0",
     "lucide-react": "^1.47.0",

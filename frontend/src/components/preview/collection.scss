@@ -1,0 +1,9 @@
+// Preview-page chrome only. Not part of any section.
+.collection-header { height: var(--header-height); display: flex; align-items: center; justify-content: space-between; gap: 24px; }
+.collection-header a:hover, .collection-footer a:hover { color: #697a44; }
+.collection-footer { border-top: 1px solid var(--color-border); padding-block: 32px; display: flex; justify-content: space-between; gap: 20px; }
+@media (max-width: 767px) {
+  :root { --header-height: 76px; }
+  .collection-header { flex-wrap: wrap; gap: 8px 16px; padding-block: 16px; }
+  .collection-header > span { display: none; }
+}

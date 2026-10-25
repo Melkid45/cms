@@ -1,0 +1,62 @@
+.pricing {
+  &__header { display: grid; grid-template-columns: 1.2fr 1fr; align-items: end; gap: var(--layout-gap); margin-bottom: 48px; }
+  &__header > .section__description, &__header > .button { justify-self: end; }
+  &__grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 24px; }
+  &__card { display: flex; flex-direction: column; align-items: flex-start; gap: 24px; padding: clamp(24px, 3vw, 44px); border: 1px solid var(--color-border); border-radius: var(--radius); }
+  &__card--accent { background: var(--color-surface); border-color: var(--color-surface); }
+  &__amount { margin-block: 8px; }
+  &__features { list-style: none; margin: 8px 0; padding: 0; display: flex; flex-direction: column; gap: 16px; }
+  &__features li { display: flex; align-items: flex-start; gap: 12px; }
+  &__check { display: block; width: 20px; height: 20px; flex: 0 0 20px; color: #5f7040; margin-top: 3px; }
+  &__card > .button { margin-top: auto; width: 100%; }
+  &__layout { display: grid; grid-template-columns: 1fr 1.5fr; gap: var(--layout-gap); align-items: start; }
+  &__intro { position: sticky; top: 32px; max-width: 560px; }
+  &__list { display: flex; flex-direction: column; gap: 16px; }
+  &__row { display: grid; grid-template-columns: 1fr auto; gap: 32px; padding: clamp(24px, 3vw, 40px); border-radius: var(--radius); background: var(--color-surface); }
+  &__copy { display: flex; flex-direction: column; gap: 16px; }
+  &__row-price { display: flex; flex-direction: column; gap: 8px; text-align: right; }
+  &--pair .pricing__grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  &__offer { display: flex; flex-direction: column; align-items: flex-start; gap: 40px; padding: clamp(24px, 4vw, 56px); border-radius: var(--radius); background: var(--color-surface); }
+  &__offer:last-child { background: var(--color-accent); }
+  &__offer-body { display: grid; grid-template-columns: 1fr 1fr; gap: 32px; width: 100%; }
+  &__offer > .button { margin-top: auto; }
+  &__table-wrap { position: relative; overflow-x: auto; border-radius: var(--radius); border: 1px solid var(--color-border); }
+  &__table { width: 100%; border-collapse: collapse; min-width: 900px; }
+  &__table th, &__table td { padding: 24px; text-align: left; vertical-align: top; }
+  &__table th { font-weight: 500; }
+  &__table thead, &__table tfoot { background: var(--color-surface); }
+  &__table tbody tr + tr { border-top: 1px solid var(--color-border); }
+  &__table th:first-child { width: 31%; }
+  &__table td { width: 23%; }
+  &__table-head { display: flex; flex-direction: column; gap: 20px; }
+  &__table .button { max-width: 100%; text-align: center; }
+  &__sr { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+  &__custom-panel { display: grid; grid-template-columns: 1.2fr 1fr; overflow: hidden; border-radius: var(--radius); background: var(--color-surface); }
+  &__custom-copy { padding: clamp(24px, 4vw, 64px); justify-content: center; gap: 32px; }
+  &__custom-bottom { display: flex; flex-direction: column; align-items: flex-start; gap: 24px; margin-top: 16px; }
+  &__visual { margin: 0; min-height: 600px; position: relative; }
+  &__image { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+  &__horizontal { border-top: 1px solid var(--color-border); }
+  &__horizontal-row { display: grid; grid-template-columns: 1fr 1.2fr 1fr; gap: var(--layout-gap); align-items: start; padding-block: 40px; border-bottom: 1px solid var(--color-border); }
+  &__horizontal-row > .button { justify-self: end; max-width: 100%; text-align: center; }
+  &__horizontal-row .pricing__copy { max-width: 400px; }
+  &__horizontal-row .pricing__amount { margin-block: 4px; }
+  &__horizontal-row .pricing__features { margin: 0; }
+}
+@media (max-width: 1100px) {
+  .pricing__offer-body { grid-template-columns: 1fr; }
+  .pricing__layout { grid-template-columns: 1fr; gap: 40px; }
+  .pricing__intro { position: static; max-width: 720px; }
+}
+@media (max-width: 767px) {
+  .pricing {
+    &__horizontal-row { grid-template-columns: 1fr; gap: 28px; padding-block: 32px; }
+    &__horizontal-row > .button { justify-self: start; }
+    &__header, &__grid, &--pair .pricing__grid, &__custom-panel { grid-template-columns: 1fr; }
+    &__header { gap: 24px; margin-bottom: 32px; }
+    &__header > .section__description, &__header > .button { justify-self: start; }
+    &__row { grid-template-columns: 1fr; gap: 24px; }
+    &__row-price { text-align: left; }
+    &__visual { min-height: 320px; }
+  }
+}

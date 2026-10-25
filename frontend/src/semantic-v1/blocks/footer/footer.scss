@@ -1,0 +1,96 @@
+@use "../../common/mixins" as grid;
+.footer {
+  padding-block: var(--section-space) 32px;
+  background: var(--ink);
+  color: white;
+  p {
+    color: #ffffff9c;
+  }
+  &__logo {
+    width: 140px;
+    height: auto;
+  }
+  &__top {
+    @include grid.columns(2);
+  }
+  &__top > .block__content {
+    gap: 40px;
+  }
+  nav {
+    font-size: 14px;
+    color: #ffffff9c;
+  }
+  nav > span {
+    color: white;
+    font-size: 16px;
+  }
+  a:hover {
+    opacity: 0.7;
+  }
+  .block__row {
+    align-items: start;
+    flex-wrap: wrap;
+    justify-content: start;
+    gap: 32px;
+  }
+  .form {
+    display: grid;
+    gap: 24px;
+    align-content: start;
+  }
+  .form__group {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 24px;
+  }
+  .field__control {
+    width: 100%;
+    border: 0;
+    border-bottom: 1px solid #ffffff50;
+    padding: 16px 0;
+    background: transparent;
+    color: white;
+    border-radius: 0;
+  }
+  .field__control::placeholder {
+    color: #ffffff8c;
+  }
+  .field.is-invalid .field__control {
+    border-color: #f87171;
+  }
+  .checkbox {
+    display: flex;
+    gap: 12px;
+    align-items: start;
+    font-size: 13px;
+    color: #ffffff9c;
+  }
+  .checkbox__input {
+    accent-color: white;
+    margin-top: 5px;
+  }
+  .checkbox__mark {
+    display: none;
+  }
+  .is-invalid .checkbox {
+    color: #f87171;
+  }
+  .checkbox button {
+    color: white;
+    text-decoration: underline;
+    padding: 0;
+  }
+  .form__status {
+    font-size: 13px;
+  }
+  @media (max-width: 900px) {
+    &__top {
+      gap: 40px;
+    }
+  }
+  @media (max-width: 500px) {
+    .form__group {
+      grid-template-columns: 1fr;
+    }
+  }
+}

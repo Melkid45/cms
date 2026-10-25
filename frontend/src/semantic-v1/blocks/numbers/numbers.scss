@@ -1,0 +1,20 @@
+.numbers {
+  background: var(--surface);
+  &__value {
+    font-size: clamp(40px, 4vw, 64px);
+    font-weight: 500;
+  }
+
+  .block__grid > .block__content:first-child {
+    gap: 32px;
+  }
+  .block__content .block__content {
+    gap: 8px;
+  }
+  @media (max-width: 768px) {
+    .block__grid > .block__content:first-child {
+      flex-direction: row;
+      flex-wrap: wrap;
+    }
+  }
+}

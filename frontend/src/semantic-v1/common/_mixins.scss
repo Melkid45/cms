@@ -1,0 +1,15 @@
+/* One grid contract for all components; HTML keeps semantic class names. */
+@mixin columns($count) {
+  display: grid;
+  grid-template-columns: repeat($count, minmax(0, 1fr));
+  gap: var(--grid-gap);
+  min-width: 0;
+  @if $count > 2 {
+    @media (max-width: 1024px) {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+  }
+  @media (max-width: 768px) {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}

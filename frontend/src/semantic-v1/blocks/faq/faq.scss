@@ -1,0 +1,21 @@
+.faq--item {
+  padding: 24px;
+  background: transparent;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  &-top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 24px;
+    cursor: pointer;
+  }
+  &-bot {
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.25s ease;
+    p {
+      padding-top: 20px;
+    }
+  }
+}
