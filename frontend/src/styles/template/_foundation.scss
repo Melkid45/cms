@@ -18,6 +18,8 @@
   --color-surface: #eef0e7;
   --color-border: #d9ddd0;
   --color-accent: #dce7bb;
+  --color-interactive: color-mix(in srgb, var(--color-ink) 75%, var(--color-bg));
+  --color-button-hover: color-mix(in srgb, var(--color-ink) 85%, white);
   --container-width: 1820px;
   --header-height: 88px;
   --page-gutter: clamp(20px, 4vw, 64px);
@@ -28,12 +30,12 @@
 *, *::before, *::after { box-sizing: border-box; }
 html { scroll-behavior: smooth; scroll-padding-top: 24px; }
 body { margin: 0; background: var(--color-bg); color: var(--color-ink); font-family: Manrope, sans-serif; }
-h1, h2, h3, p, figure { margin: 0; }
+h1, h2, h3, h4, h5, h6, p, figure { margin: 0; }
 a { color: inherit; text-decoration: none; }
 button, input { font: inherit; }
 img { display: block; max-width: 100%; }
 .container { width: min(100% - var(--page-gutter) * 2, var(--container-width)); margin-inline: auto; }
-:focus-visible { outline: 3px solid #697a44; outline-offset: 5px; }
+:focus-visible { outline: 3px solid var(--color-interactive); outline-offset: 5px; }
 @media (prefers-reduced-motion: reduce) {
   html { scroll-behavior: auto; }
   *, *::before, *::after { transition: none !important; }

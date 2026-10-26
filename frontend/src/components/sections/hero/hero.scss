@@ -14,6 +14,25 @@
   &__visual { min-width: 0; margin: 0; }
   &__split { display: grid; grid-template-columns: 1fr 1fr; gap: var(--layout-gap); align-items: center; }
   &__tags { display: flex; flex-wrap: wrap; gap: 10px 24px; }
+  // Image-led composition: a broad photograph with an unboxed editorial column.
+  &--image-led {
+    .hero__image-layout { display: grid; grid-template-columns: minmax(0, 1.65fr) minmax(0, 1fr); gap: var(--layout-gap); }
+    .hero__visual { border-radius: var(--radius); }
+    .hero__image-copy { display: flex; flex-direction: column; justify-content: space-between; gap: 40px; padding-block: clamp(24px, 3vw, 48px); }
+  }
+  // One continuous photo, with a compact readable panel aligned to the shared grid.
+  &--overlay {
+    .hero__backdrop { position: relative; flex: 1; min-height: 0; display: flex; overflow: hidden; border-radius: var(--radius); }
+    .hero__backdrop > .hero__media { position: absolute; inset: 0; border-radius: 0; }
+    .hero__overlay-inner { position: relative; display: flex; align-items: flex-end; padding-block: clamp(24px, 4vw, 64px); }
+    .hero__overlay-card { width: min(600px, 50%); padding: clamp(24px, 3vw, 48px); border-radius: var(--radius); background: var(--color-bg); }
+  }
+  &--editorial {
+    .hero__editorial-layout { display: flex; flex-direction: column; justify-content: space-between; gap: 40px; padding-block: 32px; }
+    .hero__editorial-bottom { display: grid; grid-template-columns: minmax(0, 1.3fr) minmax(0, 1fr); align-items: end; gap: var(--layout-gap); }
+    .hero__visual { height: clamp(220px, 28svh, 340px); border-radius: var(--radius); }
+    .hero__description { max-width: 640px; }
+  }
 
   // V1: Alture-inspired title above one continuous media canvas.
   &--signature {
@@ -39,7 +58,7 @@
   // V3: heading and supporting copy share a row above panoramic media.
   &--panorama {
     > .container { display: flex; flex-direction: column; }
-    .hero__intro { display: grid; grid-template-columns: 1.2fr 1fr; gap: var(--layout-gap); align-items: end; margin-bottom: 36px; }
+    .hero__intro { display: grid; grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr); gap: var(--layout-gap); align-items: end; margin-bottom: 36px; }
     .hero__support { display: flex; flex-direction: column; align-items: stretch; gap: 24px; width: max-content; max-width: 100%; justify-self: end; }
     .hero__description { text-wrap: pretty; }
     .hero__support > .button { width: 100%; }
@@ -77,6 +96,20 @@
 }
 @media (max-width: 767px) {
   .hero {
+    &--image-led {
+      .hero__image-layout { grid-template-columns: minmax(0, 1fr); gap: 32px; }
+      .hero__visual { height: 380px; }
+      .hero__image-copy { padding-block: 0; gap: 24px; }
+    }
+    &--overlay {
+      .hero__backdrop { min-height: calc(100svh - var(--header-height)); }
+      .hero__overlay-card { width: 100%; }
+    }
+    &--editorial {
+      .hero__editorial-layout { padding-block: 0; gap: 32px; }
+      .hero__editorial-bottom { grid-template-columns: minmax(0, 1fr); gap: 32px; }
+      .hero__visual { height: 260px; }
+    }
     height: auto;
     min-height: calc(100svh - var(--header-height));
     padding-top: 24px;
@@ -93,8 +126,8 @@
       .hero__content { padding-block: 8px; }
       .hero__visual { height: 380px; }
     }
-    &--panorama .hero__intro { grid-template-columns: 1fr; gap: 24px; }
-    &--panorama .hero__support { justify-self: start; }
+    &--panorama .hero__intro { grid-template-columns: minmax(0, 1fr); gap: 24px; }
+    &--panorama .hero__support { justify-self: start; width: 100%; min-width: 0; }
     &--panorama .hero__description br { display: none; }
     &--panorama .hero__visual { flex: auto; height: 300px; }
     &--collage {

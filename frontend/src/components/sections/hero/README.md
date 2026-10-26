@@ -1,10 +1,10 @@
 # Hero collection
 
-Preview: `/hero.html`. Five standalone HTML partials, one `hero.scss`, included using the existing Vite HTML-include pipeline. Legacy pages are unchanged.
+Preview: `/hero.html`. Eight standalone HTML partials, one `hero.scss`, included using the existing Vite HTML-include pipeline. Legacy pages are unchanged.
 
 Shared foundations: `src/styles/template/`. Containers, tokens, typography and buttons live there, not in a section. Always pair `heading heading--lg` or `text text--lg`; sizes are display/xl/lg/md/sm for headings and lg/md/sm/xs for text. All type sizes, including responsive values, belong in `_typography.scss`.
 
-Each composition is one root modifier: signature, split, panorama, collage, centered. No Tailwind, inline styles, content-specific IDs in CSS, or text-size overrides in hero.scss. Responsive composition stays next to the section. Preview labels and navigation belong only to `components/preview`.
+Each composition is one root modifier: signature, split, panorama, collage, centered, image-led, overlay, editorial. Overlay uses a compact bottom-left panel; editorial pairs a broad title with a smaller supporting photo. No Tailwind, inline styles, content-specific IDs in CSS, or text-size overrides in hero.scss. Responsive composition stays next to the section.
 
 Images are local stock photographs from Unsplash, downloaded at implementation time:
 - workspace.jpg: https://images.unsplash.com/photo-1497366754035-f200968a6e72

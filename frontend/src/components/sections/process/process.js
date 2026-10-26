@@ -1,3 +1,14 @@
+import Splide from '@splidejs/splide'
+import '@splidejs/splide/css/core'
+
+document.querySelectorAll('[data-process-slider]').forEach((element) => {
+  const slider = new Splide(element, { type: 'loop', perPage: 1, perMove: 1, gap: 24, arrows: false, pagination: false, keyboard: 'focused' }).mount()
+  const section = element.closest('.process')
+  section.querySelector('[data-process-prev]').addEventListener('click', () => slider.go('<'))
+  section.querySelector('[data-process-next]').addEventListener('click', () => slider.go('>'))
+  section.querySelector('.process__navigation').hidden = false
+})
+
 document.querySelectorAll('[data-process-tabs]').forEach((section) => {
   const tabs = [...section.querySelectorAll('[data-process-tab]')]
   const panels = [...section.querySelectorAll('[data-process-panel]')]

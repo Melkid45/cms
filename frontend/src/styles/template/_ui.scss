@@ -2,16 +2,16 @@
   display: inline-flex; align-items: center; justify-content: center; gap: 24px;
   min-height: 52px; padding: 14px 24px; border: 1px solid transparent; border-radius: 8px;
   background: var(--color-ink); color: white; font-weight: 600; transition: background .2s, color .2s;
-  &:hover { background: #464d3b; }
+  &:hover { background: var(--color-button-hover); }
   &--outline { background: transparent; color: var(--color-ink); border-color: var(--color-border); }
   &--outline:hover { background: var(--color-surface); }
-  &--light { background: white; color: #252720; }
+  &--light { background: white; color: var(--color-ink); }
   &--light:hover { background: var(--color-accent); }
-  &--accent { background: var(--color-accent); color: #252720; }
-  &--accent:hover { background: #c9d89b; }
+  &--accent { background: var(--color-accent); color: var(--color-ink); }
+  &--accent:hover { background: color-mix(in srgb, var(--color-accent) 80%, var(--color-ink)); }
 }
 .actions { display: flex; flex-wrap: wrap; gap: 12px; }
 .eyebrow { display: inline-flex; align-items: center; gap: 10px; }
 .text-link { display: inline-flex; align-items: center; gap: 12px; text-decoration: underline; text-decoration-color: var(--color-border); text-underline-offset: 6px; transition: color .2s, text-decoration-color .2s; }
 .text-link svg { flex-shrink: 0; }
-.text-link:hover { color: #697a44; text-decoration-color: currentColor; }
+.text-link:hover { color: var(--color-interactive); text-decoration-color: currentColor; }

@@ -1,4 +1,18 @@
 .pricing {
+  &__modular { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.2fr); align-items: start; gap: var(--layout-gap); }
+  &__starting { padding: clamp(24px, 4vw, 56px); border-radius: var(--radius); background: var(--color-accent); }
+  &__starting .pricing__features { list-style: disc; padding-left: 20px; }
+  &__starting .pricing__features li { display: list-item; }
+  &__extras { display: flex; flex-direction: column; gap: 32px; padding-block: 24px; }
+  &__extra { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 24px; align-items: start; padding-bottom: 28px; border-bottom: 1px solid var(--color-border); }
+  &__extra:last-child { padding-bottom: 0; border-bottom: 0; }
+  &__extra .pricing__copy { gap: 12px; }
+  &__compact-list { display: flex; flex-direction: column; gap: 16px; }
+  &__compact-row { display: grid; grid-template-columns: minmax(0, 1fr) auto 24px; gap: var(--layout-gap); align-items: center; padding: clamp(24px, 3vw, 40px); border-radius: var(--radius); background: var(--color-surface); transition: background .2s; }
+  &__compact-row:hover { background: var(--color-accent); }
+  &__compact-row .pricing__copy { gap: 12px; }
+  &__compact-price { display: flex; flex-direction: column; gap: 8px; text-align: right; }
+  &__header > .text-link { justify-self: end; }
   &__header { display: grid; grid-template-columns: 1.2fr 1fr; align-items: end; gap: var(--layout-gap); margin-bottom: 48px; }
   &__header > .section__description, &__header > .button { justify-self: end; }
   &__grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 24px; }
@@ -7,7 +21,7 @@
   &__amount { margin-block: 8px; }
   &__features { list-style: none; margin: 8px 0; padding: 0; display: flex; flex-direction: column; gap: 16px; }
   &__features li { display: flex; align-items: flex-start; gap: 12px; }
-  &__check { display: block; width: 20px; height: 20px; flex: 0 0 20px; color: #5f7040; margin-top: 3px; }
+  &__check { display: block; width: 20px; height: 20px; flex: 0 0 20px; color: var(--color-interactive); margin-top: 3px; }
   &__card > .button { margin-top: auto; width: 100%; }
   &__layout { display: grid; grid-template-columns: 1fr 1.5fr; gap: var(--layout-gap); align-items: start; }
   &__intro { position: sticky; top: 32px; max-width: 560px; }
@@ -15,6 +29,8 @@
   &__row { display: grid; grid-template-columns: 1fr auto; gap: 32px; padding: clamp(24px, 3vw, 40px); border-radius: var(--radius); background: var(--color-surface); }
   &__copy { display: flex; flex-direction: column; gap: 16px; }
   &__row-price { display: flex; flex-direction: column; gap: 8px; text-align: right; }
+  &--list .pricing__row { padding-inline: 0; border-radius: 0; background: transparent; border-bottom: 1px solid var(--color-border); }
+  &--list .pricing__row:first-child { padding-top: 0; }
   &--pair .pricing__grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   &__offer { display: flex; flex-direction: column; align-items: flex-start; gap: 40px; padding: clamp(24px, 4vw, 56px); border-radius: var(--radius); background: var(--color-surface); }
   &__offer:last-child { background: var(--color-accent); }
@@ -50,6 +66,12 @@
 }
 @media (max-width: 767px) {
   .pricing {
+    &__modular { grid-template-columns: minmax(0, 1fr); }
+    &__extra { grid-template-columns: minmax(0, 1fr); gap: 16px; }
+    &__compact-row { grid-template-columns: minmax(0, 1fr) 24px; gap: 24px; }
+    &__compact-price { text-align: left; grid-column: 1; }
+    &__compact-row > svg { grid-column: 2; grid-row: 1 / span 2; }
+    &__header > .text-link { justify-self: start; }
     &__horizontal-row { grid-template-columns: 1fr; gap: 28px; padding-block: 32px; }
     &__horizontal-row > .button { justify-self: start; }
     &__header, &__grid, &--pair .pricing__grid, &__custom-panel { grid-template-columns: 1fr; }
