@@ -23,7 +23,8 @@
   --container-width: 1820px;
   --header-height: 88px;
   --page-gutter: clamp(20px, 4vw, 64px);
-  --section-space: 150px;
+  // 200px at 1920px, 150px at 1440px; fluid down to 64px on mobile.
+  --section-space: clamp(64px, 10.416667vw, 200px);
   --layout-gap: clamp(24px, 4vw, 64px);
   --radius: 16px;
 }
