@@ -61,6 +61,26 @@ const { normalizeProject, preparePages, publicProject, hasDraftChanges } = load(
   path.join(root, "src/lib/builder/workflows.ts"),
 );
 const normalized = normalizeProject(project);
+const jsonb = (value) =>
+  Array.isArray(value)
+    ? value.map(jsonb)
+    : value && typeof value === "object"
+      ? Object.fromEntries(
+          Object.entries(value)
+            .sort(([a], [b]) => a.localeCompare(b))
+            .map(([key, value]) => [key, jsonb(value)]),
+        )
+      : value;
+const stored = jsonb(normalized);
+assert(
+  !hasDraftChanges(stored.pages[0]),
+  "JSONB key ordering must not create a draft change",
+);
+assert.equal(
+  preparePages(normalized.pages, stored.pages)[0].history.length,
+  0,
+  "Saving unchanged JSONB content must not create a version",
+);
 const draftPage = structuredClone(normalized.pages[0]);
 draftPage.title = "Private working title";
 let workflow = preparePages([draftPage], normalized.pages);
