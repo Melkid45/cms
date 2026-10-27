@@ -47,8 +47,10 @@ test('read-only requests never commit or push', () => fixture(async ({ repo, opt
   assert.equal(await publish(repo, before, options), null);
 }));
 test('links and deployment check require the expected commit, not just HTTP 200', async () => {
-  assert.deepEqual(pageLinks(['frontend/layout-header-6.html', 'frontend/src/components/a.html']), ['https://harbcms.vercel.app/layout-header-6.html']);
+  assert.deepEqual(pageLinks(['frontend/layout-header-6.html']), ['https://harbcms.vercel.app/layout-header-6.html']);
+  assert(pageLinks(['frontend/src/components/a.html']).includes('https://harbstone-admin.vercel.app/dashboard/pages'));
   assert.equal(await deploymentReady('new', async () => new Response(JSON.stringify({ commit: 'old' }))), false);
   assert.equal(await deploymentReady('new', async () => new Response(JSON.stringify({ commit: 'new' }))), true);
+  const urls=[];assert.equal(await deploymentReady('new', async url=>{urls.push(url);return Response.json({commit:url.includes('/api/release')?'old':'new'});},['frontend','admin']),false);assert.equal(urls.length,2);
   assert.equal(await waitForDeployment('new', { timeout: 1, interval: 1, check: async () => false }), false);
 });

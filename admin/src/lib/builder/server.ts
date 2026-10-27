@@ -169,6 +169,7 @@ export async function database() {
       // Serialize first-run DDL across serverless instances as well as concurrent renders.
       await tx`SELECT pg_advisory_xact_lock(731920041)`;
       await tx`CREATE TABLE IF NOT EXISTS harbstone_project (id text PRIMARY KEY, document jsonb NOT NULL)`;
+      await tx`CREATE TABLE IF NOT EXISTS harbstone_bot_nonces (nonce text PRIMARY KEY, expires_at timestamptz NOT NULL)`;
       await tx`INSERT INTO harbstone_project (id, document) VALUES ('default', ${tx.json(seedProject() as unknown as postgres.JSONValue)}) ON CONFLICT DO NOTHING`;
     })
     .then(() => {})

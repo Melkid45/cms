@@ -2,6 +2,16 @@
 
 Local Node.js 22+ bridge using Telegram long polling and the installed Codex CLI/ChatGPT login. No public server or API key required. The Mac must remain awake and connected. This is a **separate persistent Codex session per Telegram user**, not a mirror of the desktop conversation. All users edit the same repository; tasks run sequentially. Avoid concurrent desktop edits.
 
+## Live Next.js admin
+
+The live builder is `https://harbstone-admin.vercel.app`. The bot can create/edit pages, update text and images, publish selected pages, and change shared menus, layout and brand settings. Content is stored in PostgreSQL; a content-only task needs no Git push or rebuild. Saving a page updates its draft; publication is an explicit per-page operation. The agent must not publish unrelated drafts. Revision conflicts require pulling current data and merging only the requested changes. History, trash and schema validation use the same server workflow as the admin UI.
+
+The bridge uses a separate Ed25519 key, never the owner's password or session secret. Run `node tools/telegram-bridge/cms.mjs --init` once; it creates an owner-only private key outside Git and prints only its public key. Set that public key as production `CMS_BOT_PUBLIC_KEY` on the admin project and redeploy. Remove/rotate this public key and redeploy to revoke bot access. Never copy or print `cms-private.pem`.
+
+Each bot task receives a temporary localhost capability. The bridge signs upstream requests itself and closes the local session when the task finishes. Signatures bind the method, URL and body, expire after 60 seconds, and have single-use nonces stored in PostgreSQL. The agent receives neither the private key nor the owner credentials. The CMS endpoint supports only this project's document, publishing and validated media upload.
+
+During an authorized task, use `node tools/telegram-bridge/cms.mjs status`, `pull .telegram-media/project.json`, `save .telegram-media/project.json`, `publish <page-id>` and `upload <image-file>`. Re-pull after uploads, since they increment the project revision. Temporary project exports belong in ignored `.telegram-media` and must not be committed. Use `node tools/telegram-bridge/test-live-cms.mjs` for an owner-run deployment check: it creates, edits, publishes and removes only its own temporary page without sending Telegram messages.
+
 ## Owner test
 
 1. `node tools/telegram-bridge/bridge.mjs --init`
@@ -27,7 +37,7 @@ All authorized users can edit the project and request publication. The agent kno
 
 The bridge compares the working tree before/after each request. Existing drafts are preserved. Editing a file that already contained unsaved work, staged changes, changes during validation, diverged Git history, or failed checks stops publication with an explanation. No automatic merge or force push. Resolve existing drafts and retry once the owner has reviewed them. Avoid concurrent desktop edits.
 
-Vite emits `harbstone-release.json` containing the build's commit. After pushing, the bridge waits up to three minutes for this exact commit on the public production domain, then returns the actual status and direct page links. `/status` checks the last published commit again. A successful push is not reported as a successful deployment until the marker matches. Vercel Git integration must deploy `main` with `frontend` as its root. Admin changes can be committed/pushed but the frontend domain does not prove an admin deployment; configure a separate admin deployment when needed.
+Vite emits `harbstone-release.json`; the Next admin exposes `/api/release`. After pushing, the bridge waits up to four minutes for the exact commit on every affected deployment. Admin code targets the Next project; shared template/style/image edits target both projects. `/status` repeats those checks. A successful push is not reported as a deployment until the relevant markers match. Both Vercel projects must have Git integration connected to `main`, with roots `frontend` and `admin` respectively. Approved source-template changes are imported into the admin registry before publication checks; generated changes join the same commit. Existing owner drafts still stop automatic publication if touched.
 
 Run all bridge checks: `node --test tools/telegram-bridge/*.test.mjs`.
 

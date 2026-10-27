@@ -26,6 +26,12 @@ Published contact/footer forms submit to `/api/forms`. Messages are saved in `/d
 
 Set **SMTP_HOST**, **SMTP_PORT** (587 by default), **SMTP_SECURE** (`true` for port 465), **SMTP_FROM**, and, when required, **SMTP_USER** / **SMTP_PASSWORD** in the server environment. SMTP credentials are never stored in the project JSON or returned to the browser. Inbox distinguishes saved, emailed and failed delivery; failed mail does not lose the enquiry. Actual mail delivery must be tested with the client's provider before launch. Up to 5,000 messages are retained; at capacity new enquiries fail explicitly instead of silently deleting older data. No external email is sent while SMTP is unconfigured.
 
+## Telegram editing
+
+`/api/builder/bot` is a separate signed endpoint for the trusted local Telegram bridge. GET reads the project, PUT saves it (optional `?publish=<page-id>`), and POST uploads validated media through the same upload service as the UI. Production `CMS_BOT_PUBLIC_KEY` contains only the bridge's base64 SPKI public key. The private key stays outside the repository on the bridge host, and is never passed to the coding process. Signatures bind timestamp, nonce, method, path and body; PostgreSQL stores short-lived single-use nonces. Removing/rotating the public key and redeploying revokes this integration without changing the owner's login.
+
+The bridge gives each coding task a temporary localhost capability and revokes it on completion. CMS edits retain the same schema, revision guards, drafts and history as browser edits. Template edits compile from their frontend sources before checks. `/api/release` exposes only the deployed Git SHA so the bridge verifies the exact Next deployment rather than mistaking a successful push or the legacy static site for publication. See `tools/telegram-bridge/README.md` for setup and the explicit live integration check.
+
 The existing `harbcms.vercel.app` deployment serves the static `frontend` project. The Next builder is a separate application rooted at `admin`; it needs its own Vercel project or a deliberate switch of deployment root. Publishing content in the Next builder is a database operation and needs no Git push/rebuild. Telegram code editing continues to publish the static frontend separately. Do not imply these are the same deployment.
 
 ## Verification

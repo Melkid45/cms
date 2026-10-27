@@ -57,6 +57,10 @@ export async function publish(repo, before, { remoteUrl, branch = 'main', messag
   return { commit, files: touched };
 }
 
+export async function synchronizeSections(repo,before){
+  const after=await capture(repo);const touched=Object.keys(after.files).filter(path=>after.files[path]!==before.files[path]);
+  if(touched.some(path=>/^frontend\/(src\/components\/|public\/images\/|images\/)/.test(path)))await exec('npm',['run','import:sections'],{cwd:resolve(repo,'admin'),timeout:120000,maxBuffer:8*1024*1024});
+}
 export async function validateProject(repo, paths) {
   const run = (command, args, cwd = repo) => exec(command, args, { cwd, timeout: 10 * 60000, maxBuffer: 8 * 1024 * 1024 });
   if (paths.some(path => path.startsWith('frontend/'))) {
@@ -66,8 +70,9 @@ export async function validateProject(repo, paths) {
       await run('node', [`scripts/${file}`], resolve(repo, 'frontend'));
     }
   }
-  if (paths.some(path => path.startsWith('admin/'))) {
+  if (paths.some(path => path.startsWith('admin/')||/^frontend\/(src\/|public\/|images\/)/.test(path))) {
     await run('npm', ['run', 'lint'], resolve(repo, 'admin'));
+    await run('npm', ['run', 'test:blocks'], resolve(repo, 'admin'));
     await run('npm', ['run', 'build'], resolve(repo, 'admin'));
   }
   if (paths.some(path => path.startsWith('tools/telegram-bridge/'))) throw new Error('Bridge changes require owner review');
