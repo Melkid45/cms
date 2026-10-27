@@ -1,5 +1,6 @@
 import { existsSync, readFileSync, readdirSync } from 'node:fs'
 import path from 'node:path'
+import { execFileSync } from 'node:child_process'
 import { defineConfig, normalizePath } from 'vite'
 import tailwindcss from '@tailwindcss/vite'
 
@@ -143,7 +144,13 @@ function getHtmlEntries() {
 }
 
 export default defineConfig({
-  plugins: [htmlLayouts(), tailwindcss()],
+  plugins: [htmlLayouts(), tailwindcss(), {
+    name: 'release-metadata',
+    generateBundle() {
+      const commit = process.env.VERCEL_GIT_COMMIT_SHA || execFileSync('git', ['rev-parse', 'HEAD'], { cwd: root, encoding: 'utf8' }).trim()
+      this.emitFile({ type: 'asset', fileName: 'harbstone-release.json', source: JSON.stringify({ commit }) })
+    },
+  }],
   resolve: {
     alias: {
       '@': srcDir,
