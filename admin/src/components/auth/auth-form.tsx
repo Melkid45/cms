@@ -70,9 +70,6 @@ export function AuthForm({ mode }: AuthFormProps) {
       <div className="grid gap-2">
         <div className="flex items-center justify-between">
           <Label htmlFor="password">Password</Label>
-          {!isRegister && (
-            <span className="text-xs text-neutral-500">Owner account</span>
-          )}
         </div>
         <div className="relative">
           <Input
@@ -129,13 +126,11 @@ export function AuthForm({ mode }: AuthFormProps) {
         )}
         {!loading && <ArrowRight data-icon="inline-end" />}
       </Button>
-      <p className="pt-2 text-center text-sm text-neutral-500">
-        {isRegister ? (
+      {isRegister && (
+        <p className="pt-2 text-center text-sm text-neutral-500">
           <Link href="/login">Sign in</Link>
-        ) : (
-          "Your owner credentials are configured on the server. Contact the project owner to reset access."
-        )}
-      </p>
+        </p>
+      )}
     </form>
   );
 }
