@@ -1,0 +1,103 @@
+// Next bundles its own installed Manrope dependency through globals.css.
+// Shared frontend files must not depend on frontend/node_modules being installed.
+@use "../../../../frontend/src/styles/template/foundation" with (
+  $include-fonts: false
+);
+@use "../../../../frontend/src/styles/template/index";
+@use "../../../../frontend/src/components/layout/header/header";
+@use "../../../../frontend/src/components/layout/footer/footer";
+@use "../../../../frontend/src/components/sections/hero/hero";
+@use "../../../../frontend/src/components/sections/about/about";
+@use "../../../../frontend/src/components/sections/services/services";
+@use "../../../../frontend/src/components/sections/advantages/advantages";
+@use "../../../../frontend/src/components/sections/content/content";
+@use "../../../../frontend/src/components/sections/projects/projects";
+@use "../../../../frontend/src/components/sections/gallery/gallery";
+@use "../../../../frontend/src/components/sections/process/process";
+@use "../../../../frontend/src/components/sections/pricing/pricing";
+@use "../../../../frontend/src/components/sections/testimonials/testimonials";
+@use "../../../../frontend/src/components/sections/faq/faq";
+@use "../../../../frontend/src/components/sections/contact/contact";
+.site-canvas {
+  min-height: 100vh;
+  background: var(--color-bg);
+  color: var(--color-ink);
+  font-family: "Manrope Variable", Manrope, sans-serif;
+}
+.builder-logo {
+  width: auto;
+  height: 36px;
+  max-width: 220px;
+  object-fit: contain;
+}
+.builder-menu-group {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 24px;
+}
+.site-footer .builder-menu-group {
+  align-items: flex-start;
+  flex-direction: column;
+  gap: 14px;
+}
+.site-footer__nav {
+  align-items: flex-start;
+}
+.builder-submenu {
+  position: relative;
+}
+.builder-submenu summary {
+  cursor: pointer;
+}
+.builder-submenu > div {
+  position: absolute;
+  z-index: 35;
+  top: 100%;
+  left: 0;
+  min-width: 180px;
+  padding: 20px;
+  display: grid;
+  gap: 12px;
+  background: var(--color-bg);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+}
+.builder-header-slot {
+  min-height: var(--header-height);
+}
+.builder-sections + .site-footer {
+  margin-top: var(--section-space);
+}
+.site-canvas .form-notice {
+  margin-top: 16px;
+}
+.builder-lightbox {
+  border: 0;
+  border-radius: var(--radius);
+  padding: 56px 40px 32px;
+  width: min(100% - 40px, 1000px);
+  max-height: 90dvh;
+  color: var(--color-ink);
+  background: var(--color-bg);
+}
+.builder-lightbox::backdrop {
+  background: rgb(0 0 0 / 55%);
+}
+.builder-lightbox img {
+  width: 100%;
+  height: auto;
+  max-height: 60dvh;
+  object-fit: contain;
+  margin-bottom: 24px;
+  border-radius: var(--radius);
+}
+.builder-lightbox__close {
+  position: absolute;
+  right: 20px;
+  top: 16px;
+  background: none;
+  border: 0;
+  padding: 4px;
+  cursor: pointer;
+}

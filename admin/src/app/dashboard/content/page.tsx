@@ -1,28 +1,55 @@
-import { ArrowRight, BriefcaseBusiness, FileText, Newspaper, Plus } from "lucide-react";
+"use client";
+/* eslint-disable @next/next/no-img-element */
+import { useState } from "react";
+import { ExternalLink } from "lucide-react";
+import { definitions } from "@/lib/builder/catalog";
 import { PageHeader } from "@/components/admin/page-header";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
-
-const collections = [
-  { name: "Projects", count: 12, draft: 2, icon: BriefcaseBusiness },
-  { name: "Journal", count: 8, draft: 1, icon: Newspaper },
-  { name: "Services", count: 6, draft: 0, icon: FileText },
-];
-
-export default function ContentPage() {
+import { Input } from "@/components/ui/input";
+export default function Content() {
+  const [query, setQuery] = useState("");
   return (
-    <div className="rise-in">
-      <PageHeader title="Content" description="Structured collections used throughout the project pages." action={<Button><Plus data-icon="inline-start" /> Add entry</Button>} />
-      <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
-        {collections.map(({ name, count, draft, icon: Icon }) => (
-          <Card key={name} className="group shadow-none transition-colors hover:border-black">
-            <CardContent className="p-5">
-              <div className="flex items-start justify-between"><span className="grid size-10 place-items-center rounded-md bg-neutral-100"><Icon className="size-4" /></span><ArrowRight className="size-4 text-neutral-300 transition-transform group-hover:translate-x-0.5 group-hover:text-black" /></div>
-              <h2 className="mt-7 text-base font-semibold">{name}</h2>
-              <p className="mt-1 text-xs text-neutral-400">{count} entries{draft > 0 ? ` · ${draft} drafts` : " · all published"}</p>
-            </CardContent>
-          </Card>
-        ))}
+    <div>
+      <PageHeader
+        title="Section library"
+        description="Every approved variation, rendered in Next.js with your shared SCSS. Add sections from the page editor."
+      />
+      <Input
+        placeholder="Search sections and layouts"
+        aria-label="Search section library"
+        className="mb-6 max-w-sm"
+        value={query}
+        onChange={(e) => setQuery(e.target.value)}
+      />
+      <div className="grid gap-5 md:grid-cols-2 xl:grid-cols-3">
+        {definitions
+          .filter((d) =>
+            `${d.title} ${d.label}`.toLowerCase().includes(query.toLowerCase()),
+          )
+          .map((d) => (
+            <a
+              href={`/library/${d.id}`}
+              target="_blank"
+              rel="noreferrer"
+              key={d.id}
+              className="overflow-hidden rounded-xl border bg-white transition hover:border-black"
+            >
+              <img
+                src={d.thumbnail}
+                alt={`${d.title} ${d.label}`}
+                className="aspect-[16/10] w-full bg-neutral-100 object-contain"
+                loading="lazy"
+              />
+              <div className="flex items-center justify-between border-t p-4">
+                <div>
+                  <p className="text-sm font-medium">
+                    {d.title} · {d.label}
+                  </p>
+                  <p className="mt-1 text-xs text-neutral-400">{d.id}</p>
+                </div>
+                <ExternalLink className="size-4" />
+              </div>
+            </a>
+          ))}
       </div>
     </div>
   );

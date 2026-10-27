@@ -1,5 +1,5 @@
-import { LayoutSettings } from "@/components/admin/layout-settings";
+import { LayoutEditor } from "@/components/builder/layout-editor";
 
 export default function LayoutPage() {
-  return <LayoutSettings />;
+  return <LayoutEditor />;
 }

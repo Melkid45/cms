@@ -1,6 +1,4 @@
-import { PageBuilder } from "@/components/admin/page-builder";
-import { getBlockCatalog } from "@/lib/block-catalog";
-
-export default async function NewPage() {
-  return <PageBuilder catalog={await getBlockCatalog()} />;
+import { PageEditor } from "@/components/builder/page-editor";
+export default function NewPage() {
+  return <PageEditor />;
 }

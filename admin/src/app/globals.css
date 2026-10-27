@@ -2,8 +2,6 @@
 @import "tw-animate-css";
 @import "shadcn/tailwind.css";
 @import "@fontsource-variable/manrope";
-@import "../../../frontend/src/cms/styles.css";
-@source "../../../frontend/src/cms";
 
 @custom-variant dark (&:is(.dark *));
 
