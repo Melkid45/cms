@@ -14,6 +14,7 @@ export const dataDirectory = path.resolve(process.cwd(), ".data");
 const globalStore = globalThis as typeof globalThis & {
   cmsQueue?: Promise<unknown>;
   cmsSql?: ReturnType<typeof postgres>;
+  cmsDatabaseReady?: Promise<void>;
 };
 const section = z.object({
   id: z.string().min(1).max(100),
@@ -163,8 +164,19 @@ export async function database() {
     max: 3,
     prepare: false,
   }));
-  await sql`CREATE TABLE IF NOT EXISTS harbstone_project (id text PRIMARY KEY, document jsonb NOT NULL)`;
-  await sql`INSERT INTO harbstone_project (id, document) VALUES ('default', ${sql.json(seedProject() as unknown as postgres.JSONValue)}) ON CONFLICT DO NOTHING`;
+  globalStore.cmsDatabaseReady ??= sql
+    .begin(async (tx) => {
+      // Serialize first-run DDL across serverless instances as well as concurrent renders.
+      await tx`SELECT pg_advisory_xact_lock(731920041)`;
+      await tx`CREATE TABLE IF NOT EXISTS harbstone_project (id text PRIMARY KEY, document jsonb NOT NULL)`;
+      await tx`INSERT INTO harbstone_project (id, document) VALUES ('default', ${tx.json(seedProject() as unknown as postgres.JSONValue)}) ON CONFLICT DO NOTHING`;
+    })
+    .then(() => {})
+    .catch((error) => {
+      globalStore.cmsDatabaseReady = undefined;
+      throw error;
+    });
+  await globalStore.cmsDatabaseReady;
   return sql;
 }
 export async function readProject(): Promise<Project> {
