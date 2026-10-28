@@ -156,6 +156,28 @@ try {
   assert.equal(r.status, 201);
   const provisioned = await r.json();
   assert.equal(provisioned.role, "client");
+  assert.equal(
+    (
+      await botPut(
+        { id: provisioned.id, disabled: true },
+        "client",
+        "accounts",
+        "PATCH",
+      )
+    ).status,
+    403,
+  );
+  assert.equal(
+    (
+      await botPut(
+        { id: provisioned.id, disabled: true },
+        "super-admin",
+        "accounts",
+        "PATCH",
+      )
+    ).status,
+    200,
+  );
   assert(!("hash" in provisioned));
   assert.equal((await request("/api/builder/smtp")).status, 401);
   let smtp = await (

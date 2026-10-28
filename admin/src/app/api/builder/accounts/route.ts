@@ -1,4 +1,3 @@
-import { z } from "zod";
 import {
   authorizeWrite,
   errorResponse,
@@ -6,7 +5,7 @@ import {
 } from "@/lib/builder/server";
 import { listAccounts, saveAccount } from "@/lib/builder/accounts";
 import {
-  accountPassword as password,
+  clientAccountChange,
   newClientAccount,
 } from "@/lib/builder/account-input";
 export async function GET(request: Request) {
@@ -35,18 +34,8 @@ export async function POST(request: Request) {
 export async function PATCH(request: Request) {
   try {
     await authorizeWrite(request, true);
-    const value = z
-      .object({
-        id: z.string().min(1).max(100),
-        password: password.optional(),
-        disabled: z.boolean().optional(),
-      })
-      .strict()
-      .safeParse(await request.json());
-    if (
-      !value.success ||
-      (value.data.password === undefined && value.data.disabled === undefined)
-    )
+    const value = clientAccountChange.safeParse(await request.json());
+    if (!value.success)
       throw new StoreError(
         "Choose an account and a password or access status.",
       );

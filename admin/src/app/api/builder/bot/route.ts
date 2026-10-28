@@ -8,7 +8,10 @@ import {
 } from "@/lib/builder/server";
 import { storeMedia } from "@/lib/builder/media";
 import { listAccounts, saveAccount } from "@/lib/builder/accounts";
-import { newClientAccount } from "@/lib/builder/account-input";
+import {
+  newClientAccount,
+  clientAccountChange,
+} from "@/lib/builder/account-input";
 export const runtime = "nodejs";
 const localNonces = new Map<string, number>();
 async function handle(request: Request) {
@@ -68,7 +71,8 @@ async function handle(request: Request) {
         return Response.json(await listAccounts(), {
           headers: { "Cache-Control": "no-store" },
         });
-      if (request.method !== "POST") return new Response(null, { status: 405 });
+      if (!["POST", "PATCH"].includes(request.method))
+        return new Response(null, { status: 405 });
       if (bytes.length > 12000)
         throw new StoreError("Request is too large.", 413);
       let input: unknown;
@@ -76,6 +80,14 @@ async function handle(request: Request) {
         input = JSON.parse(bytes.toString("utf8"));
       } catch {
         throw new StoreError("Invalid account data.");
+      }
+      if (request.method === "PATCH") {
+        const update = clientAccountChange.safeParse(input);
+        if (!update.success)
+          throw new StoreError(
+            "Choose a client account and a valid password or access status.",
+          );
+        return Response.json(await saveAccount(update.data));
       }
       const parsed = newClientAccount.safeParse(input);
       if (!parsed.success)
@@ -105,6 +117,7 @@ async function handle(request: Request) {
         ),
       );
     }
+    if (request.method !== "POST") return new Response(null, { status: 405 });
     return await storeMedia(
       new Request(request.url, {
         method: "POST",
@@ -119,3 +132,4 @@ async function handle(request: Request) {
 export const GET = handle;
 export const PUT = handle;
 export const POST = handle;
+export const PATCH = handle;
