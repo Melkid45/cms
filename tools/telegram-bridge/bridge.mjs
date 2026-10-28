@@ -162,7 +162,7 @@ async function handle(update) {
     if (!request) request = 'Пользователь прислал картинку без задания. Кратко опиши, что видишь, и уточни желаемое изменение. Не изменяй файлы до уточнения.';
     const before = await capture(repo);
     let cms;
-    try{cms=await createCmsSession();}catch{throw Error('CMS connection is not configured.');}
+    try{cms=await createCmsSession({role:id===config.ownerId?'super-admin':'client'});}catch{throw Error('CMS connection is not configured.');}
     try{answer = await runCodex(request, id, images,cms);}finally{await cms.close();}
     if(cms.activity.saved||cms.activity.uploads){answer+=`\n\nДанные сохранены в облачной админке.${cms.activity.published.length?' Изменения опубликованы.':' Если менялся черновик страницы, он остаётся черновиком до публикации.'}\n${[...new Set(cms.activity.published)].join('\n')}\n${ADMIN_SITE}/dashboard/pages`;}
     try {

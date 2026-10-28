@@ -3,7 +3,9 @@ import {
   createSession,
   credentialsMatch,
   localAccess,
+  ownerIdentity,
 } from "@/lib/builder/auth";
+import { accountLogin } from "@/lib/builder/accounts";
 import { StoreError, errorResponse } from "@/lib/builder/server";
 import { limitSignIn } from "@/lib/builder/submissions";
 function sameOrigin(request: Request) {
@@ -27,13 +29,15 @@ export async function POST(request: Request) {
     const ip = request.headers.get("x-forwarded-for")?.split(",")[0] || "local";
     await limitSignIn(ip);
     const { email, password } = await request.json();
-    if (!credentialsMatch(email, password))
-      throw new StoreError("Incorrect email or password.", 401);
+    const identity = credentialsMatch(email, password)
+      ? ownerIdentity()
+      : await accountLogin(email, password);
+    if (!identity) throw new StoreError("Incorrect email or password.", 401);
     return Response.json(
       { ok: true },
       {
         headers: {
-          "Set-Cookie": `cms_session=${createSession()}; HttpOnly; SameSite=Strict; Path=/; Max-Age=43200${process.env.NODE_ENV === "production" ? "; Secure" : ""}`,
+          "Set-Cookie": `cms_session=${createSession(Date.now(), identity)}; HttpOnly; SameSite=Strict; Path=/; Max-Age=43200${process.env.NODE_ENV === "production" ? "; Secure" : ""}`,
         },
       },
     );

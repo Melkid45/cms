@@ -9,7 +9,7 @@ import {createCmsSession,ADMIN_SITE} from './cms-client.mjs';
 const exec=promisify(execFile),repo=resolve(import.meta.dirname,'../..');
 await mkdir(resolve(repo,'.telegram-media'),{recursive:true,mode:0o700});
 const dir=await mkdtemp(resolve(repo,'.telegram-media/cms-check-')),file=resolve(dir,'project.json');
-const session=await createCmsSession();const env={...process.env,HARBSTONE_CMS_PROXY:session.url,HARBSTONE_CMS_SESSION:session.token};
+const session=await createCmsSession({role:'super-admin'});const env={...process.env,HARBSTONE_CMS_PROXY:session.url,HARBSTONE_CMS_SESSION:session.token};
 const command=(...args)=>exec(process.execPath,['tools/telegram-bridge/cms.mjs',...args],{cwd:repo,env,timeout:60000,maxBuffer:1000000});
 const pull=async()=>{await command('pull',file);return JSON.parse(await readFile(file,'utf8'));};
 const save=async project=>{await writeFile(file,JSON.stringify(project),{mode:0o600});await command('save',file);};

@@ -34,6 +34,7 @@ export function AuthForm({ mode }: AuthFormProps) {
       const result = await response.json();
       if (!response.ok) throw new Error(result.error);
       router.push("/dashboard");
+      router.refresh();
     } catch (error) {
       setError(error instanceof Error ? error.message : "Could not sign in.");
       setLoading(false);

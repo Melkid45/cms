@@ -1,6 +1,8 @@
 "use client";
 import Link from "next/link";
 import { useProject } from "@/lib/builder/client";
+import { useAccess } from "@/components/admin/access-context";
+import Submissions from "@/components/admin/inbox";
 import { definitions } from "@/lib/builder/catalog";
 import {
   ArrowRight,
@@ -26,6 +28,7 @@ import {
 
 export default function DashboardPage() {
   const { project } = useProject();
+  const { isOwner } = useAccess();
   const stats = [
     {
       label: "Pages",
@@ -66,6 +69,7 @@ export default function DashboardPage() {
       status: page.status,
       slug: page.slug,
     }));
+  if (!isOwner) return <Submissions overview />;
   return (
     <div className="rise-in">
       <PageHeader

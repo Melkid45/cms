@@ -1,4 +1,12 @@
 import { createHmac, timingSafeEqual, randomBytes } from "node:crypto";
+import type { Identity } from "./permissions";
+export const ownerIdentity = (): Identity => ({
+  id: "owner",
+  email: process.env.CMS_ADMIN_EMAIL || "",
+  name: "Ilya Melman",
+  role: "super-admin",
+  version: 1,
+});
 const sessionLifetime = 12 * 60 * 60;
 export function authConfigured() {
   return !!(
@@ -23,26 +31,32 @@ function key() {
       : "")
   );
 }
-export function createSession(now = Date.now()) {
+export function createSession(
+  now = Date.now(),
+  identity: Identity = ownerIdentity(),
+) {
   if (!key()) throw new Error("Authentication is not configured.");
   const payload = Buffer.from(
     JSON.stringify({
-      email: process.env.CMS_ADMIN_EMAIL || "",
+      ...identity,
       exp: Math.floor(now / 1000) + sessionLifetime,
     }),
   ).toString("base64url");
   return `${payload}.${createHmac("sha256", key()).update(payload).digest("base64url")}`;
 }
-export function verifySession(token: string | undefined, now = Date.now()) {
+export function sessionIdentity(
+  token: string | undefined,
+  now = Date.now(),
+): Identity | null {
   try {
     if (
       !token ||
       !key() ||
       (process.env.NODE_ENV === "production" && !authConfigured())
     )
-      return false;
+      return null;
     const [payload, sig, ...rest] = token.split(".");
-    if (rest.length || !sig) return false;
+    if (rest.length || !sig) return null;
     const expected = createHmac("sha256", key())
       .update(payload)
       .digest("base64url");
@@ -50,18 +64,34 @@ export function verifySession(token: string | undefined, now = Date.now()) {
       sig.length !== expected.length ||
       !timingSafeEqual(Buffer.from(sig), Buffer.from(expected))
     )
-      return false;
+      return null;
     const value = JSON.parse(Buffer.from(payload, "base64url").toString());
-    return (
-      value.email === (process.env.CMS_ADMIN_EMAIL || "") &&
+    const valid =
       typeof value.exp === "number" &&
       value.exp > now / 1000 &&
-      value.exp <= now / 1000 + sessionLifetime + 1
-    );
+      value.exp <= now / 1000 + sessionLifetime + 1;
+    if (!valid) return null;
+    // Existing owner sessions remain valid; client identities always carry a version.
+    if (
+      (!value.role || value.role === "super-admin") &&
+      value.email === (process.env.CMS_ADMIN_EMAIL || "")
+    )
+      return ownerIdentity();
+    if (
+      value.role === "client" &&
+      typeof value.id === "string" &&
+      typeof value.email === "string" &&
+      typeof value.name === "string" &&
+      Number.isInteger(value.version)
+    )
+      return value;
+    return null;
   } catch {
-    return false;
+    return null;
   }
 }
+export const verifySession = (token: string | undefined, now = Date.now()) =>
+  !!sessionIdentity(token, now);
 export function credentialsMatch(email: unknown, password: unknown) {
   const equal = (a: string, b: string) => {
     const left = Buffer.from(a),

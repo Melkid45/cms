@@ -18,7 +18,7 @@ export async function cmsRequest(method,{query='',body=Buffer.alloc(0),contentTy
   const key=privateKey||createPrivateKey(await readFile(keyPath));const path='/api/builder/bot'+query;
   return fetchImpl(site+path,{method,redirect:'error',headers:{...signedHeaders(key,method,path,body),'Content-Type':contentType},body:method==='GET'?undefined:body,signal:AbortSignal.timeout(45000)});
 }
-export async function createCmsSession({privateKey,fetchImpl=fetch,site=ADMIN_SITE}={}){
+export async function createCmsSession({privateKey,fetchImpl=fetch,site=ADMIN_SITE,role='client'}={}){
   const key=privateKey||createPrivateKey(await readFile(keyPath));const token=randomBytes(32).toString('hex');const activity={saved:false,published:[],uploads:0};
   const server=createServer(async(request,response)=>{
     const auth=request.headers.authorization||'';const expected='Bearer '+token;
@@ -28,7 +28,8 @@ export async function createCmsSession({privateKey,fetchImpl=fetch,site=ADMIN_SI
     if([...url.searchParams.keys()].some(key=>key!=='publish')){response.writeHead(400);response.end();return;}
     try{
       const chunks=[];let size=0;for await(const part of request){size+=part.length;if(size>12*1024*1024)throw Error('Request too large');chunks.push(part);}
-      const remote=await cmsRequest(method,{privateKey:key,site,fetchImpl,body:Buffer.concat(chunks),contentType:request.headers['content-type']||'application/json',query:url.search});
+      const query=new URLSearchParams(url.searchParams);query.set('actor',role==='super-admin'?'super-admin':'client');
+      const remote=await cmsRequest(method,{privateKey:key,site,fetchImpl,body:Buffer.concat(chunks),contentType:request.headers['content-type']||'application/json',query:'?'+query.toString()});
       const data=await remote.json();
       if(remote.ok&&method==='PUT'){activity.saved=true;const id=url.searchParams.get('publish');const page=data.pages?.find(p=>p.id===id);if(page?.published)activity.published.push(`${site}/site/${page.published.slug}`);}
       if(remote.ok&&method==='POST')activity.uploads++;

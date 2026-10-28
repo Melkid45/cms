@@ -3,7 +3,7 @@ import { listSubmissions, markSubmission } from "@/lib/builder/submissions";
 import { z } from "zod";
 export async function GET(request: Request) {
   try {
-    authorizeWrite(request);
+    await authorizeWrite(request);
     return Response.json(await listSubmissions(), {
       headers: { "Cache-Control": "no-store" },
     });
@@ -13,7 +13,7 @@ export async function GET(request: Request) {
 }
 export async function PATCH(request: Request) {
   try {
-    authorizeWrite(request);
+    await authorizeWrite(request);
     const value = z
       .object({ id: z.string(), read: z.boolean() })
       .parse(await request.json());

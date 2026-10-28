@@ -71,7 +71,13 @@ async function handle(request: Request) {
         throw new StoreError("Invalid project JSON.");
       }
       return Response.json(
-        await writeProject(input, url.searchParams.get("publish") || undefined),
+        await writeProject(
+          input,
+          url.searchParams.get("publish") || undefined,
+          url.searchParams.get("actor") === "super-admin"
+            ? "super-admin"
+            : "client",
+        ),
       );
     }
     return await storeMedia(

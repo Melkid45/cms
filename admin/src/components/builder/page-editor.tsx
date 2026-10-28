@@ -43,6 +43,8 @@ import {
 } from "./sortable-sections";
 import { VersionHistory } from "./version-history";
 import { hasDraftChanges } from "@/lib/builder/workflows";
+import { useAccess } from "@/components/admin/access-context";
+import { ClientPageEditor } from "./client-page-editor";
 const sectionDefinitions = definitions.filter(
   (d) => !["header", "footer"].includes(d.family),
 );
@@ -92,6 +94,7 @@ export function slugify(value: string) {
 }
 export function PageEditor({ slug }: { slug?: string }) {
   const { project, error } = useProject();
+  const { isOwner } = useAccess();
   if (!project) return <p role="status">{error || "Loading your project…"}</p>;
   const page = project.pages.find((p) => p.slug === slug && !p.deletedAt);
   if (slug && !page)
@@ -100,6 +103,12 @@ export function PageEditor({ slug }: { slug?: string }) {
         <p>Page not found.</p>
         <Link href="/dashboard/pages">Back to pages</Link>
       </div>
+    );
+  if (!isOwner)
+    return page ? (
+      <ClientPageEditor key={page.id} initial={page} />
+    ) : (
+      <p>Choose an existing page to edit.</p>
     );
   return <Editor key={page?.id || "new"} initial={page} project={project} />;
 }

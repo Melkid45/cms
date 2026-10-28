@@ -77,9 +77,11 @@ function category(field: Field) {
 export function SectionEditor({
   section,
   onChange,
+  contentOnly = false,
 }: {
   section: Section;
   onChange: (section: Section) => void;
+  contentOnly?: boolean;
 }) {
   const entry = definition(section.variant);
   if (!entry) return null;
@@ -126,18 +128,20 @@ export function SectionEditor({
               <h3 className="text-sm font-semibold">
                 {group.label} · {items.length}
               </h3>
-              <Button
-                type="button"
-                variant="outline"
-                size="sm"
-                disabled={items.length >= 30}
-                onClick={() =>
-                  update([...items, newCollectionItem(entry, group)])
-                }
-              >
-                <Plus />
-                Add item
-              </Button>
+              {!contentOnly && (
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  disabled={items.length >= 30}
+                  onClick={() =>
+                    update([...items, newCollectionItem(entry, group)])
+                  }
+                >
+                  <Plus />
+                  Add item
+                </Button>
+              )}
             </div>
             {items.map((item, index) => {
               const keys = group.items[item.template].fields;
@@ -160,62 +164,64 @@ export function SectionEditor({
                       .slice(0, 70) || "New item"}
                   </summary>
                   <div className="space-y-4 border-t p-4">
-                    <div className="flex justify-end gap-1">
-                      {[-1, 1].map((direction) => (
+                    {!contentOnly && (
+                      <div className="flex justify-end gap-1">
+                        {[-1, 1].map((direction) => (
+                          <Button
+                            type="button"
+                            key={direction}
+                            variant="ghost"
+                            size="icon-sm"
+                            aria-label={`Move item ${index + 1} ${direction < 0 ? "up" : "down"}`}
+                            disabled={
+                              index + direction < 0 ||
+                              index + direction >= items.length
+                            }
+                            onClick={() => {
+                              const next = [...items];
+                              [next[index], next[index + direction]] = [
+                                next[index + direction],
+                                next[index],
+                              ];
+                              update(next);
+                            }}
+                          >
+                            {direction < 0 ? <ArrowUp /> : <ArrowDown />}
+                          </Button>
+                        ))}
                         <Button
                           type="button"
-                          key={direction}
                           variant="ghost"
                           size="icon-sm"
-                          aria-label={`Move item ${index + 1} ${direction < 0 ? "up" : "down"}`}
-                          disabled={
-                            index + direction < 0 ||
-                            index + direction >= items.length
+                          aria-label={`Duplicate item ${index + 1}`}
+                          disabled={items.length >= 30}
+                          onClick={() =>
+                            update([
+                              ...items.slice(0, index + 1),
+                              {
+                                ...structuredClone(item),
+                                id: crypto.randomUUID(),
+                              },
+                              ...items.slice(index + 1),
+                            ])
                           }
-                          onClick={() => {
-                            const next = [...items];
-                            [next[index], next[index + direction]] = [
-                              next[index + direction],
-                              next[index],
-                            ];
-                            update(next);
-                          }}
                         >
-                          {direction < 0 ? <ArrowUp /> : <ArrowDown />}
+                          <Copy />
                         </Button>
-                      ))}
-                      <Button
-                        type="button"
-                        variant="ghost"
-                        size="icon-sm"
-                        aria-label={`Duplicate item ${index + 1}`}
-                        disabled={items.length >= 30}
-                        onClick={() =>
-                          update([
-                            ...items.slice(0, index + 1),
-                            {
-                              ...structuredClone(item),
-                              id: crypto.randomUUID(),
-                            },
-                            ...items.slice(index + 1),
-                          ])
-                        }
-                      >
-                        <Copy />
-                      </Button>
-                      <Button
-                        type="button"
-                        variant="ghost"
-                        size="icon-sm"
-                        aria-label={`Remove item ${index + 1}`}
-                        disabled={items.length <= 1}
-                        onClick={() =>
-                          update(items.filter((i) => i.id !== item.id))
-                        }
-                      >
-                        <Trash2 />
-                      </Button>
-                    </div>
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="icon-sm"
+                          aria-label={`Remove item ${index + 1}`}
+                          disabled={items.length <= 1}
+                          onClick={() =>
+                            update(items.filter((i) => i.id !== item.id))
+                          }
+                        >
+                          <Trash2 />
+                        </Button>
+                      </div>
+                    )}
                     <Fields
                       id={`${section.id}-${item.id}`}
                       fields={fields}
@@ -232,10 +238,12 @@ export function SectionEditor({
                 </details>
               );
             })}
-            <p className="text-xs text-neutral-400">
-              1–30 items. Remove, duplicate or reorder without changing the
-              layout.
-            </p>
+            {!contentOnly && (
+              <p className="text-xs text-neutral-400">
+                1–30 items. Remove, duplicate or reorder without changing the
+                layout.
+              </p>
+            )}
           </div>
         );
       })}

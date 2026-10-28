@@ -15,7 +15,7 @@ test('signatures bind method, URL, body and expiry; invalid keys cannot authoriz
 test('temporary local session rejects unauthenticated calls, signs remote writes and records successful publication',async()=>{
   let calls=0;
   const session=await createCmsSession({privateKey,fetchImpl:async(url,options)=>{
-    calls++;const parsed=new URL(url),h=options.headers;assert(validBotSignature({method:options.method,path:parsed.pathname+parsed.search,timestamp:h['x-harbstone-time'],nonce:h['x-harbstone-nonce'],signature:h['x-harbstone-signature'],publicKey:encoded,body:options.body||Buffer.alloc(0)}));assert(!h.Authorization);return Response.json({revision:2,pages:[{id:'home',published:{slug:'home'}}]});
+    calls++;const parsed=new URL(url),h=options.headers;assert.equal(parsed.searchParams.get('actor'),'client');assert(validBotSignature({method:options.method,path:parsed.pathname+parsed.search,timestamp:h['x-harbstone-time'],nonce:h['x-harbstone-nonce'],signature:h['x-harbstone-signature'],publicKey:encoded,body:options.body||Buffer.alloc(0)}));assert(!h.Authorization);return Response.json({revision:2,pages:[{id:'home',published:{slug:'home'}}]});
   }});
   try{
     assert.equal((await fetch(session.url+'/project')).status,401);assert.equal(calls,0);
@@ -24,6 +24,7 @@ test('temporary local session rejects unauthenticated calls, signs remote writes
     assert.deepEqual(session.activity.published,['https://harbstone-admin.vercel.app/site/home']);assert(session.activity.saved);
     assert.equal((await fetch(session.url+'/unknown',{headers})).status,404);
     assert.equal((await fetch(session.url+'/project?redirect=bad',{headers})).status,400);
+    assert.equal((await fetch(session.url+'/project?actor=super-admin',{headers})).status,400);
   }finally{await session.close();}
   await assert.rejects(fetch(session.url+'/project',{headers:{Authorization:'Bearer '+session.token}}));
 });

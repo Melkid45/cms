@@ -7,8 +7,10 @@ import { useProject } from "@/lib/builder/client";
 import { PageHeader } from "@/components/admin/page-header";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { useAccess } from "@/components/admin/access-context";
 export default function Pages() {
   const { project, error, save } = useProject();
+  const { isOwner } = useAccess();
   const [query, setQuery] = useState(""),
     [notice, setNotice] = useState("");
   const [trash, setTrash] = useState(false);
@@ -16,7 +18,11 @@ export default function Pages() {
     <div>
       <PageHeader
         title="Pages"
-        description="Build and publish your website from the approved section library."
+        description={
+          isOwner
+            ? "Build and publish your website from the approved section library."
+            : "Choose a page to update its content."
+        }
         action={
           <div className="flex gap-3">
             <Button
@@ -27,13 +33,15 @@ export default function Pages() {
               <ExternalLink />
               Open website
             </Button>
-            <Button
-              nativeButton={false}
-              render={<Link href="/dashboard/pages/new" />}
-            >
-              <Plus />
-              New page
-            </Button>
+            {isOwner && (
+              <Button
+                nativeButton={false}
+                render={<Link href="/dashboard/pages/new" />}
+              >
+                <Plus />
+                New page
+              </Button>
+            )}
           </div>
         }
       />
@@ -46,12 +54,14 @@ export default function Pages() {
             >
               Pages
             </Button>
-            <Button
-              variant={trash ? "secondary" : "ghost"}
-              onClick={() => setTrash(true)}
-            >
-              Trash ({project?.pages.filter((p) => p.deletedAt).length || 0})
-            </Button>
+            {isOwner && (
+              <Button
+                variant={trash ? "secondary" : "ghost"}
+                onClick={() => setTrash(true)}
+              >
+                Trash ({project?.pages.filter((p) => p.deletedAt).length || 0})
+              </Button>
+            )}
           </div>
           <Input
             aria-label="Search pages"
@@ -103,45 +113,49 @@ export default function Pages() {
                   <ExternalLink className="size-4" />
                 </a>
               )}
-              <Button
-                variant="ghost"
-                size="icon-sm"
-                aria-label={`${trash ? "Restore" : "Move to trash"} ${page.title}`}
-                disabled={project.layout.homePageId === page.id}
-                onClick={async () => {
-                  if (
-                    !trash &&
-                    !confirm(
-                      `Move “${page.title}” to trash? You can restore it later.`,
+              {isOwner && (
+                <Button
+                  variant="ghost"
+                  size="icon-sm"
+                  aria-label={`${trash ? "Restore" : "Move to trash"} ${page.title}`}
+                  disabled={project.layout.homePageId === page.id}
+                  onClick={async () => {
+                    if (
+                      !trash &&
+                      !confirm(
+                        `Move “${page.title}” to trash? You can restore it later.`,
+                      )
                     )
-                  )
-                    return;
-                  try {
-                    await save({
-                      ...project,
-                      pages: project.pages.map((p) =>
-                        p.id === page.id
-                          ? {
-                              ...p,
-                              deletedAt: trash
-                                ? undefined
-                                : new Date().toISOString(),
-                            }
-                          : p,
-                      ),
-                    });
-                    setNotice(
-                      trash ? "Page restored." : "Page moved to trash.",
-                    );
-                  } catch (e) {
-                    setNotice(
-                      e instanceof Error ? e.message : "Could not delete page",
-                    );
-                  }
-                }}
-              >
-                {trash ? <RotateCcw /> : <Trash2 />}
-              </Button>
+                      return;
+                    try {
+                      await save({
+                        ...project,
+                        pages: project.pages.map((p) =>
+                          p.id === page.id
+                            ? {
+                                ...p,
+                                deletedAt: trash
+                                  ? undefined
+                                  : new Date().toISOString(),
+                              }
+                            : p,
+                        ),
+                      });
+                      setNotice(
+                        trash ? "Page restored." : "Page moved to trash.",
+                      );
+                    } catch (e) {
+                      setNotice(
+                        e instanceof Error
+                          ? e.message
+                          : "Could not delete page",
+                      );
+                    }
+                  }}
+                >
+                  {trash ? <RotateCcw /> : <Trash2 />}
+                </Button>
+              )}
             </div>
           ))}
       </div>

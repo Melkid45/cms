@@ -1,7 +1,14 @@
 import "server-only";
 import { readFile, writeFile, rename, mkdir } from "node:fs/promises";
 import path from "node:path";
-import { authConfigured, localAccess, verifySession } from "./auth";
+import {
+  authConfigured,
+  localAccess,
+  sessionIdentity,
+  ownerIdentity,
+} from "./auth";
+import { accountIdentity } from "./accounts";
+import { clientProjectError, type Role } from "./permissions";
 import postgres from "postgres";
 import { z } from "zod";
 import { seedProject } from "./seed";
@@ -10,7 +17,10 @@ import { separateLayoutMenus } from "./menus";
 import { normalizeProject, preparePages } from "./workflows";
 import type { Project } from "./types";
 
-export const dataDirectory = path.resolve(process.cwd(), ".data");
+export const dataDirectory =
+  !process.env.VERCEL && process.env.CMS_DATA_DIRECTORY
+    ? path.resolve(/* turbopackIgnore: true */ process.env.CMS_DATA_DIRECTORY)
+    : path.join(process.cwd(), ".data");
 const globalStore = globalThis as typeof globalThis & {
   cmsQueue?: Promise<unknown>;
   cmsSql?: ReturnType<typeof postgres>;
@@ -203,6 +213,7 @@ export async function readProject(): Promise<Project> {
 export async function writeProject(
   input: unknown,
   publishId?: string,
+  role: Role = "super-admin",
 ): Promise<Project> {
   const parsed = schema.safeParse(input);
   if (!parsed.success)
@@ -252,6 +263,10 @@ export async function writeProject(
         "Someone saved a newer version. Reload before saving.",
         409,
       );
+    if (role === "client") {
+      const error = clientProjectError(next, current);
+      if (error) throw new StoreError(error, 403);
+    }
     if (
       publishId &&
       !next.pages.some((p) => p.id === publishId && !p.deletedAt)
@@ -328,7 +343,7 @@ export async function writeProject(
   globalStore.cmsQueue = operation;
   return operation;
 }
-export function authorizeWrite(request: Request) {
+export async function authorizeWrite(request: Request, ownerOnly = false) {
   const origin = request.headers.get("origin");
   const host = request.headers.get("host") || new URL(request.url).host;
   if (origin && new URL(origin).host !== host)
@@ -343,6 +358,7 @@ export function authorizeWrite(request: Request) {
       "Configure CMS_ADMIN_EMAIL, CMS_ADMIN_PASSWORD (12+ characters) and CMS_AUTH_SECRET (32+ characters).",
       503,
     );
+  let identity = ownerIdentity();
   if (!localAccess()) {
     const cookie = request.headers.get("cookie") || "";
     const token = cookie
@@ -350,9 +366,17 @@ export function authorizeWrite(request: Request) {
       .find((c) => c.trim().startsWith("cms_session="))
       ?.trim()
       .slice("cms_session=".length);
-    if (!verifySession(token))
-      throw new StoreError("Sign in before editing.", 401);
+    const session = sessionIdentity(token);
+    const verified =
+      session?.role === "client"
+        ? await accountIdentity(session.id, session.version)
+        : session;
+    if (!verified) throw new StoreError("Sign in before editing.", 401);
+    identity = verified;
   }
+  if (ownerOnly && identity.role !== "super-admin")
+    throw new StoreError("Only the super admin can access this feature.", 403);
+  return identity;
 }
 export function errorResponse(error: unknown) {
   return Response.json(

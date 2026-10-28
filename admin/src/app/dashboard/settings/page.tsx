@@ -10,6 +10,7 @@ import {
 } from "lucide-react";
 import { PageHeader } from "@/components/admin/page-header";
 import { Card, CardContent } from "@/components/ui/card";
+import { currentUser } from "@/lib/builder/current-user";
 
 interface SettingsItem {
   title: string;
@@ -57,7 +58,19 @@ const settings = [
   },
 ] satisfies readonly SettingsItem[];
 
-export default function SettingsPage() {
+export default async function SettingsPage() {
+  const user = await currentUser();
+  const visible =
+    user.role === "super-admin"
+      ? settings
+      : [
+          {
+            title: "Website settings",
+            text: "Logos and website enquiry settings",
+            icon: Globe,
+            href: "/dashboard/settings/client",
+          },
+        ];
   return (
     <div className="rise-in">
       <PageHeader
@@ -65,7 +78,7 @@ export default function SettingsPage() {
         description="Manage your project, profile, and integrations."
       />
       <div className="grid gap-3 md:grid-cols-2">
-        {settings.map(({ title, text, icon: Icon, href }) => (
+        {visible.map(({ title, text, icon: Icon, href }) => (
           <Link href={href} key={title}>
             <Card className="group shadow-none transition-colors hover:border-black">
               <CardContent className="flex items-center gap-4 p-5">

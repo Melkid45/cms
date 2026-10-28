@@ -30,6 +30,8 @@ import {
 import { cn } from "@/lib/utils";
 import { useState } from "react";
 import { useProject } from "@/lib/builder/client";
+import { AccessContext } from "./access-context";
+import { clientRoute, type Identity } from "@/lib/builder/access";
 
 const primaryNav = [
   { label: "Overview", href: "/dashboard", icon: Gauge, exact: true },
@@ -58,6 +60,7 @@ const pageNames: Record<string, string> = {
   "/dashboard/settings/profile": "Profile",
   "/dashboard/settings/setup": "Brand setup",
   "/dashboard/settings/project": "Project settings",
+  "/dashboard/settings/client": "Website settings",
 };
 
 function NavItem({ item }: { item: (typeof primaryNav)[number] }) {
@@ -83,15 +86,29 @@ function NavItem({ item }: { item: (typeof primaryNav)[number] }) {
   );
 }
 
-export function AdminShell({ children }: { children: React.ReactNode }) {
+export function AdminShell({
+  children,
+  identity,
+}: {
+  children: React.ReactNode;
+  identity: Identity;
+}) {
   const { project } = useProject();
   const pathname = usePathname();
   const currentPage =
     pageNames[pathname] ??
     (pathname.startsWith("/dashboard/pages/") ? "Edit page" : "Harbstone");
   const [showNotifications, setShowNotifications] = useState(false);
+  const isOwner = identity.role === "super-admin";
+  const navigation = primaryNav.filter(
+    (item) => isOwner || ["/dashboard", "/dashboard/pages"].includes(item.href),
+  );
+  const management = systemNav.filter(
+    (item) => isOwner || clientRoute(item.href),
+  );
+  const allowed = isOwner || clientRoute(pathname);
   return (
-    <>
+    <AccessContext.Provider value={identity}>
       <div className="min-h-screen bg-[#f6f6f6]">
         <aside className="fixed inset-y-0 left-0 z-30 hidden w-64 border-r border-neutral-200 bg-white lg:flex lg:flex-col">
           <div className="flex h-[65px] items-center border-b border-neutral-200 px-5">
@@ -133,7 +150,7 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
                 Project
               </p>
               <div className="space-y-1">
-                {primaryNav.map((item) => (
+                {navigation.map((item) => (
                   <NavItem key={item.href} item={item} />
                 ))}
               </div>
@@ -143,7 +160,7 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
                 Management
               </p>
               <div className="space-y-1">
-                {systemNav.map((item) => (
+                {management.map((item) => (
                   <NavItem key={item.href} item={item} />
                 ))}
               </div>
@@ -152,7 +169,9 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
 
           <div className="border-t border-neutral-200 p-3">
             <Link
-              href="/dashboard/settings/profile"
+              href={
+                isOwner ? "/dashboard/settings/profile" : "/dashboard/settings"
+              }
               className={cn(
                 "flex items-center gap-3 rounded-md p-2 transition-colors hover:bg-neutral-100",
                 pathname === "/dashboard/settings/profile" && "bg-neutral-100",
@@ -160,15 +179,19 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
             >
               <Avatar className="size-9">
                 <AvatarFallback className="bg-black text-xs font-semibold text-white">
-                  IM
+                  {identity.name
+                    .split(" ")
+                    .map((s) => s[0])
+                    .slice(0, 2)
+                    .join("")}
                 </AvatarFallback>
               </Avatar>
               <span className="min-w-0 flex-1">
                 <span className="block truncate text-xs font-medium">
-                  Ilya Melman
+                  {identity.name}
                 </span>
                 <span className="block truncate text-[10px] text-neutral-400">
-                  Owner
+                  {isOwner ? "Super admin" : "Client"}
                 </span>
               </span>
               <CircleUserRound className="size-4 text-neutral-400" />
@@ -198,22 +221,26 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
                 </div>
               </div>
               <div className="flex items-center gap-1.5">
-                <Tooltip>
-                  <TooltipTrigger className="grid size-8 place-items-center rounded-md text-neutral-500 hover:bg-neutral-100 hover:text-black">
-                    <Search className="size-4" />
-                  </TooltipTrigger>
-                  <TooltipContent>Search</TooltipContent>
-                </Tooltip>
-                <Tooltip>
-                  <TooltipTrigger
-                    className="relative grid size-8 place-items-center rounded-md text-neutral-500 hover:bg-neutral-100 hover:text-black"
-                    onClick={() => setShowNotifications(!showNotifications)}
-                  >
-                    <Bell className="size-4" />
-                    <span className="absolute right-2 top-2 size-1.5 rounded-full bg-black ring-2 ring-white" />
-                  </TooltipTrigger>
-                  <TooltipContent>Notifications</TooltipContent>
-                </Tooltip>
+                {isOwner && (
+                  <Tooltip>
+                    <TooltipTrigger className="grid size-8 place-items-center rounded-md text-neutral-500 hover:bg-neutral-100 hover:text-black">
+                      <Search className="size-4" />
+                    </TooltipTrigger>
+                    <TooltipContent>Search</TooltipContent>
+                  </Tooltip>
+                )}
+                {isOwner && (
+                  <Tooltip>
+                    <TooltipTrigger
+                      className="relative grid size-8 place-items-center rounded-md text-neutral-500 hover:bg-neutral-100 hover:text-black"
+                      onClick={() => setShowNotifications(!showNotifications)}
+                    >
+                      <Bell className="size-4" />
+                      <span className="absolute right-2 top-2 size-1.5 rounded-full bg-black ring-2 ring-white" />
+                    </TooltipTrigger>
+                    <TooltipContent>Notifications</TooltipContent>
+                  </Tooltip>
+                )}
                 <Button
                   nativeButton={false}
                   render={
@@ -229,10 +256,11 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
             </div>
 
             <nav className="flex gap-1 overflow-x-auto border-t border-neutral-100 px-4 py-2 lg:hidden">
-              {primaryNav.map((item) => {
-                const active = item.exact
-                  ? pathname === item.href
-                  : pathname.startsWith(item.href);
+              {[...navigation, ...management].map((item) => {
+                const active =
+                  "exact" in item && item.exact
+                    ? pathname === item.href
+                    : pathname.startsWith(item.href);
                 return (
                   <Link
                     key={item.href}
@@ -249,7 +277,13 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
             </nav>
           </header>
 
-          <main className="mx-auto w-full p-4 sm:p-6 lg:p-8">{children}</main>
+          <main className="mx-auto w-full p-4 sm:p-6 lg:p-8">
+            {allowed ? (
+              children
+            ) : (
+              <p>This section is managed by your super admin.</p>
+            )}
+          </main>
         </div>
       </div>
       {showNotifications && (
@@ -292,7 +326,7 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
           </div>
         </div>
       )}
-    </>
+    </AccessContext.Provider>
   );
 }
 function SignOut() {

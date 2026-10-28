@@ -3,7 +3,7 @@ import { authConfigured, localAccess } from "@/lib/builder/auth";
 import { smtpReady } from "@/lib/builder/submissions";
 export async function GET(request: Request) {
   try {
-    authorizeWrite(request);
+    await authorizeWrite(request, true);
     return Response.json(
       {
         database: !!process.env.DATABASE_URL,
