@@ -13,6 +13,7 @@ import {
 } from "./sortable-sections";
 import { Button } from "@/components/ui/button";
 import { PageHeader } from "@/components/admin/page-header";
+import { EditorDisclosure } from "./editor-disclosure";
 export function ClientPageEditor({ initial }: { initial: CmsPage }) {
   const { project, save } = useProject();
   const [page, setPage] = useState(() => structuredClone(initial)),
@@ -93,25 +94,23 @@ export function ClientPageEditor({ initial }: { initial: CmsPage }) {
                     <ArrowDown />
                   </Button>
                 </div>
-                <details className="border-t">
-                  <summary className="cursor-pointer px-5 py-4 text-sm">
-                    Edit content
-                  </summary>
-                  <div className="p-4 pt-0">
-                    <SectionEditor
-                      contentOnly
-                      section={section}
-                      onChange={(next) =>
-                        setPage({
-                          ...page,
-                          sections: page.sections.map((s) =>
-                            s.id === next.id ? next : s,
-                          ),
-                        })
-                      }
-                    />
-                  </div>
-                </details>
+                <EditorDisclosure
+                  title="Edit content"
+                  className="rounded-none border-x-0 border-b-0"
+                >
+                  <SectionEditor
+                    contentOnly
+                    section={section}
+                    onChange={(next) =>
+                      setPage({
+                        ...page,
+                        sections: page.sections.map((s) =>
+                          s.id === next.id ? next : s,
+                        ),
+                      })
+                    }
+                  />
+                </EditorDisclosure>
               </SortableSection>
             ))}
           </SortableSections>

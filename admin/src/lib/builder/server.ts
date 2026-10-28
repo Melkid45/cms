@@ -159,6 +159,40 @@ const schema = z.object({
       successMessage: z.string().min(1).max(500),
     })
     .optional(),
+  website: z
+    .object({
+      url: z
+        .union([
+          z.literal(""),
+          z
+            .url()
+            .max(2000)
+            .refine((value) => {
+              const url = new URL(value);
+              return (
+                ["http:", "https:"].includes(url.protocol) &&
+                !url.username &&
+                !url.password
+              );
+            }),
+        ])
+        .transform((value) => value.replace(/\/$/, "")),
+      contactEmail: z.union([z.literal(""), z.email()]),
+      phone: z.string().max(100),
+      address: z.string().max(1000),
+      timeZone: z
+        .string()
+        .max(100)
+        .refine((value) => {
+          try {
+            new Intl.DateTimeFormat("en", { timeZone: value });
+            return true;
+          } catch {
+            return false;
+          }
+        }, "Choose a valid time zone"),
+    })
+    .optional(),
 });
 export class StoreError extends Error {
   constructor(

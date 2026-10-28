@@ -29,8 +29,20 @@ export function clientProjectError(
     !same(next.media, current.media)
   )
     return denied;
-  const { logo: _logo, footerLogo: _footer, ...brand } = next.brand;
-  const { logo: _oldLogo, footerLogo: _oldFooter, ...oldBrand } = current.brand;
+  const {
+    logo: _logo,
+    footerLogo: _footer,
+    name: _name,
+    ...brand
+  } = next.brand;
+  const {
+    logo: _oldLogo,
+    footerLogo: _oldFooter,
+    name: _oldName,
+    ...oldBrand
+  } = current.brand;
+  void _name;
+  void _oldName;
   void _logo;
   void _footer;
   void _oldLogo;

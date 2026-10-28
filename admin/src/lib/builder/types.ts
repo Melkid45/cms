@@ -120,6 +120,14 @@ export interface Project {
   layout: Layout;
   brand: Brand;
   forms?: FormSettings;
+  website?: WebsiteSettings;
+}
+export interface WebsiteSettings {
+  url: string;
+  contactEmail: string;
+  phone: string;
+  address: string;
+  timeZone: string;
 }
 export interface FormSettings {
   recipient: string;

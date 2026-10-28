@@ -6,12 +6,14 @@ import type { Submission } from "@/lib/builder/submissions";
 import { PageHeader } from "@/components/admin/page-header";
 import { Button } from "@/components/ui/button";
 import { useAccess } from "@/components/admin/access-context";
+import { useProject } from "@/lib/builder/client";
 export default function Submissions({
   overview = false,
 }: {
   overview?: boolean;
 }) {
   const { isOwner } = useAccess();
+  const { project } = useProject();
   const [items, setItems] = useState<Submission[]>([]),
     [error, setError] = useState(""),
     [loaded, setLoaded] = useState(false),
@@ -103,7 +105,9 @@ export default function Submissions({
                   {item.pageTitle}
                 </h2>
                 <span className="text-xs text-neutral-500">
-                  {new Date(item.createdAt).toLocaleString()}
+                  {new Date(item.createdAt).toLocaleString("en-GB", {
+                    timeZone: project?.website?.timeZone || "UTC",
+                  })}
                 </span>
                 <span className="rounded-full border px-3 py-1 text-xs">
                   {item.delivery === "sent"

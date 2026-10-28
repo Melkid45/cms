@@ -6,7 +6,11 @@ export const metadata: Metadata = { title: "Sign in" };
 
 export default function LoginPage() {
   return (
-    <AuthFrame title="Sign in">
+    <AuthFrame
+      eyebrow="Admin panel"
+      title="Welcome back"
+      description="Sign in to continue managing your project and its content."
+    >
       <AuthForm mode="login" />
     </AuthFrame>
   );

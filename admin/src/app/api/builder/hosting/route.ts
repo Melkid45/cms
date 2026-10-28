@@ -10,7 +10,7 @@ export async function GET(request: Request) {
         media: !!process.env.BLOB_READ_WRITE_TOKEN,
         authentication: authConfigured(),
         local: localAccess(),
-        smtp: smtpReady(),
+        smtp: await smtpReady(),
         hosted: !!process.env.VERCEL,
       },
       { headers: { "Cache-Control": "no-store" } },

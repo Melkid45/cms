@@ -21,6 +21,12 @@ interface SettingsItem {
 
 const settings = [
   {
+    title: "Website settings",
+    text: "Company details, logos, enquiries and email delivery",
+    icon: Globe,
+    href: "/dashboard/settings/client",
+  },
+  {
     title: "Forms & hosting",
     text: "Inbox, SMTP delivery and production readiness",
     icon: Globe,
@@ -66,7 +72,7 @@ export default async function SettingsPage() {
       : [
           {
             title: "Website settings",
-            text: "Logos and website enquiry settings",
+            text: "Company details, logos, enquiries and email delivery",
             icon: Globe,
             href: "/dashboard/settings/client",
           },

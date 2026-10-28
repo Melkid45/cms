@@ -8,6 +8,7 @@ import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { ArrowUp, ArrowDown, Plus, Copy, Trash2 } from "lucide-react";
 import { MediaPicker } from "./media-picker";
+import { EditorDisclosure } from "./editor-disclosure";
 function Fields({
   fields,
   values,
@@ -94,23 +95,14 @@ export function SectionEditor({
   return (
     <div className="space-y-4">
       {categories.map((name, index) => (
-        <details
-          key={name}
-          open={index === 0}
-          className="rounded-lg border bg-white"
-        >
-          <summary className="cursor-pointer px-4 py-3 text-sm font-medium">
-            {name}
-          </summary>
-          <div className="border-t p-4">
-            <Fields
-              id={section.id}
-              fields={main.filter((f) => category(f) === name)}
-              values={section.values}
-              onChange={(values) => onChange({ ...section, values })}
-            />
-          </div>
-        </details>
+        <EditorDisclosure key={name} defaultOpen={index === 0} title={name}>
+          <Fields
+            id={section.id}
+            fields={main.filter((f) => category(f) === name)}
+            values={section.values}
+            onChange={(values) => onChange({ ...section, values })}
+          />
+        </EditorDisclosure>
       ))}
       {repeaters.map((group) => {
         const items = collectionItems(section, entry, group);
@@ -152,18 +144,22 @@ export function SectionEditor({
                 fields.find((f) => f.type === "textarea") ||
                 fields.find((f) => f.type === "text");
               return (
-                <details
+                <EditorDisclosure
                   key={item.id}
-                  open={index === 0}
-                  className="rounded-lg border"
+                  defaultOpen={index === 0}
+                  title={
+                    <>
+                      {index + 1}.{" "}
+                      {(title
+                        ? (item.values[title.key] ?? title.value)
+                        : "Image"
+                      )
+                        .replace(/\n/g, " ")
+                        .slice(0, 70) || "New item"}
+                    </>
+                  }
                 >
-                  <summary className="cursor-pointer px-4 py-3 text-sm font-medium">
-                    {index + 1}.{" "}
-                    {(title ? (item.values[title.key] ?? title.value) : "Image")
-                      .replace(/\n/g, " ")
-                      .slice(0, 70) || "New item"}
-                  </summary>
-                  <div className="space-y-4 border-t p-4">
+                  <div className="space-y-4">
                     {!contentOnly && (
                       <div className="flex justify-end gap-1">
                         {[-1, 1].map((direction) => (
@@ -235,7 +231,7 @@ export function SectionEditor({
                       }
                     />
                   </div>
-                </details>
+                </EditorDisclosure>
               );
             })}
             {!contentOnly && (

@@ -10,7 +10,8 @@ export async function generateMetadata({
   params: Promise<{ slug: string }>;
 }) {
   const { slug } = await params;
-  const page = publicProject(await readProject()).pages.find(
+  const project = publicProject(await readProject());
+  const page = project.pages.find(
     (p) => p.slug === slug && p.status === "Published",
   );
   return page
@@ -18,8 +19,17 @@ export async function generateMetadata({
         title: { absolute: page.seo.title || page.title },
         description: page.seo.description,
         keywords: page.seo.keywords,
+        alternates: project.website?.url
+          ? {
+              canonical: new URL(
+                `/site/${page.slug}`,
+                project.website.url,
+              ).toString(),
+            }
+          : undefined,
         robots: { index: !page.seo.noindex, follow: true },
         openGraph: {
+          siteName: project.brand.name,
           title: page.seo.title || page.title,
           description: page.seo.description,
           images: page.seo.image ? [page.seo.image] : [],

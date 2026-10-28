@@ -48,6 +48,17 @@ export function SectionRenderer({
   if (!entry || section.hidden) return null;
   const suffix = section.id.replace(/[^a-zA-Z0-9_-]/g, "");
   const mainHeading = firstHeading(entry.nodes);
+  const sharedContact = (value: string) => {
+    if (!["header", "footer"].includes(entry.family)) return value;
+    if (
+      project.website?.contactEmail &&
+      /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)
+    )
+      return project.website.contactEmail;
+    if (project.website?.phone && /^\+?[\d ()-]{7,}$/.test(value))
+      return project.website.phone;
+    return value;
+  };
   const menuItems = (items: MenuItem[]): React.ReactNode =>
     items.map((item) => {
       const page = project.pages.find((p) => p.id === item.pageId);
@@ -97,10 +108,10 @@ export function SectionRenderer({
     }
     if (node.text !== undefined) return node.text;
     if (!node.tag && node.field)
-      return (
+      return sharedContact(
         values[node.field] ??
-        entry!.fields.find((f) => f.key === node.field)?.value ??
-        ""
+          entry!.fields.find((f) => f.key === node.field)?.value ??
+          "",
       );
     if (!node.tag || ["script", "style", "link"].includes(node.tag))
       return null;
@@ -156,7 +167,14 @@ export function SectionRenderer({
         continue;
       }
       if (key === "href") {
-        props.href = safeUrl(value) || undefined;
+        const contact = ["header", "footer"].includes(entry!.family)
+          ? value.startsWith("mailto:") && project.website?.contactEmail
+            ? `mailto:${project.website.contactEmail}`
+            : value.startsWith("tel:") && project.website?.phone
+              ? `tel:${project.website.phone.replace(/[^+\d]/g, "")}`
+              : value
+          : value;
+        props.href = safeUrl(contact) || undefined;
         continue;
       }
       if (key === "src" || key === "poster" || key === "data-image") {
@@ -228,10 +246,11 @@ export function SectionRenderer({
     }
     let children: React.ReactNode[] | undefined;
     if (node.field) {
-      const value =
+      const value = sharedContact(
         values[node.field] ??
-        entry!.fields.find((f) => f.key === node.field)?.value ??
-        "";
+          entry!.fields.find((f) => f.key === node.field)?.value ??
+          "",
+      );
       // Static prototype notices predate connected forms; the canvas supplies live status.
       if (value === "Preview form. No data is sent.") return null;
       children = value.split("\n").map((line, i) => (

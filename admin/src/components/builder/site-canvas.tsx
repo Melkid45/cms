@@ -327,6 +327,11 @@ export function SiteCanvas({
               "Preview only. Messages are not sent from the editor.";
             return;
           }
+          if (project.forms?.enabled === false) {
+            notice.textContent =
+              "Enquiries are currently unavailable. Please contact us directly.";
+            return;
+          }
           const buttons = [
             ...form.querySelectorAll<HTMLButtonElement>(
               "button[type=submit],button:not([type])",

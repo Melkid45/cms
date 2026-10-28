@@ -7,8 +7,9 @@ import {
 } from "node:crypto";
 import { mkdir, readFile, rename, writeFile } from "node:fs/promises";
 import path from "node:path";
-import nodemailer from "nodemailer";
+import { mailConnection, readSmtpSettings } from "./smtp";
 import { database, dataDirectory, StoreError } from "./server";
+import type { WebsiteSettings } from "./types";
 export type Submission = {
   id: string;
   createdAt: string;
@@ -110,17 +111,14 @@ export function validateFormToken(token: string, pageId: string) {
     return false;
   }
 }
-export function smtpReady() {
-  return !!(
-    process.env.SMTP_HOST &&
-    process.env.SMTP_FROM &&
-    (!process.env.SMTP_USER || process.env.SMTP_PASSWORD)
-  );
+export async function smtpReady() {
+  return (await readSmtpSettings()).ready;
 }
 export async function receiveSubmission(
   input: Omit<Submission, "id" | "createdAt" | "read" | "delivery">,
   ip: string,
   recipient: string,
+  website?: WebsiteSettings,
 ) {
   const item: Submission = {
     ...input,
@@ -138,35 +136,31 @@ export async function receiveSubmission(
       );
     data.items.unshift(item);
   });
-  if (smtpReady() && recipient) {
+  if (recipient) {
+    let connection: Awaited<ReturnType<typeof mailConnection>> = null;
     try {
-      const transport = nodemailer.createTransport({
-        host: process.env.SMTP_HOST,
-        port: Number(process.env.SMTP_PORT || 587),
-        secure: process.env.SMTP_SECURE === "true",
-        requireTLS:
-          process.env.SMTP_SECURE !== "true" && !!process.env.SMTP_USER,
-        auth: process.env.SMTP_USER
-          ? { user: process.env.SMTP_USER, pass: process.env.SMTP_PASSWORD }
-          : undefined,
-        connectionTimeout: 10000,
-        socketTimeout: 15000,
-      });
+      connection = await mailConnection();
+      if (!connection) return item;
+      const { transport } = connection;
       const email = Object.values(item.values).find((v) =>
         /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v),
       );
       await transport.sendMail({
-        from: process.env.SMTP_FROM,
+        from: connection.from,
         to: recipient,
-        replyTo: email,
+        replyTo:
+          email || connection.replyTo || website?.contactEmail || undefined,
         subject: `Website enquiry: ${item.pageTitle.replace(/[\r\n]/g, " ").slice(0, 150)}`,
-        text: Object.entries(item.values)
-          .map(([name, value]) => `${name}: ${value}`)
-          .join("\n\n"),
+        text:
+          Object.entries(item.values)
+            .map(([name, value]) => `${name}: ${value}`)
+            .join("\n\n") + (website?.address ? `\n\n${website.address}` : ""),
       });
       item.delivery = "sent";
     } catch {
       item.delivery = "failed";
+    } finally {
+      connection?.transport.close();
     }
     await inbox((data) => {
       const saved = data.items.find((i) => i.id === item.id);
@@ -197,4 +191,7 @@ function consumeLimit(
 }
 export async function limitSignIn(ip: string) {
   return inbox((data) => consumeLimit(data, "signin:" + ip, 10, 15 * 60000));
+}
+export async function limitSmtpVerification(id: string) {
+  return inbox((data) => consumeLimit(data, "smtp:" + id, 5, 15 * 60000));
 }

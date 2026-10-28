@@ -127,6 +127,146 @@ try {
   assert(!("hash" in account));
   assert(!("salt" in account));
   const client = await login(clientEmail, clientPassword);
+  assert.equal((await request("/api/builder/smtp")).status, 401);
+  let smtp = await (
+    await request("/api/builder/smtp", "GET", null, client)
+  ).json();
+  const secret = randomBytes(24).toString("hex");
+  const smtpFields = ({
+    passwordConfigured: _secret,
+    ready: _ready,
+    ...fields
+  }) => {
+    void _secret;
+    void _ready;
+    return fields;
+  };
+  r = await request(
+    "/api/builder/smtp",
+    "PUT",
+    {
+      ...smtpFields(smtp),
+      source: "custom",
+      host: "127.0.0.1",
+      port: 587,
+      username: "demo@example.test",
+      fromEmail: "demo@example.test",
+      fromName: "Demo website",
+      password: secret,
+    },
+    client,
+  );
+  assert.equal(r.status, 200);
+  smtp = await r.json();
+  assert(smtp.passwordConfigured);
+  assert(!JSON.stringify(smtp).includes(secret));
+  const stored = JSON.parse(
+    await readFile(join(directory, "smtp.json"), "utf8"),
+  );
+  assert(stored.encryptedPassword);
+  assert(
+    !JSON.stringify(stored).includes(secret),
+    "SMTP password must be encrypted at rest",
+  );
+  assert(
+    !JSON.stringify(await get(client)).includes(stored.encryptedPassword),
+    "Project exports must not include SMTP credentials",
+  );
+  r = await request(
+    "/api/builder/smtp",
+    "PUT",
+    { ...smtpFields(smtp), password: "" },
+    client,
+  );
+  assert.equal(r.status, 200);
+  const stale = smtp;
+  smtp = await r.json();
+  assert.equal(
+    JSON.parse(await readFile(join(directory, "smtp.json"), "utf8"))
+      .encryptedPassword,
+    stored.encryptedPassword,
+    "Blank password preserves existing secret",
+  );
+  assert.equal(
+    (await request("/api/builder/smtp", "PUT", smtpFields(stale), client))
+      .status,
+    409,
+  );
+  assert.equal(
+    (
+      await request(
+        "/api/builder/smtp",
+        "PUT",
+        { ...smtpFields(smtp), host: "another.example.test" },
+        client,
+      )
+    ).status,
+    400,
+    "Credentials cannot be forwarded to a new host without re-entry",
+  );
+  assert.equal(
+    (
+      await request(
+        "/api/builder/smtp",
+        "PUT",
+        { ...smtpFields(smtp), port: 25 },
+        client,
+      )
+    ).status,
+    400,
+    "TLS ports only",
+  );
+  r = await request("/api/builder/smtp", "POST", null, client);
+  assert.equal(r.status, 400);
+  assert.match((await r.json()).error, /publicly reachable/);
+  const enquiryProject = await get(client);
+  enquiryProject.forms.recipient = "inbox@example.test";
+  assert.equal((await put(enquiryProject, client)).status, 200);
+  const enquiryPage = enquiryProject.pages.find((page) =>
+    page.sections.some((section) => section.variant === "contact-v7"),
+  );
+  const enquirySection = enquiryPage.sections.find(
+    (section) => section.variant === "contact-v7",
+  );
+  const { token } = await (
+    await request(`/api/forms/token?pageId=${enquiryPage.id}`)
+  ).json();
+  await delay(1100);
+  r = await request("/api/forms", "POST", {
+    pageId: enquiryPage.id,
+    sectionId: enquirySection.id,
+    token,
+    website: "",
+    values: {
+      name: "Demo delivery check",
+      email: "demo@example.test",
+      message: "This is an isolated local test enquiry.",
+    },
+  });
+  assert.equal(r.status, 200, "Failed email delivery must not lose an enquiry");
+  const enquiries = await (
+    await request("/api/builder/submissions", "GET", null, client)
+  ).json();
+  assert(
+    enquiries.some(
+      (item) =>
+        item.values.name === "Demo delivery check" &&
+        item.delivery === "failed",
+    ),
+    "Enquiry remains in Inbox when SMTP is rejected",
+  );
+  assert(
+    !JSON.stringify(
+      await (await request("/api/builder/smtp", "GET", null, client)).json(),
+    ).includes(secret),
+  );
+  r = await request(
+    "/api/builder/smtp",
+    "PUT",
+    { ...smtpFields(smtp), source: "disabled" },
+    client,
+  );
+  assert.equal(r.status, 200);
   assert.equal(
     (await request("/api/builder/accounts", "GET", null, client)).status,
     403,
@@ -172,6 +312,28 @@ try {
   ])
     assert.equal((await request(path, "GET", null, client)).status, 200);
   let project = await get(client);
+  const contacts = structuredClone(project);
+  contacts.brand.name = "Demo website";
+  contacts.website = {
+    url: "https://example.test",
+    contactEmail: "hello@example.test",
+    phone: "+44 20 7946 0000",
+    address: "Demo street, London",
+    timeZone: "Europe/London",
+  };
+  r = await put(contacts, client);
+  assert.equal(r.status, 200);
+  project = await r.json();
+  assert.equal(project.website.timeZone, "Europe/London");
+  const live = await (await fetch(base + "/site/home")).text();
+  assert(
+    live.includes("hello@example.test"),
+    "Shared layout email uses website settings",
+  );
+  assert(
+    live.includes("https://example.test/site/home"),
+    "Public canonical URL uses website URL",
+  );
   const reject = async (label, change) => {
     const next = structuredClone(project);
     change(next);
@@ -251,7 +413,7 @@ try {
     "Stale revision protection",
   );
   const brand = structuredClone(project);
-  brand.brand.logo = "/images/demo-logo.svg";
+  brand.brand.logo = "/images/hero/workspace.jpg";
   r = await put(brand, client);
   assert.equal(r.status, 200);
   project = await r.json();
@@ -388,7 +550,7 @@ try {
   );
   await login(clientEmail, resetPassword);
   console.log(
-    "PASS: isolated owner/client login, account management, direct API restrictions, protected routes, content/reordering/publication, media, bot roles, revision conflicts and session revocation.",
+    "PASS: owner/client login, API restrictions, content/publication, media, bot roles, revocation, website contacts/canonical, SMTP encryption, secret retention, TLS validation and private-host rejection.",
   );
   if (process.env.CMS_KEEP_ROLE_TEST_SERVER === "1") {
     await writeFile(

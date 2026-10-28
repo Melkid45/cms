@@ -212,7 +212,7 @@ export function AdminShell({
                 </Link>
                 <div className="min-w-0">
                   <div className="flex items-center gap-2 text-[11px] text-neutral-400">
-                    <span>Harbstone website</span>
+                    <span>{project?.brand.name || "Harbstone website"}</span>
                     <span>/</span>
                   </div>
                   <p className="truncate text-sm font-semibold">

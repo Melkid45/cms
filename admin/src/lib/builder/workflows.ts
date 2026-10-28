@@ -12,6 +12,13 @@ export function pageSnapshot(page: PageSnapshot): PageSnapshot {
 export function normalizeProject(project: Project): Project {
   return {
     ...project,
+    website: project.website ?? {
+      url: "",
+      contactEmail: "",
+      phone: "",
+      address: "",
+      timeZone: "UTC",
+    },
     forms: project.forms ?? {
       enabled: true,
       recipient: "",
