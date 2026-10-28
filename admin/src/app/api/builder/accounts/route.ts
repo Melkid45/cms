@@ -5,7 +5,10 @@ import {
   StoreError,
 } from "@/lib/builder/server";
 import { listAccounts, saveAccount } from "@/lib/builder/accounts";
-const password = z.string().min(12).max(256);
+import {
+  accountPassword as password,
+  newClientAccount,
+} from "@/lib/builder/account-input";
 export async function GET(request: Request) {
   try {
     await authorizeWrite(request, true);
@@ -19,14 +22,7 @@ export async function GET(request: Request) {
 export async function POST(request: Request) {
   try {
     await authorizeWrite(request, true);
-    const value = z
-      .object({
-        name: z.string().trim().min(1).max(100),
-        email: z.email().max(254),
-        password,
-      })
-      .strict()
-      .safeParse(await request.json());
+    const value = newClientAccount.safeParse(await request.json());
     if (!value.success)
       throw new StoreError(
         "Enter a name, valid email and a password of 12–256 characters.",

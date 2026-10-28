@@ -4,6 +4,8 @@ The existing hosting-configured owner is the **Super admin**. Existing owner ses
 
 Client accounts are stored separately from the website document (PostgreSQL document `accounts`, or private local `accounts.json`). Passwords use salted scrypt hashes. Sessions expire after 12 hours; password changes and access changes increment the account version, invalidating existing sessions. Accounts and password hashes are never included in public site data or project exports.
 
+Clients can change their own password under Website settings → Your password by supplying their current password. The server verifies it inside the account lock, rotates the account version, and renews only the requesting session. Attempts are rate-limited. Owner credentials remain managed through hosting. Signed super-admin provisioning can list/create client accounts through the bot accounts resource; the temporary agent proxy does not expose this resource and signed client requests cannot use it.
+
 | Capability | Super admin | Client |
 | --- | --- | --- |
 | Read and mark enquiries | Yes | Yes |

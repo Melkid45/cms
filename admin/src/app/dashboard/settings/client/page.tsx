@@ -6,6 +6,8 @@ import type { WebsiteSettings, FormSettings } from "@/lib/builder/types";
 import { MediaPicker } from "@/components/builder/media-picker";
 import { PageHeader } from "@/components/admin/page-header";
 import { SmtpSettings } from "@/components/admin/smtp-settings";
+import { PasswordSettings } from "@/components/admin/password-settings";
+import { useAccess } from "@/components/admin/access-context";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -20,6 +22,7 @@ type Draft = {
   forms: FormSettings;
 };
 export default function ClientSettings() {
+  const { isOwner } = useAccess();
   const { project, save, error } = useProject();
   const [draft, setDraft] = useState<Draft | null>(null),
     [notice, setNotice] = useState(""),
@@ -263,6 +266,7 @@ export default function ClientSettings() {
         </div>
       </form>
       <SmtpSettings />
+      {!isOwner && <PasswordSettings />}
     </div>
   );
 }

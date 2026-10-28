@@ -195,3 +195,6 @@ export async function limitSignIn(ip: string) {
 export async function limitSmtpVerification(id: string) {
   return inbox((data) => consumeLimit(data, "smtp:" + id, 5, 15 * 60000));
 }
+export async function limitPasswordChange(id: string) {
+  return inbox((data) => consumeLimit(data, "password:" + id, 5, 15 * 60000));
+}

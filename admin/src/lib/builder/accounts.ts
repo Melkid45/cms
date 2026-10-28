@@ -141,3 +141,27 @@ export async function saveAccount(input: {
     return publicAccount(item);
   }, true);
 }
+export async function changeOwnPassword(
+  id: string,
+  version: number,
+  currentPassword: string,
+  newPassword: string,
+) {
+  const salt = randomBytes(24).toString("hex");
+  const hash = ((await scrypt(newPassword, salt, 64)) as Buffer).toString(
+    "hex",
+  );
+  return accounts(async (items) => {
+    const item = items.find(
+      (account) =>
+        account.id === id && account.version === version && !account.disabled,
+    );
+    if (!item)
+      throw new StoreError("Sign in again before changing your password.", 401);
+    const current = (await scrypt(currentPassword, item.salt, 64)) as Buffer;
+    if (!timingSafeEqual(current, Buffer.from(item.hash, "hex")))
+      throw new StoreError("Your current password is incorrect.", 400);
+    Object.assign(item, { salt, hash, version: item.version + 1 });
+    return publicAccount(item);
+  }, true);
+}

@@ -7,6 +7,8 @@ import {
   errorResponse,
 } from "@/lib/builder/server";
 import { storeMedia } from "@/lib/builder/media";
+import { listAccounts, saveAccount } from "@/lib/builder/accounts";
+import { newClientAccount } from "@/lib/builder/account-input";
 export const runtime = "nodejs";
 const localNonces = new Map<string, number>();
 async function handle(request: Request) {
@@ -58,6 +60,29 @@ async function handle(request: Request) {
       if (localNonces.has(nonce))
         throw new StoreError("This bot request was already used.", 401);
       localNonces.set(nonce, now + 120000);
+    }
+    if (url.searchParams.get("resource") === "accounts") {
+      if (url.searchParams.get("actor") !== "super-admin")
+        throw new StoreError("Only the super admin can manage accounts.", 403);
+      if (request.method === "GET")
+        return Response.json(await listAccounts(), {
+          headers: { "Cache-Control": "no-store" },
+        });
+      if (request.method !== "POST") return new Response(null, { status: 405 });
+      if (bytes.length > 12000)
+        throw new StoreError("Request is too large.", 413);
+      let input: unknown;
+      try {
+        input = JSON.parse(bytes.toString("utf8"));
+      } catch {
+        throw new StoreError("Invalid account data.");
+      }
+      const parsed = newClientAccount.safeParse(input);
+      if (!parsed.success)
+        throw new StoreError(
+          "Enter a name, valid email and a password of 12–256 characters.",
+        );
+      return Response.json(await saveAccount(parsed.data), { status: 201 });
     }
     if (request.method === "GET")
       return Response.json(await readProject(), {

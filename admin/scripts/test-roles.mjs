@@ -69,28 +69,31 @@ const get = async (cookie) => {
 };
 const put = (data, cookie, path = "/api/builder") =>
   request(path, "PUT", data, cookie);
-async function botPut(data, role) {
-  const query = role ? `?actor=${role}` : "";
+async function botPut(data, role, resource, method = "PUT") {
+  const params = new URLSearchParams();
+  if (role) params.set("actor", role);
+  if (resource) params.set("resource", resource);
+  const query = params.size ? `?${params}` : "";
   const path = "/api/builder/bot" + query,
-    body = JSON.stringify(data),
+    body = method === "GET" ? "" : JSON.stringify(data),
     time = String(Date.now()),
     nonce = randomBytes(18).toString("base64url");
   const signature = sign(
     null,
     Buffer.from(
-      `${time}\n${nonce}\nPUT\n${path}\n${createHash("sha256").update(body).digest("hex")}`,
+      `${time}\n${nonce}\n${method}\n${path}\n${createHash("sha256").update(body).digest("hex")}`,
     ),
     privateKey,
   ).toString("base64");
   return fetch(base + path, {
-    method: "PUT",
+    method,
     headers: {
       "Content-Type": "application/json",
       "x-harbstone-time": time,
       "x-harbstone-nonce": nonce,
       "x-harbstone-signature": signature,
     },
-    body,
+    body: method === "GET" ? undefined : body,
   });
 }
 try {
@@ -127,6 +130,33 @@ try {
   assert(!("hash" in account));
   assert(!("salt" in account));
   const client = await login(clientEmail, clientPassword);
+  const provision = {
+    name: "Provisioned client",
+    email: "provisioned@example.test",
+    password: randomBytes(24).toString("hex"),
+  };
+  assert.equal(
+    (await botPut(provision, "client", "accounts", "POST")).status,
+    403,
+    "Signed client cannot provision accounts",
+  );
+  assert.equal(
+    (
+      await botPut(
+        { ...provision, role: "super-admin" },
+        "super-admin",
+        "accounts",
+        "POST",
+      )
+    ).status,
+    400,
+    "Provisioning cannot grant a super-admin role",
+  );
+  r = await botPut(provision, "super-admin", "accounts", "POST");
+  assert.equal(r.status, 201);
+  const provisioned = await r.json();
+  assert.equal(provisioned.role, "client");
+  assert(!("hash" in provisioned));
   assert.equal((await request("/api/builder/smtp")).status, 401);
   let smtp = await (
     await request("/api/builder/smtp", "GET", null, client)
@@ -526,7 +556,7 @@ try {
   );
   assert.equal(r.status, 200);
   const second = await login(clientEmail, clientPassword);
-  const resetPassword = randomBytes(24).toString("hex");
+  let resetPassword = randomBytes(24).toString("hex");
   r = await request(
     "/api/builder/accounts",
     "PATCH",
@@ -548,7 +578,61 @@ try {
     ).status,
     401,
   );
+  const beforeChange = await login(clientEmail, resetPassword);
+  const changedPassword = randomBytes(24).toString("hex");
+  assert.equal(
+    (
+      await request(
+        "/api/builder/password",
+        "POST",
+        { currentPassword: "incorrect-password", password: changedPassword },
+        beforeChange,
+      )
+    ).status,
+    400,
+  );
+  assert.equal(
+    (
+      await request(
+        "/api/builder/password",
+        "POST",
+        { currentPassword: resetPassword, password: changedPassword },
+        owner,
+      )
+    ).status,
+    403,
+  );
+  r = await request(
+    "/api/builder/password",
+    "POST",
+    { currentPassword: resetPassword, password: changedPassword },
+    beforeChange,
+  );
+  assert.equal(r.status, 200);
+  const renewed = r.headers.get("set-cookie").split(";")[0];
+  assert.equal(
+    (await request("/api/builder", "GET", null, renewed)).status,
+    200,
+    "Password change preserves the current renewed session",
+  );
+  assert.equal(
+    (await request("/api/builder", "GET", null, beforeChange)).status,
+    401,
+    "Password change revokes old sessions",
+  );
+  assert.equal(
+    (
+      await request("/api/builder/session", "POST", {
+        email: clientEmail,
+        password: resetPassword,
+      })
+    ).status,
+    401,
+  );
+  resetPassword = changedPassword;
   await login(clientEmail, resetPassword);
+  for (const asset of ["/favicon.ico", "/icon.svg", "/apple-icon.png"])
+    assert.equal((await request(asset)).status, 200, `Favicon asset ${asset}`);
   console.log(
     "PASS: owner/client login, API restrictions, content/publication, media, bot roles, revocation, website contacts/canonical, SMTP encryption, secret retention, TLS validation and private-host rejection.",
   );
