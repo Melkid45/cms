@@ -1,8 +1,11 @@
 "use client";
 import { useState } from "react";
+/* eslint-disable @next/next/no-img-element */
 import { ArrowUp, ArrowDown, Save, Globe } from "lucide-react";
 import { useProject } from "@/lib/builder/client";
-import { definition } from "@/lib/builder/catalog";
+import { safeUrl } from "@/lib/builder/catalog";
+import { sectionInfo } from "@/lib/builder/section-info";
+import { usePageDraft } from "./use-page-draft";
 import type { CmsPage } from "@/lib/builder/types";
 import { SectionEditor } from "./section-editor";
 import { PreviewDialog } from "./preview-dialog";
@@ -15,36 +18,20 @@ import { Button } from "@/components/ui/button";
 import { PageHeader } from "@/components/admin/page-header";
 import { EditorDisclosure } from "./editor-disclosure";
 export function ClientPageEditor({ initial }: { initial: CmsPage }) {
-  const { project, save } = useProject();
-  const [page, setPage] = useState(() => structuredClone(initial)),
-    [busy, setBusy] = useState(false),
-    [notice, setNotice] = useState("");
+  const { project } = useProject();
+  const [page, setPage] = useState(() => structuredClone(initial));
+  const canEdit = page.clientAccess?.edit !== false;
+  const draft = usePageDraft(page, setPage, project, initial, canEdit);
+  const { busy, notice } = draft;
+  const locked = page.sections
+    .filter((section) => !canEdit || section.clientAccess?.reorder === false)
+    .map((section) => section.id);
   if (!project) return null;
   async function persist(publish: boolean) {
     if (!project) return;
-    setBusy(true);
-    setNotice("");
     try {
-      const saved = await save(
-        {
-          ...project,
-          pages: project.pages.map((p) =>
-            p.id === page.id ? { ...p, sections: page.sections } : p,
-          ),
-        },
-        publish ? page.id : undefined,
-      );
-      setPage(saved.pages.find((p) => p.id === page.id)!);
-      setNotice(
-        publish
-          ? "Changes published on your website."
-          : "Draft saved. Your live website is unchanged.",
-      );
-    } catch (e) {
-      setNotice(e instanceof Error ? e.message : "Could not save changes.");
-    } finally {
-      setBusy(false);
-    }
+      await draft.persist(publish);
+    } catch {}
   }
   function move(index: number, direction: number) {
     const sections = [...page.sections];
@@ -65,54 +52,89 @@ export function ClientPageEditor({ initial }: { initial: CmsPage }) {
         <div className="min-w-0 space-y-4">
           <SortableSections
             sections={page.sections}
+            lockedIds={locked}
             onChange={(sections) => setPage({ ...page, sections })}
           >
-            {page.sections.map((section, index) => (
-              <SortableSection key={section.id} section={section}>
-                <div className="flex items-center gap-3 p-4">
-                  <SectionDragHandle index={index} />
-                  <h2 className="flex-1 font-medium">
-                    {definition(section.variant)?.title ||
-                      `Section ${index + 1}`}
-                  </h2>
-                  <Button
-                    aria-label={`Move section ${index + 1} up`}
-                    variant="ghost"
-                    size="icon-sm"
-                    disabled={!index}
-                    onClick={() => move(index, -1)}
-                  >
-                    <ArrowUp />
-                  </Button>
-                  <Button
-                    aria-label={`Move section ${index + 1} down`}
-                    variant="ghost"
-                    size="icon-sm"
-                    disabled={index === page.sections.length - 1}
-                    onClick={() => move(index, 1)}
-                  >
-                    <ArrowDown />
-                  </Button>
-                </div>
-                <EditorDisclosure
-                  title="Edit content"
-                  className="rounded-none border-x-0 border-b-0"
+            {page.sections.map((section, index) => {
+              const info = sectionInfo(section);
+              return (
+                <SortableSection
+                  key={section.id}
+                  section={section}
+                  disabled={locked.includes(section.id)}
                 >
-                  <SectionEditor
-                    contentOnly
-                    section={section}
-                    onChange={(next) =>
-                      setPage({
-                        ...page,
-                        sections: page.sections.map((s) =>
-                          s.id === next.id ? next : s,
-                        ),
-                      })
-                    }
-                  />
-                </EditorDisclosure>
-              </SortableSection>
-            ))}
+                  <div className="flex items-center gap-3 p-4">
+                    <SectionDragHandle
+                      index={index}
+                      disabled={locked.includes(section.id)}
+                    />
+                    <img
+                      src={safeUrl(info.image || "", true) || info.thumbnail}
+                      alt=""
+                      className="h-14 w-20 shrink-0 rounded-md border bg-neutral-50 object-cover"
+                    />
+                    <h2 className="flex-1 font-medium">
+                      {info.title}
+                      <span className="mt-1 block text-xs font-normal text-neutral-400">
+                        {info.family}
+                        {locked.includes(section.id)
+                          ? " · Position locked"
+                          : ""}
+                      </span>
+                    </h2>
+                    <Button
+                      aria-label={`Move section ${index + 1} up`}
+                      variant="ghost"
+                      size="icon-sm"
+                      disabled={
+                        !index ||
+                        locked.includes(section.id) ||
+                        locked.includes(page.sections[index - 1]?.id)
+                      }
+                      onClick={() => move(index, -1)}
+                    >
+                      <ArrowUp />
+                    </Button>
+                    <Button
+                      aria-label={`Move section ${index + 1} down`}
+                      variant="ghost"
+                      size="icon-sm"
+                      disabled={
+                        index === page.sections.length - 1 ||
+                        locked.includes(section.id) ||
+                        locked.includes(page.sections[index + 1]?.id)
+                      }
+                      onClick={() => move(index, 1)}
+                    >
+                      <ArrowDown />
+                    </Button>
+                  </div>
+                  {canEdit ? (
+                    <EditorDisclosure
+                      title="Edit content"
+                      className="rounded-none border-x-0 border-b-0"
+                    >
+                      <SectionEditor
+                        contentOnly
+                        section={section}
+                        onChange={(next) =>
+                          setPage({
+                            ...page,
+                            sections: page.sections.map((s) =>
+                              s.id === next.id ? next : s,
+                            ),
+                          })
+                        }
+                      />
+                    </EditorDisclosure>
+                  ) : (
+                    <p className="border-t p-4 text-xs text-neutral-500">
+                      This page is managed by your administrator.
+                    </p>
+                  )}
+                </SortableSection>
+              );
+            })}
           </SortableSections>
         </div>
         <aside className="space-y-3 rounded-xl border bg-white p-5 xl:sticky xl:top-24">
@@ -120,19 +142,21 @@ export function ClientPageEditor({ initial }: { initial: CmsPage }) {
           <Button
             className="w-full"
             variant="outline"
-            disabled={busy}
+            disabled={busy || !canEdit}
             onClick={() => persist(false)}
           >
             <Save /> Save draft
           </Button>
           <Button
             className="w-full"
-            disabled={busy}
+            disabled={busy || !canEdit || page.clientAccess?.publish === false}
             onClick={() => persist(true)}
           >
             <Globe /> Publish changes
           </Button>
           <p role="status" className="text-sm leading-6">
+            {canEdit ? draft.label : "Read-only page"}
+            <br />
             {notice}
           </p>
         </aside>

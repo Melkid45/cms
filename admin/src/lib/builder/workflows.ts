@@ -58,6 +58,7 @@ export function preparePages(
   next: CmsPage[],
   previous: CmsPage[],
   publishId?: string,
+  autosave = false,
 ): CmsPage[] {
   const now = new Date().toISOString();
   return next.map((page) => {
@@ -66,7 +67,11 @@ export function preparePages(
     const history = [...(old?.history ?? [])];
     const changed =
       old && (!samePageContent(page, old) || page.deletedAt !== old.deletedAt);
-    if (old && (changed || publishing)) {
+    const coalesced =
+      autosave &&
+      history[0]?.kind === "Draft saved" &&
+      Date.now() - Date.parse(history[0].updatedAt) < 5 * 60000;
+    if (old && (changed || publishing) && !coalesced) {
       const kind: PageVersion["kind"] =
         page.deletedAt && !old.deletedAt
           ? "Moved to trash"
@@ -95,13 +100,24 @@ export function preparePages(
   });
 }
 export function publicProject(project: Project): Project {
+  const publicSection = (section: import("./types").Section) => {
+    const { clientAccess, ...publicValue } = section;
+    void clientAccess;
+    return publicValue;
+  };
   return {
     ...project,
+    layout: {
+      ...project.layout,
+      header: publicSection(project.layout.header),
+      footer: publicSection(project.layout.footer),
+    },
     pages: project.pages
       .filter((p) => !p.deletedAt && p.published)
       .map((p) => ({
         id: p.id,
         ...p.published!,
+        sections: p.published!.sections.map(publicSection),
         status: "Published" as const,
       })),
     forms: project.forms ? { ...project.forms, recipient: "" } : undefined,

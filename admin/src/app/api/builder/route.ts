@@ -23,6 +23,7 @@ export async function PUT(request: Request) {
         await request.json(),
         new URL(request.url).searchParams.get("publish") || undefined,
         identity.role,
+        { autosave: new URL(request.url).searchParams.get("autosave") === "1" },
       ),
     );
   } catch (e) {

@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/button";
 import { ArrowUp, ArrowDown, Plus, Copy, Trash2 } from "lucide-react";
 import { MediaPicker } from "./media-picker";
 import { EditorDisclosure } from "./editor-disclosure";
+import { fieldEditable } from "@/lib/builder/section-info";
 function Fields({
   fields,
   values,
@@ -86,14 +87,31 @@ export function SectionEditor({
 }) {
   const entry = definition(section.variant);
   if (!entry) return null;
-  const repeaters = entry.repeaters || [];
+  const repeaters = (entry.repeaters || []).filter(
+    (group) =>
+      !contentOnly ||
+      group.items.some((item) =>
+        item.fields.some((key) => {
+          const field = entry.fields.find((field) => field.key === key);
+          return field && fieldEditable(section, field);
+        }),
+      ),
+  );
   const repeatedKeys = new Set(
     repeaters.flatMap((group) => group.items.flatMap((item) => item.fields)),
   );
-  const main = entry.fields.filter((field) => !repeatedKeys.has(field.key));
+  const visible = entry.fields.filter(
+    (field) => !contentOnly || fieldEditable(section, field),
+  );
+  const main = visible.filter((field) => !repeatedKeys.has(field.key));
   const categories = [...new Set(main.map(category))];
   return (
     <div className="space-y-4">
+      {contentOnly && !visible.length && (
+        <p className="text-sm text-neutral-500">
+          These fields are managed by your administrator.
+        </p>
+      )}
       {categories.map((name, index) => (
         <EditorDisclosure key={name} defaultOpen={index === 0} title={name}>
           <Fields
@@ -137,7 +155,8 @@ export function SectionEditor({
             </div>
             {items.map((item, index) => {
               const keys = group.items[item.template].fields;
-              const fields = entry.fields.filter((f) => keys.includes(f.key));
+              const fields = visible.filter((f) => keys.includes(f.key));
+              if (contentOnly && !fields.length) return null;
               const title =
                 fields.find((f) => f.type === "heading") ||
                 fields.find((f) => f.role === "Button / link label") ||

@@ -19,6 +19,10 @@ export type Submission = {
   values: Record<string, string>;
   read: boolean;
   delivery: "received" | "sent" | "failed";
+  status?: "New" | "In progress" | "Closed";
+  internalNote?: string;
+  revision?: number;
+  updatedAt?: string;
 };
 type Inbox = {
   items: Submission[];
@@ -67,12 +71,42 @@ async function inbox<T>(
   globalInbox.inboxQueue = operation;
   return operation;
 }
-export const listSubmissions = () => inbox((data) => data.items, false);
+export const listSubmissions = () =>
+  inbox(
+    (data) =>
+      data.items.map((item) => ({
+        ...item,
+        status: item.status || "New",
+        internalNote: item.internalNote || "",
+        revision: item.revision || 0,
+      })),
+    false,
+  );
 export const markSubmission = (id: string, read: boolean) =>
+  updateSubmission(id, { read });
+export const updateSubmission = (
+  id: string,
+  patch: {
+    read?: boolean;
+    status?: Submission["status"];
+    internalNote?: string;
+    revision?: number;
+  },
+) =>
   inbox((data) => {
     const item = data.items.find((i) => i.id === id);
     if (!item) throw new StoreError("Message not found.", 404);
-    item.read = read;
+    if (patch.revision !== undefined && patch.revision !== (item.revision || 0))
+      throw new StoreError(
+        "This enquiry was updated elsewhere. Refresh before saving.",
+        409,
+      );
+    if (patch.read !== undefined) item.read = patch.read;
+    if (patch.status !== undefined) item.status = patch.status;
+    if (patch.internalNote !== undefined)
+      item.internalNote = patch.internalNote;
+    item.revision = (item.revision || 0) + 1;
+    item.updatedAt = new Date().toISOString();
     return item;
   });
 function key() {

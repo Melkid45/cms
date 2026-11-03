@@ -20,6 +20,7 @@ interface SettingsItem {
 }
 
 const settings = [
+  {title:"Backups",text:"Verified content and media copies, download and restoration",icon:Globe,href:"/dashboard/settings/backups"},
   {
     title: "Website settings",
     text: "Company details, logos, enquiries and email delivery",

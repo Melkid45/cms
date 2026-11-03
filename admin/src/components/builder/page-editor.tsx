@@ -45,6 +45,9 @@ import { VersionHistory } from "./version-history";
 import { hasDraftChanges } from "@/lib/builder/workflows";
 import { useAccess } from "@/components/admin/access-context";
 import { ClientPageEditor } from "./client-page-editor";
+import { usePageDraft } from "./use-page-draft";
+import { sectionInfo } from "@/lib/builder/section-info";
+import { SectionClientAccess, PageClientAccess } from "./client-access-editor";
 const sectionDefinitions = definitions.filter(
   (d) => !["header", "footer"].includes(d.family),
 );
@@ -113,8 +116,7 @@ export function PageEditor({ slug }: { slug?: string }) {
   return <Editor key={page?.id || "new"} initial={page} project={project} />;
 }
 function Editor({ initial, project }: { initial?: CmsPage; project: Project }) {
-  const { save } = useProject(),
-    router = useRouter();
+  const router = useRouter();
   const [page, setPage] = useState<CmsPage>(
     initial
       ? structuredClone(initial)
@@ -135,13 +137,11 @@ function Editor({ initial, project }: { initial?: CmsPage; project: Project }) {
           updatedAt: "",
         },
   );
-  const [notice, setNotice] = useState(""),
-    [busy, setBusy] = useState(false),
-    [family, setFamily] = useState(""),
+  const [family, setFamily] = useState(""),
     [query, setQuery] = useState(""),
     [editing, setEditing] = useState("");
-  const [saved, setSaved] = useState(initial ? JSON.stringify(initial) : "");
-  const dirty = JSON.stringify(page) !== saved;
+  const draft = usePageDraft(page, setPage, project, initial);
+  const { notice, setNotice, busy, dirty } = draft;
   const patch = (data: Partial<CmsPage>) => {
     setPage((p) => ({ ...p, ...data }));
     setNotice("");
@@ -151,31 +151,12 @@ function Editor({ initial, project }: { initial?: CmsPage; project: Project }) {
       sections: page.sections.map((s) => (s.id === section.id ? section : s)),
     });
   async function persist(status: CmsPage["status"]) {
-    setBusy(true);
-    setNotice("");
     try {
-      const next = { ...page, status, updatedAt: new Date().toISOString() };
-      const result = await save(
-        {
-          ...project,
-          pages: [...project.pages.filter((p) => p.id !== page.id), next],
-        },
-        status === "Published" ? page.id : undefined,
-      );
-      const stored = result.pages.find((p) => p.id === page.id)!;
-      setPage(stored);
-      setSaved(JSON.stringify(stored));
-      setNotice(
-        status === "Published"
-          ? "Page published. Open the website to see your changes."
-          : "Draft saved on the server.",
-      );
+      await draft.persist(status === "Published");
       if (page.slug !== initial?.slug)
         router.replace(`/dashboard/pages/${page.slug}`);
     } catch (e) {
       setNotice(e instanceof Error ? e.message : "Could not save");
-    } finally {
-      setBusy(false);
     }
   }
   function move(index: number, direction: number) {
@@ -274,6 +255,7 @@ function Editor({ initial, project }: { initial?: CmsPage; project: Project }) {
               >
                 {page.sections.map((section, index) => {
                   const d = definition(section.variant)!;
+                  const info = sectionInfo(section);
                   return (
                     <SortableSection key={section.id} section={section}>
                       <div className="flex flex-wrap items-center gap-3 p-3">
@@ -284,8 +266,10 @@ function Editor({ initial, project }: { initial?: CmsPage; project: Project }) {
                           className="h-16 w-24 rounded border bg-neutral-100 object-cover object-top"
                         />
                         <div className="min-w-0 flex-1">
-                          <p className="text-sm font-medium">{d.title}</p>
-                          <p className="text-xs text-neutral-500">{d.label}</p>
+                          <p className="text-sm font-medium">{info.title}</p>
+                          <p className="text-xs text-neutral-500">
+                            {d.title} · {d.label}
+                          </p>
                           {section.hidden && (
                             <span className="text-xs text-neutral-400">
                               Hidden on website
@@ -406,6 +390,10 @@ function Editor({ initial, project }: { initial?: CmsPage; project: Project }) {
                             </p>
                           </div>
                           <SectionEditor
+                            section={section}
+                            onChange={updateSection}
+                          />
+                          <SectionClientAccess
                             section={section}
                             onChange={updateSection}
                           />
@@ -641,6 +629,8 @@ function Editor({ initial, project }: { initial?: CmsPage; project: Project }) {
                 </a>
               )}
               <p role="status" className="text-xs leading-5">
+                {draft.label}
+                <br />
                 {notice}
               </p>
               <p className="text-xs leading-5 text-neutral-400">
@@ -664,6 +654,7 @@ function Editor({ initial, project }: { initial?: CmsPage; project: Project }) {
               />
             </CardContent>
           </Card>
+          <PageClientAccess page={page} onChange={patch} />
           <Card>
             <CardHeader>
               <CardTitle>Page language</CardTitle>

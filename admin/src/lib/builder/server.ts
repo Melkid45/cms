@@ -27,6 +27,14 @@ const globalStore = globalThis as typeof globalThis & {
   cmsDatabaseReady?: Promise<void>;
 };
 const section = z.object({
+  clientAccess: z
+    .object({
+      text: z.boolean(),
+      images: z.boolean(),
+      reorder: z.boolean(),
+      lockedFields: z.array(z.string().max(100)).max(1000),
+    })
+    .optional(),
   id: z.string().min(1).max(100),
   variant: z.string().refine((id) => !!definition(id), "Unknown variation"),
   values: z
@@ -78,6 +86,9 @@ const schema = z.object({
     .array(
       z.object({
         id: z.string().min(1).max(100),
+        clientAccess: z
+          .object({ edit: z.boolean(), publish: z.boolean() })
+          .optional(),
         title: z.string().trim().min(1).max(200),
         slug: z
           .string()
@@ -248,6 +259,7 @@ export async function writeProject(
   input: unknown,
   publishId?: string,
   role: Role = "super-admin",
+  options: { autosave?: boolean; restore?: boolean } = {},
 ): Promise<Project> {
   const parsed = schema.safeParse(input);
   if (!parsed.success)
@@ -300,6 +312,16 @@ export async function writeProject(
     if (role === "client") {
       const error = clientProjectError(next, current);
       if (error) throw new StoreError(error, 403);
+      const page = current.pages.find((p) => p.id === publishId);
+      if (
+        publishId &&
+        (page?.clientAccess?.edit === false ||
+          page?.clientAccess?.publish === false)
+      )
+        throw new StoreError(
+          "Publishing this page is managed by your administrator.",
+          403,
+        );
     }
     if (
       publishId &&
@@ -313,8 +335,10 @@ export async function writeProject(
             !other.deletedAt &&
             other.id !== page.id &&
             (other.slug === page.slug ||
-              current.pages.find((p) => p.id === other.id)?.published?.slug ===
-                page.slug),
+              (options.restore
+                ? other.published?.slug
+                : current.pages.find((p) => p.id === other.id)?.published
+                    ?.slug) === page.slug),
         )
       )
         throw new StoreError(
@@ -333,7 +357,9 @@ export async function writeProject(
         }
       }
     }
-    const pages = preparePages(next.pages, current.pages, publishId);
+    const pages = options.restore
+      ? next.pages
+      : preparePages(next.pages, current.pages, publishId, options.autosave);
     if (pages.find((p) => p.id === next.layout.homePageId)?.deletedAt)
       throw new StoreError(
         "Choose another home page before moving this page to trash.",

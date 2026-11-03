@@ -31,4 +31,16 @@ Signed Telegram CMS requests default to client permissions. The trusted bridge f
 
 ## Verification
 
+## Editing and recovery
+
+Existing pages autosave private drafts after 1.5 seconds of inactivity. New pages and URL changes require an explicit save. Publishing remains a separate action. Failed saves keep local edits visible; stale revisions are rejected. Closing the editor, following a navigation link or signing out warns while changes are pending. Draft checkpoints within five minutes are coalesced to avoid flooding version history.
+
+The owner can disable client editing or publishing per page, and text, images or reordering per section. Individual fields can be locked. These rules are enforced against stored permissions inside the save transaction; clients cannot grant themselves permissions. A section with reordering disabled remains anchored at its existing position.
+
+Inbox supports New, In progress and Closed statuses, private notes and search. Concurrent changes are revision checked. Notes are not exposed on the public website.
+
+Settings → Backups is owner only. Up to five full copies include project content and independent image bytes, with SHA-256 integrity verification. Each copy supports up to 32 MB of media; unsupported external image URLs or incomplete media cause creation to fail rather than silently omit files. Download copies for storage outside the database. Restore verifies all data, stages replacement images and checks the current project revision before saving. It also preserves a content-only snapshot of the state before the last restore. Accounts, SMTP secrets and enquiries are unaffected. Copies stored in the same database are not a replacement for provider database backups. Downloaded archive import and scheduled backups are not implemented.
+
+## Automated checks
+
 Run `npm run build` followed by `npm run test:roles`. The test starts its own production server on port 3101 with temporary local storage, generated credentials, no database, no Blob and no SMTP. It checks both roles, API and route restrictions, repeatable content, uploads, publication, signed bot actors, stale revisions and session revocation. It does not touch the hosted website. `CMS_ROLE_TEST_PORT` overrides the test port. `CMS_KEEP_ROLE_TEST_SERVER=1` keeps the isolated demo running for browser verification and writes temporary login details to ignored `.data/role-check-login.json`.

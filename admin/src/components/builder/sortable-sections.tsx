@@ -27,10 +27,12 @@ export function SortableSections({
   sections,
   onChange,
   children,
+  lockedIds = [],
 }: {
   sections: Section[];
   onChange: (sections: Section[]) => void;
   children: ReactNode;
+  lockedIds?: string[];
 }) {
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 6 } }),
@@ -43,14 +45,19 @@ export function SortableSections({
       sensors={sensors}
       collisionDetection={closestCenter}
       onDragEnd={({ active, over }) => {
-        if (over && active.id !== over.id)
-          onChange(
-            arrayMove(
-              sections,
-              sections.findIndex((s) => s.id === active.id),
-              sections.findIndex((s) => s.id === over.id),
-            ),
+        if (over && active.id !== over.id) {
+          const next = arrayMove(
+            sections,
+            sections.findIndex((s) => s.id === active.id),
+            sections.findIndex((s) => s.id === over.id),
           );
+          if (
+            !sections.some(
+              (s, i) => lockedIds.includes(s.id) && next[i].id !== s.id,
+            )
+          )
+            onChange(next);
+        }
       }}
     >
       <SortableContext
@@ -65,9 +72,11 @@ export function SortableSections({
 export function SortableSection({
   section,
   children,
+  disabled = false,
 }: {
   section: Section;
   children: ReactNode;
+  disabled?: boolean;
 }) {
   const {
     attributes,
@@ -77,7 +86,7 @@ export function SortableSection({
     transform,
     transition,
     isDragging,
-  } = useSortable({ id: section.id });
+  } = useSortable({ id: section.id, disabled });
   return (
     <Handle.Provider value={{ attributes, listeners, setActivatorNodeRef }}>
       <div
@@ -95,11 +104,18 @@ export function SortableSection({
     </Handle.Provider>
   );
 }
-export function SectionDragHandle({ index }: { index: number }) {
-  const {attributes,listeners,setActivatorNodeRef} = useContext(Handle)!;
+export function SectionDragHandle({
+  index,
+  disabled = false,
+}: {
+  index: number;
+  disabled?: boolean;
+}) {
+  const { attributes, listeners, setActivatorNodeRef } = useContext(Handle)!;
   return (
     <Button
       type="button"
+      disabled={disabled}
       variant="ghost"
       size="icon-sm"
       ref={setActivatorNodeRef}

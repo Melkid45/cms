@@ -30,6 +30,7 @@ import {
 import { cn } from "@/lib/utils";
 import { useState } from "react";
 import { useProject } from "@/lib/builder/client";
+import { confirmEditorLeave } from "@/components/builder/use-page-draft";
 import { AccessContext } from "./access-context";
 import { clientRoute, type Identity } from "@/lib/builder/access";
 
@@ -61,6 +62,7 @@ const pageNames: Record<string, string> = {
   "/dashboard/settings/setup": "Brand setup",
   "/dashboard/settings/project": "Project settings",
   "/dashboard/settings/client": "Website settings",
+  "/dashboard/settings/backups": "Backups",
 };
 
 function NavItem({ item }: { item: (typeof primaryNav)[number] }) {
@@ -336,6 +338,7 @@ function SignOut() {
       className="mt-2 w-full justify-start"
       variant="ghost"
       onClick={async () => {
+        if (!confirmEditorLeave()) return;
         const response = await fetch("/api/builder/session", {
           method: "DELETE",
         });

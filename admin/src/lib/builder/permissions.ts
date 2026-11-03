@@ -1,6 +1,7 @@
 import type { Project, Section } from "./types";
 import { definition } from "./catalog";
 import { collectionItems } from "./collections";
+import { fieldEditable } from "./section-info";
 
 export type { Role, Identity } from "./access";
 function canonical(value: unknown): string {
@@ -70,6 +71,16 @@ export function clientProjectError(
     )
       return denied;
     if (before.deletedAt && !same(page, before)) return denied;
+    if (before.clientAccess?.edit === false && !same(sections, oldSections))
+      return denied;
+    if (
+      oldSections.some(
+        (section, index) =>
+          section.clientAccess?.reorder === false &&
+          sections[index]?.id !== section.id,
+      )
+    )
+      return denied;
     for (const section of sections) {
       const old = oldSections.find((s) => s.id === section.id);
       if (!old || !allowedSection(section, old)) return denied;
@@ -77,9 +88,12 @@ export function clientProjectError(
   }
 }
 function allowedSection(next: Section, old: Section) {
+  if (!same(next.clientAccess, old.clientAccess)) return false;
   if (next.variant !== old.variant || next.hidden !== old.hidden) return false;
   const entry = definition(old.variant);
-  const valid = new Set(entry?.fields.map((f) => f.key));
+  const valid = new Set(
+    entry?.fields.filter((f) => fieldEditable(old, f)).map((f) => f.key),
+  );
   const valuesAllowed = (
     a: Record<string, string>,
     b: Record<string, string>,
@@ -105,7 +119,11 @@ function allowedSection(next: Section, old: Section) {
         !valuesAllowed(
           items[i].values,
           previous[i].values,
-          new Set(group.items[items[i].template]?.fields),
+          new Set(
+            group.items[items[i].template]?.fields.filter((key) =>
+              valid.has(key),
+            ),
+          ),
         )
       )
         return false;

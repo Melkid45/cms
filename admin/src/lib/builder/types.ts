@@ -27,6 +27,7 @@ export interface Definition {
   thumbnail: string;
 }
 export interface Section {
+  clientAccess?: SectionAccess;
   id: string;
   variant: string;
   values: Record<string, string>;
@@ -56,6 +57,7 @@ export interface PageVersion extends PageSnapshot {
   kind: "Draft saved" | "Published" | "Moved to trash" | "Restored";
 }
 export interface CmsPage {
+  clientAccess?: { edit: boolean; publish: boolean };
   published?: PageSnapshot;
   history?: PageVersion[];
   deletedAt?: string;
@@ -73,6 +75,12 @@ export interface CmsPage {
     noindex: boolean;
   };
   updatedAt: string;
+}
+export interface SectionAccess {
+  text: boolean;
+  images: boolean;
+  reorder: boolean;
+  lockedFields: string[];
 }
 export interface MenuItem {
   id: string;

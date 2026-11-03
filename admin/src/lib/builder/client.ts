@@ -37,10 +37,16 @@ export async function refreshProject() {
   });
   return pending;
 }
-export async function saveProject(project: Project, publishId?: string) {
+export async function saveProject(
+  project: Project,
+  publishId?: string,
+  options?: { autosave?: boolean },
+) {
+  const query = new URLSearchParams();
+  if (publishId) query.set("publish", publishId);
+  if (options?.autosave) query.set("autosave", "1");
   const response = await fetch(
-      "/api/builder" +
-        (publishId ? `?publish=${encodeURIComponent(publishId)}` : ""),
+      "/api/builder" + (query.size ? `?${query}` : ""),
       {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
