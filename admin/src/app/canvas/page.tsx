@@ -9,6 +9,7 @@ export default function Canvas() {
     project: Project;
     sections: Section[];
     layout: boolean;
+    editing?: boolean;
   } | null>(null);
   useEffect(() => {
     const receive = (event: MessageEvent) => {
@@ -25,7 +26,19 @@ export default function Canvas() {
     return () => window.removeEventListener("message", receive);
   }, []);
   return data ? (
-    <SiteCanvas key={JSON.stringify(data)} {...data} />
+    <SiteCanvas
+      key={JSON.stringify(data)}
+      {...data}
+      onSelectSection={
+        data.editing
+          ? (id) =>
+              parent.postMessage(
+                { type: "harbstone-select-section", id },
+                location.origin,
+              )
+          : undefined
+      }
+    />
   ) : (
     <SiteCanvas project={seedProject()} sections={[]} layout={false} />
   );

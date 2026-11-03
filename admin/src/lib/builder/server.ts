@@ -32,6 +32,7 @@ const section = z.object({
       text: z.boolean(),
       images: z.boolean(),
       reorder: z.boolean(),
+      collections: z.array(z.string().max(100)).max(100).optional(),
       lockedFields: z.array(z.string().max(100)).max(1000),
     })
     .optional(),

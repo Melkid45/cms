@@ -1,6 +1,12 @@
 import { definition } from "./catalog";
-import type { Section, Field } from "./types";
-export const defaultSectionAccess = {
+import type {
+  Section,
+  Field,
+  Definition,
+  Repeater,
+  SectionAccess,
+} from "./types";
+export const defaultSectionAccess: SectionAccess = {
   text: true,
   images: true,
   reorder: true,
@@ -13,6 +19,21 @@ export function fieldEditable(section: Section, field: Field) {
     (field.type === "image" || field.label === "Image description"
       ? access.images
       : access.text)
+  );
+}
+export function collectionEditable(
+  section: Section,
+  entry: Definition,
+  group: Repeater,
+) {
+  return (
+    !!section.clientAccess?.collections?.includes(group.id) &&
+    group.items.every((item) =>
+      item.fields.every((key) => {
+        const field = entry.fields.find((f) => f.key === key);
+        return !!field && fieldEditable(section, field);
+      }),
+    )
   );
 }
 export function sectionInfo(section: Section) {

@@ -77,6 +77,7 @@ export interface CmsPage {
   updatedAt: string;
 }
 export interface SectionAccess {
+  collections?: string[];
   text: boolean;
   images: boolean;
   reorder: boolean;

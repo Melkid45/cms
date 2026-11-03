@@ -101,3 +101,13 @@
   padding: 4px;
   cursor: pointer;
 }
+
+// Selection is confined to the editor iframe; published pages stay unchanged.
+.site-canvas[data-select-sections="true"] main [data-section-id] {
+  cursor: pointer;
+  &:hover,
+  &:focus-visible {
+    outline: 3px solid var(--color-ink);
+    outline-offset: -3px;
+  }
+}

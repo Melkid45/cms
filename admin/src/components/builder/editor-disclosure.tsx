@@ -7,13 +7,18 @@ export function EditorDisclosure({
   children,
   defaultOpen = false,
   className,
+  open: controlledOpen,
+  onOpenChange,
 }: {
   title: ReactNode;
   children: ReactNode;
   defaultOpen?: boolean;
   className?: string;
+  open?: boolean;
+  onOpenChange?: (open: boolean) => void;
 }) {
-  const [open, setOpen] = useState(defaultOpen);
+  const [internalOpen, setOpen] = useState(defaultOpen);
+  const open = controlledOpen ?? internalOpen;
   const id = useId();
   return (
     <div
@@ -26,7 +31,10 @@ export function EditorDisclosure({
         type="button"
         aria-expanded={open}
         aria-controls={id}
-        onClick={() => setOpen(!open)}
+        onClick={() => {
+          setOpen(!open);
+          onOpenChange?.(!open);
+        }}
         className="flex w-full items-center justify-between gap-4 px-4 py-3.5 text-left text-sm font-medium transition-colors hover:bg-neutral-50 focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-neutral-400"
       >
         <span className="min-w-0">{title}</span>

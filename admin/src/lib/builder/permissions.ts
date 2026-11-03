@@ -1,7 +1,7 @@
 import type { Project, Section } from "./types";
 import { definition } from "./catalog";
 import { collectionItems } from "./collections";
-import { fieldEditable } from "./section-info";
+import { fieldEditable, collectionEditable } from "./section-info";
 
 export type { Role, Identity } from "./access";
 function canonical(value: unknown): string {
@@ -111,19 +111,24 @@ function allowedSection(next: Section, old: Section) {
     const group = entry?.repeaters?.find((g) => g.id === key);
     const previous =
       group && entry ? collectionItems(old, entry, group) : undefined;
-    if (!previous || !group || items.length !== previous.length) return false;
+    if (!previous || !group || !entry) return false;
+    const manage = collectionEditable(old, entry, group);
+    if (!manage && items.length !== previous.length) return false;
+    if (new Set(items.map((item) => item.id)).size !== items.length)
+      return false;
     for (let i = 0; i < items.length; i++) {
+      const before = manage
+        ? previous.find((item) => item.id === items[i].id)
+        : previous[i];
+      const template = group.items[items[i].template];
+      if (!template) return false;
       if (
-        items[i].id !== previous[i].id ||
-        items[i].template !== previous[i].template ||
+        (!manage && items[i].id !== before?.id) ||
+        (before && items[i].template !== before.template) ||
         !valuesAllowed(
           items[i].values,
-          previous[i].values,
-          new Set(
-            group.items[items[i].template]?.fields.filter((key) =>
-              valid.has(key),
-            ),
-          ),
+          before?.values || {},
+          new Set(template.fields.filter((key) => valid.has(key))),
         )
       )
         return false;

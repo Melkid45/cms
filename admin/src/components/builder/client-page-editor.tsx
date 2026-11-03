@@ -9,6 +9,7 @@ import { usePageDraft } from "./use-page-draft";
 import type { CmsPage } from "@/lib/builder/types";
 import { SectionEditor } from "./section-editor";
 import { PreviewDialog } from "./preview-dialog";
+import { usePreviewSelection } from "./use-preview-selection";
 import {
   SortableSections,
   SortableSection,
@@ -20,6 +21,10 @@ import { EditorDisclosure } from "./editor-disclosure";
 export function ClientPageEditor({ initial }: { initial: CmsPage }) {
   const { project } = useProject();
   const [page, setPage] = useState(() => structuredClone(initial));
+  const [openSections, setOpenSections] = useState<Record<string, boolean>>({});
+  const selectFromPreview = usePreviewSelection((id) =>
+    setOpenSections((current) => ({ ...current, [id]: true })),
+  );
   const canEdit = page.clientAccess?.edit !== false;
   const draft = usePageDraft(page, setPage, project, initial, canEdit);
   const { busy, notice } = draft;
@@ -46,7 +51,13 @@ export function ClientPageEditor({ initial }: { initial: CmsPage }) {
       <PageHeader
         title={page.title}
         description="Edit your content or drag sections to change their order."
-        action={<PreviewDialog project={project} sections={page.sections} />}
+        action={
+          <PreviewDialog
+            project={project}
+            sections={page.sections}
+            onSelectSection={canEdit ? selectFromPreview : undefined}
+          />
+        }
       />
       <div className="grid items-start gap-6 xl:grid-cols-[minmax(0,1fr)_260px]">
         <div className="min-w-0 space-y-4">
@@ -112,6 +123,13 @@ export function ClientPageEditor({ initial }: { initial: CmsPage }) {
                   {canEdit ? (
                     <EditorDisclosure
                       title="Edit content"
+                      open={!!openSections[section.id]}
+                      onOpenChange={(open) =>
+                        setOpenSections((current) => ({
+                          ...current,
+                          [section.id]: open,
+                        }))
+                      }
                       className="rounded-none border-x-0 border-b-0"
                     >
                       <SectionEditor

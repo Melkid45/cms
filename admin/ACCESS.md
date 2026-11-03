@@ -17,7 +17,7 @@ Clients can change their own password under Website settings → Your password b
 | Update website name, contacts, logos and email delivery | Yes | Yes |
 | Create/delete pages; change URLs, SEO or locale | Yes | No |
 | Add/remove/hide sections; change variants | Yes | No |
-| Add/remove/reorder repeated cards | Yes | No |
+| Add/remove/reorder repeated cards | Yes | Only for lists explicitly allowed by the owner |
 | Change colours, shared layout or menus | Yes | No |
 | Manage accounts and hosting configuration | Yes | No |
 
@@ -33,7 +33,11 @@ Signed Telegram CMS requests default to client permissions. The trusted bridge f
 
 Existing pages autosave private drafts after 1.5 seconds of inactivity. New pages and URL changes require an explicit save. Publishing remains a separate action. Failed saves keep local edits visible; stale revisions are rejected. Closing the editor, following a navigation link or signing out warns while changes are pending. Draft checkpoints within five minutes are coalesced to avoid flooding version history.
 
-The owner can disable client editing or publishing per page, and text, images or reordering per section. Individual fields can be locked. These rules are enforced against stored permissions inside the save transaction; clients cannot grant themselves permissions. A section with reordering disabled remains anchored at its existing position.
+The owner can disable client editing or publishing per page, and text, images or reordering per section. Existing individual field locks remain enforced. These rules are enforced against stored permissions inside the save transaction; clients cannot grant themselves permissions. A section with reordering disabled remains anchored at its existing position.
+
+Live preview defaults to section selection in page editors. Clicking a section, or pressing Enter/Space on its focused container, closes preview and opens, scrolls to and highlights that section’s editor. Browse website switches back to normal preview interactions. Selection messages accept only the current iframe window, the same origin and an existing visible section ID. This mode is absent on published pages and pages the client cannot edit.
+
+Owners can permit client item management separately for each repeatable list using “Client can add, remove and reorder items” inside its editor. Permission is off by default and requires every field in that list to be client editable, so deleting cards cannot bypass locked text/images. Clients with permission can add, duplicate, remove and reorder 1–30 items using approved templates; they cannot change existing item templates, invent fields, edit block variants or grant themselves permissions. Removing a permission takes effect on the next save, including for a client editor already open. Existing content editing remains available when list structure is locked.
 
 Inbox supports read/unread messages, private notes and search. Concurrent changes are revision checked. Notes are not exposed on the public website. Workflow statuses are not enabled.
 

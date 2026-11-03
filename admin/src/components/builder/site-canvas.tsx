@@ -6,16 +6,19 @@ import Splide from "@splidejs/splide";
 import "@splidejs/splide/css/core";
 import { SectionRenderer } from "./section-renderer";
 import type { Project, Section } from "@/lib/builder/types";
+import { sectionInfo } from "@/lib/builder/section-info";
 export function SiteCanvas({
   project,
   sections,
   layout = true,
   pageId,
+  onSelectSection,
 }: {
   project: Project;
   sections: Section[];
   layout?: boolean;
   pageId?: string;
+  onSelectSection?: (id: string) => void;
 }) {
   const root = useRef<HTMLDivElement>(null);
   const lightbox = useRef<HTMLDialogElement>(null);
@@ -407,7 +410,26 @@ export function SiteCanvas({
     <div
       ref={root}
       className="site-canvas"
+      data-select-sections={onSelectSection ? "true" : undefined}
       style={style}
+      onClickCapture={(event) => {
+        if (!onSelectSection) return;
+        event.preventDefault();
+        event.stopPropagation();
+        const section = (event.target as Element).closest<HTMLElement>(
+          "main [data-section-id]",
+        );
+        if (section) onSelectSection(section.dataset.sectionId!);
+      }}
+      onKeyDownCapture={(event) => {
+        if (!onSelectSection || !["Enter", " "].includes(event.key)) return;
+        event.preventDefault();
+        event.stopPropagation();
+        const section = (event.target as Element).closest<HTMLElement>(
+          "main [data-section-id]",
+        );
+        if (section) onSelectSection(section.dataset.sectionId!);
+      }}
       onClick={(event) => {
         const button = (event.target as Element).closest<HTMLElement>(
           "[data-gallery-photo],[data-project]",
@@ -439,6 +461,11 @@ export function SiteCanvas({
               section={section}
               project={project}
               first={i === 0}
+              selectLabel={
+                onSelectSection
+                  ? `Edit ${sectionInfo(section).title}`
+                  : undefined
+              }
             />
           ))}
       </main>

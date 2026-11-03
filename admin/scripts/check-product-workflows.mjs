@@ -105,6 +105,113 @@ export async function checkProductWorkflows({
     for (const section of page.sections) delete section.clientAccess;
   }
   project = await save(project);
+  // Collection structure is opt-in, checked against stored owner permissions.
+  const listPage = project.pages.find((page) =>
+    page.sections.some(
+      (section) =>
+        defs.find((def) => def.id === section.variant)?.repeaters?.length,
+    ),
+  );
+  const listSection = listPage.sections.find(
+    (section) =>
+      defs.find((def) => def.id === section.variant)?.repeaters?.length,
+  );
+  const originalListSection = structuredClone(listSection);
+  const listDef = defs.find((def) => def.id === listSection.variant);
+  const group = listDef.repeaters[0];
+  const listItems = () =>
+    group.items.map((template, index) => ({
+      id: `initial-${index}`,
+      template: index,
+      values: Object.fromEntries(
+        template.fields.map((key) => [
+          key,
+          listSection.values[key] ??
+            listDef.fields.find((field) => field.key === key)?.value ??
+            "",
+        ]),
+      ),
+    }));
+  const currentList = (value) =>
+    value.pages
+      .find((page) => page.id === listPage.id)
+      .sections.find((section) => section.id === listSection.id);
+  let listChange = structuredClone(project);
+  let items = listItems();
+  const extra = { ...structuredClone(items[0]), id: crypto.randomUUID() };
+  currentList(listChange).collections = { [group.id]: [...items, extra] };
+  assert.equal(
+    (await request("/api/builder", "PUT", listChange, client)).status,
+    403,
+  );
+  currentList(listChange).clientAccess = {
+    text: true,
+    images: true,
+    reorder: true,
+    lockedFields: [],
+    collections: [group.id],
+  };
+  assert.equal(
+    (await request("/api/builder", "PUT", listChange, client)).status,
+    403,
+    "Clients cannot grant themselves list management",
+  );
+  currentList(project).clientAccess = {
+    text: true,
+    images: true,
+    reorder: true,
+    lockedFields: [],
+    collections: [group.id],
+  };
+  project = await save(project);
+  listChange = structuredClone(project);
+  currentList(listChange).collections = { [group.id]: [...items, extra] };
+  project = await save(listChange, client);
+  assert.equal(
+    currentList(project).collections[group.id].length,
+    items.length + 1,
+  );
+  listChange = structuredClone(project);
+  currentList(listChange).collections[group.id].reverse();
+  project = await save(listChange, client);
+  assert.equal(currentList(project).collections[group.id][0].id, extra.id);
+  listChange = structuredClone(project);
+  currentList(listChange).collections[group.id] = currentList(
+    listChange,
+  ).collections[group.id].filter((item) => item.id !== extra.id);
+  project = await save(listChange, client);
+  assert.equal(currentList(project).collections[group.id].length, items.length);
+  listChange = structuredClone(project);
+  currentList(listChange).collections[group.id][0].values["unknown-field"] =
+    "No";
+  assert.equal(
+    (await request("/api/builder", "PUT", listChange, client)).status,
+    403,
+  );
+  currentList(project).clientAccess.text = false;
+  project = await save(project);
+  listChange = structuredClone(project);
+  currentList(listChange).collections[group.id].reverse();
+  assert.equal(
+    (await request("/api/builder", "PUT", listChange, client)).status,
+    403,
+    "Locked content cannot be removed or rearranged through a collection",
+  );
+  currentList(project).clientAccess.text = true;
+  currentList(project).clientAccess.collections = [];
+  project = await save(project);
+  listChange = structuredClone(project);
+  currentList(listChange).collections[group.id].reverse();
+  assert.equal(
+    (await request("/api/builder", "PUT", listChange, client)).status,
+    403,
+    "Owner revocation takes effect immediately",
+  );
+  const restoreList = project.pages.find((page) => page.id === listPage.id);
+  restoreList.sections = restoreList.sections.map((section) =>
+    section.id === listSection.id ? originalListSection : section,
+  );
+  project = await save(project);
   const published = JSON.stringify(project.pages[0].published);
   project.pages[0].sections.find((s) => s.id === section.id).values[text.key] =
     "Autosaved draft one";

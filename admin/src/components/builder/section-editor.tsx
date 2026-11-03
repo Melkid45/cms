@@ -9,7 +9,12 @@ import { Button } from "@/components/ui/button";
 import { ArrowUp, ArrowDown, Plus, Copy, Trash2 } from "lucide-react";
 import { MediaPicker } from "./media-picker";
 import { EditorDisclosure } from "./editor-disclosure";
-import { fieldEditable } from "@/lib/builder/section-info";
+import {
+  fieldEditable,
+  collectionEditable,
+  defaultSectionAccess,
+} from "@/lib/builder/section-info";
+import { Switch } from "@/components/ui/switch";
 function Fields({
   fields,
   values,
@@ -124,6 +129,14 @@ export function SectionEditor({
       ))}
       {repeaters.map((group) => {
         const items = collectionItems(section, entry, group);
+        const canManage =
+          !contentOnly || collectionEditable(section, entry, group);
+        const allEditable = group.items.every((item) =>
+          item.fields.every((key) => {
+            const field = entry.fields.find((f) => f.key === key);
+            return !!field && fieldEditable(section, field);
+          }),
+        );
         const update = (items: CollectionItem[]) =>
           onChange({
             ...section,
@@ -138,7 +151,7 @@ export function SectionEditor({
               <h3 className="text-sm font-semibold">
                 {group.label} · {items.length}
               </h3>
-              {!contentOnly && (
+              {canManage && (
                 <Button
                   type="button"
                   variant="outline"
@@ -153,6 +166,42 @@ export function SectionEditor({
                 </Button>
               )}
             </div>
+            {!contentOnly && (
+              <div className="space-y-2 rounded-lg bg-neutral-50 p-3">
+                <label className="flex items-center justify-between gap-4 text-xs">
+                  <span>Client can add, remove and reorder items</span>
+                  <Switch
+                    disabled={!allEditable}
+                    checked={
+                      !!section.clientAccess?.collections?.includes(group.id)
+                    }
+                    onCheckedChange={(checked) => {
+                      const access =
+                        section.clientAccess || defaultSectionAccess;
+                      const groups = access.collections || [];
+                      onChange({
+                        ...section,
+                        clientAccess: {
+                          ...access,
+                          collections: checked
+                            ? [
+                                ...groups.filter((id) => id !== group.id),
+                                group.id,
+                              ]
+                            : groups.filter((id) => id !== group.id),
+                        },
+                      });
+                    }}
+                  />
+                </label>
+                {!allEditable && (
+                  <p className="text-xs text-neutral-500">
+                    Enable editing for this list’s text and images before
+                    allowing item changes.
+                  </p>
+                )}
+              </div>
+            )}
             {items.map((item, index) => {
               const keys = group.items[item.template].fields;
               const fields = visible.filter((f) => keys.includes(f.key));
@@ -179,7 +228,7 @@ export function SectionEditor({
                   }
                 >
                   <div className="space-y-4">
-                    {!contentOnly && (
+                    {canManage && (
                       <div className="flex justify-end gap-1">
                         {[-1, 1].map((direction) => (
                           <Button
@@ -253,7 +302,7 @@ export function SectionEditor({
                 </EditorDisclosure>
               );
             })}
-            {!contentOnly && (
+            {canManage && (
               <p className="text-xs text-neutral-400">
                 1–30 items. Remove, duplicate or reorder without changing the
                 layout.

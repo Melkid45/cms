@@ -36,6 +36,7 @@ import { Select, SelectOption } from "@/components/ui/select";
 import { SectionEditor } from "./section-editor";
 import { MediaPicker } from "./media-picker";
 import { PreviewDialog } from "./preview-dialog";
+import { usePreviewSelection } from "./use-preview-selection";
 import {
   SortableSections,
   SortableSection,
@@ -140,6 +141,7 @@ function Editor({ initial, project }: { initial?: CmsPage; project: Project }) {
   const [family, setFamily] = useState(""),
     [query, setQuery] = useState(""),
     [editing, setEditing] = useState("");
+  const selectFromPreview = usePreviewSelection(setEditing);
   const draft = usePageDraft(page, setPage, project, initial);
   const { notice, setNotice, busy, dirty } = draft;
   const patch = (data: Partial<CmsPage>) => {
@@ -180,7 +182,13 @@ function Editor({ initial, project }: { initial?: CmsPage; project: Project }) {
       <PageHeader
         title={initial ? `Edit ${initial.title}` : "Create a page"}
         description="Approved sections. Your content. One consistent design system."
-        action={<PreviewDialog project={project} sections={page.sections} />}
+        action={
+          <PreviewDialog
+            project={project}
+            sections={page.sections}
+            onSelectSection={selectFromPreview}
+          />
+        }
       />
       <form
         onSubmit={(e) => {

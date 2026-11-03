@@ -91,13 +91,15 @@ export function SortableSection({
     <Handle.Provider value={{ attributes, listeners, setActivatorNodeRef }}>
       <div
         ref={setNodeRef}
+        data-editor-section={section.id}
+        tabIndex={-1}
         style={{
           transform: CSS.Transform.toString(transform),
           transition,
           position: "relative",
           zIndex: isDragging ? 10 : undefined,
         }}
-        className={`overflow-hidden rounded-lg border bg-white ${section.hidden ? "opacity-60" : ""} ${isDragging ? "border-black shadow-lg" : ""}`}
+        className={`scroll-mt-24 overflow-hidden rounded-lg border bg-white outline-none data-[preview-selected=true]:ring-2 data-[preview-selected=true]:ring-neutral-900 data-[preview-selected=true]:ring-offset-2 ${section.hidden ? "opacity-60" : ""} ${isDragging ? "border-black shadow-lg" : ""}`}
       >
         {children}
       </div>

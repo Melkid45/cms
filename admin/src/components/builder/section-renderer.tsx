@@ -39,10 +39,12 @@ export function SectionRenderer({
   section,
   project,
   first = false,
+  selectLabel,
 }: {
   section: Section;
   project: Project;
   first?: boolean;
+  selectLabel?: string;
 }) {
   const entry = definition(section.variant);
   if (!entry || section.hidden) return null;
@@ -116,7 +118,14 @@ export function SectionRenderer({
     if (!node.tag || ["script", "style", "link"].includes(node.tag))
       return null;
     const props: Record<string, unknown> = { key: index };
-    if (node.tag === "section") props["data-section-id"] = section.id;
+    if (node.tag === "section") {
+      props["data-section-id"] = section.id;
+      if (selectLabel) {
+        props.tabIndex = 0;
+        props.role = "button";
+        props["aria-label"] = selectLabel;
+      }
+    }
     if (node.tag === "form") props["data-cms-form"] = section.id;
     const attrs = { ...node.attrs };
     for (const [name, key] of Object.entries(node.bindings || {}))
@@ -192,6 +201,10 @@ export function SectionRenderer({
         props.defaultChecked = true;
         delete props.checked;
       }
+    }
+    if (node.tag === "section" && selectLabel) {
+      delete props["aria-labelledby"];
+      props["aria-label"] = selectLabel;
     }
     if (node.tag === "img") {
       props.loading = first ? "eager" : "lazy";

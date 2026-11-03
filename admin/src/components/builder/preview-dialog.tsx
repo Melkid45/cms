@@ -9,13 +9,17 @@ import type { Project, Section } from "@/lib/builder/types";
 export function PreviewDialog({
   project,
   sections,
+  onSelectSection,
 }: {
   project: Project;
   sections: Section[];
+  onSelectSection?: (id: string) => void;
 }) {
   const [width, setWidth] = useState("100%");
+  const [open, setOpen] = useState(false);
+  const [selecting, setSelecting] = useState(true);
   return (
-    <Dialog.Root>
+    <Dialog.Root open={open} onOpenChange={setOpen}>
       <Dialog.Trigger render={<Button type="button" variant="outline" />}>
         <Eye />
         Live preview
@@ -29,10 +33,22 @@ export function PreviewDialog({
                 Live preview
               </Dialog.Title>
               <Dialog.Description className="text-xs text-neutral-500">
-                Your current content, including unsaved changes.
+                {onSelectSection && selecting
+                  ? "Click a section to open its content editor."
+                  : "Your current content, including unsaved changes."}
               </Dialog.Description>
             </div>
             <div className="flex items-center gap-3">
+              {onSelectSection && (
+                <Button
+                  type="button"
+                  variant={selecting ? "secondary" : "outline"}
+                  aria-pressed={selecting}
+                  onClick={() => setSelecting(!selecting)}
+                >
+                  {selecting ? "Select section" : "Browse website"}
+                </Button>
+              )}
               <Select
                 aria-label="Preview width"
                 value={width}
@@ -59,6 +75,14 @@ export function PreviewDialog({
               sections={sections}
               width={width}
               className="mx-auto block"
+              onSelectSection={
+                onSelectSection && selecting
+                  ? (id) => {
+                      setOpen(false);
+                      onSelectSection(id);
+                    }
+                  : undefined
+              }
             />
           </div>
         </Dialog.Popup>
