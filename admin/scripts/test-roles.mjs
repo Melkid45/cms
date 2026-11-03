@@ -504,12 +504,38 @@ try {
       r = await put(withCards, client);
       assert.equal(r.status, 200, "Client can edit repeated card content");
       project = await r.json();
-      await reject("Client cannot add repeatable cards", (p) => {
-        const list = p.pages
-          .find((p) => p.id === page.id)
-          .sections.find((s) => s.id === section.id).collections[group.id];
-        list.push({ ...structuredClone(list[0]), id: "extra-card" });
-      });
+      const extraCards = structuredClone(project);
+      extraCards.pages
+        .find((p) => p.id === page.id)
+        .sections.find((s) => s.id === section.id)
+        .collections[group.id].push({
+          ...structuredClone(section.collections[group.id][0]),
+          id: "default-extra-card",
+        });
+      r = await put(extraCards, client);
+      assert.equal(r.status, 200, "Client can manage cards by default");
+      project = await r.json();
+      project.pages
+        .find((p) => p.id === page.id)
+        .sections.find((s) => s.id === section.id).clientAccess = {
+        text: true,
+        images: true,
+        reorder: true,
+        lockedFields: [],
+        collections: [],
+      };
+      r = await put(project, owner);
+      assert.equal(r.status, 200);
+      project = await r.json();
+      await reject(
+        "Client cannot add cards when owner disables management",
+        (p) => {
+          const list = p.pages
+            .find((p) => p.id === page.id)
+            .sections.find((s) => s.id === section.id).collections[group.id];
+          list.push({ ...structuredClone(list[0]), id: "extra-card" });
+        },
+      );
       checkedCards = true;
       break;
     }

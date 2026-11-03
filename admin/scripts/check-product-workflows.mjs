@@ -105,7 +105,7 @@ export async function checkProductWorkflows({
     for (const section of page.sections) delete section.clientAccess;
   }
   project = await save(project);
-  // Collection structure is opt-in, checked against stored owner permissions.
+  // Collection structure is enabled by default; explicit owner restrictions win.
   const listPage = project.pages.find((page) =>
     page.sections.some(
       (section) =>
@@ -139,6 +139,23 @@ export async function checkProductWorkflows({
   let listChange = structuredClone(project);
   let items = listItems();
   const extra = { ...structuredClone(items[0]), id: crypto.randomUUID() };
+  currentList(listChange).collections = { [group.id]: [...items, extra] };
+  const defaultChange = await save(listChange, client);
+  assert.equal(
+    currentList(defaultChange).collections[group.id].length,
+    items.length + 1,
+  );
+  project = defaultChange;
+  currentList(project).collections[group.id] = items;
+  currentList(project).clientAccess = {
+    text: true,
+    images: true,
+    reorder: true,
+    lockedFields: [],
+    collections: [],
+  };
+  project = await save(project);
+  listChange = structuredClone(project);
   currentList(listChange).collections = { [group.id]: [...items, extra] };
   assert.equal(
     (await request("/api/builder", "PUT", listChange, client)).status,

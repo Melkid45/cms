@@ -27,13 +27,20 @@ export function collectionEditable(
   group: Repeater,
 ) {
   return (
-    !!section.clientAccess?.collections?.includes(group.id) &&
+    allowedCollectionIds(section, entry).includes(group.id) &&
     group.items.every((item) =>
       item.fields.every((key) => {
         const field = entry.fields.find((f) => f.key === key);
         return !!field && fieldEditable(section, field);
       }),
     )
+  );
+}
+export function allowedCollectionIds(section: Section, entry: Definition) {
+  return (
+    section.clientAccess?.collections ??
+    entry.repeaters?.map((group) => group.id) ??
+    []
   );
 }
 export function sectionInfo(section: Section) {

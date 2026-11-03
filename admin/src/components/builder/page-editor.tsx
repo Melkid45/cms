@@ -141,7 +141,8 @@ function Editor({ initial, project }: { initial?: CmsPage; project: Project }) {
   const [family, setFamily] = useState(""),
     [query, setQuery] = useState(""),
     [editing, setEditing] = useState("");
-  const selectFromPreview = usePreviewSelection(setEditing);
+  const { selectSection: selectFromPreview, clearSelection } =
+    usePreviewSelection(setEditing);
   const draft = usePageDraft(page, setPage, project, initial);
   const { notice, setNotice, busy, dirty } = draft;
   const patch = (data: Partial<CmsPage>) => {
@@ -290,9 +291,12 @@ function Editor({ initial, project }: { initial?: CmsPage; project: Project }) {
                             editing === section.id ? "secondary" : "outline"
                           }
                           size="sm"
-                          onClick={() =>
-                            setEditing(editing === section.id ? "" : section.id)
-                          }
+                          onClick={() => {
+                            clearSelection();
+                            setEditing(
+                              editing === section.id ? "" : section.id,
+                            );
+                          }}
                         >
                           {editing === section.id ? "Close" : "Edit content"}
                         </Button>

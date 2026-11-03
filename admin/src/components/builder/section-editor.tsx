@@ -13,6 +13,7 @@ import {
   fieldEditable,
   collectionEditable,
   defaultSectionAccess,
+  allowedCollectionIds,
 } from "@/lib/builder/section-info";
 import { Switch } from "@/components/ui/switch";
 function Fields({
@@ -172,13 +173,11 @@ export function SectionEditor({
                   <span>Client can add, remove and reorder items</span>
                   <Switch
                     disabled={!allEditable}
-                    checked={
-                      !!section.clientAccess?.collections?.includes(group.id)
-                    }
+                    checked={collectionEditable(section, entry, group)}
                     onCheckedChange={(checked) => {
                       const access =
                         section.clientAccess || defaultSectionAccess;
-                      const groups = access.collections || [];
+                      const groups = allowedCollectionIds(section, entry);
                       onChange({
                         ...section,
                         clientAccess: {

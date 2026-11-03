@@ -24,11 +24,15 @@ export function usePreviewSelection(openEditor: (id: string) => void) {
       if (target) delete target.dataset.previewSelected;
     };
   }, [selection]);
-  return useCallback(
+  const selectSection = useCallback(
     (id: string) => {
       openEditor(id);
       setSelection({ id });
     },
     [openEditor],
   );
+  const clearSelection = useCallback((id?: string) => {
+    setSelection((current) => (!id || current?.id === id ? null : current));
+  }, []);
+  return { selectSection, clearSelection };
 }

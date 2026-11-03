@@ -22,9 +22,10 @@ export function ClientPageEditor({ initial }: { initial: CmsPage }) {
   const { project } = useProject();
   const [page, setPage] = useState(() => structuredClone(initial));
   const [openSections, setOpenSections] = useState<Record<string, boolean>>({});
-  const selectFromPreview = usePreviewSelection((id) =>
-    setOpenSections((current) => ({ ...current, [id]: true })),
-  );
+  const { selectSection: selectFromPreview, clearSelection } =
+    usePreviewSelection((id) =>
+      setOpenSections((current) => ({ ...current, [id]: true })),
+    );
   const canEdit = page.clientAccess?.edit !== false;
   const draft = usePageDraft(page, setPage, project, initial, canEdit);
   const { busy, notice } = draft;
@@ -124,12 +125,13 @@ export function ClientPageEditor({ initial }: { initial: CmsPage }) {
                     <EditorDisclosure
                       title="Edit content"
                       open={!!openSections[section.id]}
-                      onOpenChange={(open) =>
+                      onOpenChange={(open) => {
+                        if (!open) clearSelection(section.id);
                         setOpenSections((current) => ({
                           ...current,
                           [section.id]: open,
-                        }))
-                      }
+                        }));
+                      }}
                       className="rounded-none border-x-0 border-b-0"
                     >
                       <SectionEditor
