@@ -92,9 +92,11 @@ export function Backups() {
       />
       <div className="mb-6 rounded-xl border bg-white p-5 text-sm leading-6 text-neutral-500">
         Store up to five full copies, including independent image data (up to 32
-        MB of media per copy). Download a copy for storage outside this
-        database. Accounts, SMTP passwords and enquiries stay unchanged when you
-        restore. This does not replace your hosting provider’s database backups.
+        MB of media per copy). Copies expire after seven days and are removed
+        automatically during daily cleanup. Download a copy for storage outside
+        this database. Accounts, SMTP passwords and enquiries stay unchanged
+        when you restore. This does not replace your hosting provider’s database
+        backups.
       </div>
       <div className="space-y-3">
         {items.map((item) => (

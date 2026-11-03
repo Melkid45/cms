@@ -17,6 +17,7 @@ const port = Number(process.env.CMS_ROLE_TEST_PORT || 3101),
   base = `http://localhost:${port}`;
 const ownerPassword = randomBytes(24).toString("hex"),
   clientPassword = randomBytes(24).toString("hex");
+const cronSecret = randomBytes(32).toString("hex");
 const ownerEmail = "owner@example.test",
   clientEmail = "client@example.test";
 const { privateKey, publicKey } = generateKeyPairSync("ed25519");
@@ -33,6 +34,7 @@ const server = spawn(
       DATABASE_URL: "",
       BLOB_READ_WRITE_TOKEN: "",
       VERCEL: "",
+      CRON_SECRET: cronSecret,
       SMTP_HOST: "",
       SMTP_USER: "",
       SMTP_PASSWORD: "",
@@ -550,7 +552,7 @@ try {
     (await request("/api/builder/submissions", "GET", null, client)).status,
     200,
   );
-  await checkProductWorkflows({ base, owner, client, directory });
+  await checkProductWorkflows({ base, owner, client, directory, cronSecret });
   r = await request(
     "/api/builder/accounts",
     "PATCH",

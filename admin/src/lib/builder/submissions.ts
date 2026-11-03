@@ -19,7 +19,6 @@ export type Submission = {
   values: Record<string, string>;
   read: boolean;
   delivery: "received" | "sent" | "failed";
-  status?: "New" | "In progress" | "Closed";
   internalNote?: string;
   revision?: number;
   updatedAt?: string;
@@ -76,7 +75,6 @@ export const listSubmissions = () =>
     (data) =>
       data.items.map((item) => ({
         ...item,
-        status: item.status || "New",
         internalNote: item.internalNote || "",
         revision: item.revision || 0,
       })),
@@ -88,7 +86,6 @@ export const updateSubmission = (
   id: string,
   patch: {
     read?: boolean;
-    status?: Submission["status"];
     internalNote?: string;
     revision?: number;
   },
@@ -102,7 +99,6 @@ export const updateSubmission = (
         409,
       );
     if (patch.read !== undefined) item.read = patch.read;
-    if (patch.status !== undefined) item.status = patch.status;
     if (patch.internalNote !== undefined)
       item.internalNote = patch.internalNote;
     item.revision = (item.revision || 0) + 1;

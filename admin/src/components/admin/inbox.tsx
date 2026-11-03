@@ -9,7 +9,6 @@ import { useAccess } from "@/components/admin/access-context";
 import { useProject } from "@/lib/builder/client";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { Select, SelectOption } from "@/components/ui/select";
 export default function Submissions({
   overview = false,
 }: {
@@ -22,13 +21,11 @@ export default function Submissions({
     [loaded, setLoaded] = useState(false),
     [unread, setUnread] = useState(false);
   const [query, setQuery] = useState(""),
-    [status, setStatus] = useState("All"),
     [notes, setNotes] = useState<Record<string, string>>({}),
     [saving, setSaving] = useState("");
   const filtered = items.filter(
     (item) =>
       (!unread || !item.read) &&
-      (status === "All" || (item.status || "New") === status) &&
       [item.pageTitle, ...Object.values(item.values), item.internalNote || ""]
         .join(" ")
         .toLowerCase()
@@ -142,23 +139,6 @@ export default function Submissions({
           Unread ({items.filter((i) => !i.read).length})
         </Button>
       </div>
-      <div className="mb-5 flex flex-wrap gap-2">
-        {["All", "New", "In progress", "Closed"].map((value) => (
-          <Button
-            key={value}
-            variant={status === value ? "secondary" : "ghost"}
-            onClick={() => setStatus(value)}
-          >
-            {value} (
-            {
-              items.filter(
-                (item) => value === "All" || (item.status || "New") === value,
-              ).length
-            }
-            )
-          </Button>
-        ))}
-      </div>
       {error && (
         <p role="alert" className="mb-4 text-red-600">
           {error}
@@ -184,24 +164,6 @@ export default function Submissions({
                     ? "Email failed · saved in inbox"
                     : "Saved in inbox"}
               </span>
-              <div className="w-40 shrink-0">
-                <Select
-                  aria-label={`Status for ${item.pageTitle}`}
-                  value={item.status || "New"}
-                  disabled={!!saving}
-                  onValueChange={(status) =>
-                    void update(item, {
-                      status: status as Submission["status"],
-                    })
-                  }
-                >
-                  {["New", "In progress", "Closed"].map((value) => (
-                    <SelectOption key={value} value={value}>
-                      {value}
-                    </SelectOption>
-                  ))}
-                </Select>
-              </div>
               <Button
                 size="sm"
                 variant="ghost"

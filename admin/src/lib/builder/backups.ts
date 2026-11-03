@@ -41,6 +41,42 @@ type Archive = {
 };
 const directory = path.join(dataDirectory, "backups");
 const maxBytes = 32 * 1024 * 1024;
+const retentionMs = 7 * 24 * 60 * 60 * 1000;
+export async function pruneExpiredBackups() {
+  const cutoff = new Date(Date.now() - retentionMs).toISOString();
+  const sql = await database();
+  if (sql) {
+    const removed =
+      await sql`DELETE FROM harbstone_project WHERE id LIKE 'backup:%' AND document->>'createdAt' <= ${cutoff} RETURNING id`;
+    return removed.length;
+  }
+  if (process.env.VERCEL)
+    throw new StoreError("Backup storage is not configured.", 503);
+  let files: string[];
+  try {
+    files = await readdir(directory);
+  } catch (e) {
+    if ((e as NodeJS.ErrnoException).code === "ENOENT") return 0;
+    throw e;
+  }
+  let removed = 0;
+  for (const file of files.filter((name) =>
+    /^(safety|[a-f0-9-]{36})\.json$/.test(name),
+  )) {
+    const location = path.join(directory, file);
+    try {
+      const archive: Archive = JSON.parse(await readFile(location, "utf8"));
+      const created = Date.parse(archive.createdAt);
+      if (Number.isFinite(created) && created <= Date.parse(cutoff)) {
+        await unlink(location);
+        removed++;
+      }
+    } catch (e) {
+      if ((e as NodeJS.ErrnoException).code !== "ENOENT") throw e;
+    }
+  }
+  return removed;
+}
 function canonical(value: unknown): unknown {
   if (Array.isArray(value)) return value.map(canonical);
   if (value && typeof value === "object")
@@ -159,6 +195,7 @@ function metadata(archive: Archive) {
   };
 }
 export async function listBackups() {
+  await pruneExpiredBackups();
   const sql = await database();
   if (sql) {
     const rows =
@@ -186,6 +223,7 @@ export async function listBackups() {
 export async function readBackup(id: string): Promise<Archive> {
   if (id !== "safety" && !/^[a-f0-9-]{36}$/.test(id))
     throw new StoreError("Invalid backup.", 400);
+  await pruneExpiredBackups();
   const sql = await database();
   if (sql) {
     const [row] =

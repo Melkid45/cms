@@ -19,7 +19,6 @@ export async function PATCH(request: Request) {
       .object({
         id: z.string().max(100),
         read: z.boolean().optional(),
-        status: z.enum(["New", "In progress", "Closed"]).optional(),
         internalNote: z.string().max(4000).optional(),
         revision: z.number().int().nonnegative().optional(),
       })
@@ -27,16 +26,11 @@ export async function PATCH(request: Request) {
       .safeParse(await request.json());
     if (
       !value.success ||
-      [value.data.read, value.data.status, value.data.internalNote].every(
-        (v) => v === undefined,
-      )
+      [value.data.read, value.data.internalNote].every((v) => v === undefined)
     )
       throw new StoreError("Choose an enquiry and a valid update.");
     const { id, ...patch } = value.data;
-    if (
-      (patch.status !== undefined || patch.internalNote !== undefined) &&
-      patch.revision === undefined
-    )
+    if (patch.internalNote !== undefined && patch.revision === undefined)
       throw new StoreError("Refresh this enquiry before saving.");
     return Response.json(await updateSubmission(id, patch));
   } catch (error) {

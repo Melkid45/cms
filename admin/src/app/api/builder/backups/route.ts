@@ -19,7 +19,7 @@ export async function GET(request: Request) {
     await authorizeWrite(request, true);
     const url = new URL(request.url);
     if (url.searchParams.get("download"))
-      return downloadBackup(url.searchParams.get("download")!);
+      return await downloadBackup(url.searchParams.get("download")!);
     return Response.json(await listBackups(), {
       headers: { "Cache-Control": "no-store" },
     });

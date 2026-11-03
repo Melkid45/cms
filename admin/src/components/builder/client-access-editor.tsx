@@ -1,6 +1,5 @@
 "use client";
 import type { CmsPage, Section } from "@/lib/builder/types";
-import { definition } from "@/lib/builder/catalog";
 import { defaultSectionAccess } from "@/lib/builder/section-info";
 import { Switch } from "@/components/ui/switch";
 import { EditorDisclosure } from "./editor-disclosure";
@@ -52,34 +51,6 @@ export function SectionClientAccess({
             onChange({ ...section, clientAccess: { ...access, reorder } })
           }
         />
-        <p className="pt-2 text-xs text-neutral-500">
-          Lock individual fields for the client:
-        </p>
-        <div className="grid max-h-56 gap-3 overflow-y-auto sm:grid-cols-2">
-          {definition(section.variant)?.fields.map((field) => (
-            <label key={field.key} className="flex items-start gap-2 text-xs">
-              <input
-                type="checkbox"
-                checked={access.lockedFields.includes(field.key)}
-                onChange={(e) =>
-                  onChange({
-                    ...section,
-                    clientAccess: {
-                      ...access,
-                      lockedFields: e.target.checked
-                        ? [...access.lockedFields, field.key]
-                        : access.lockedFields.filter(
-                            (key) => key !== field.key,
-                          ),
-                    },
-                  })
-                }
-              />
-              {field.role || field.label}{" "}
-              <span className="text-neutral-400">{field.key}</span>
-            </label>
-          ))}
-        </div>
       </div>
     </EditorDisclosure>
   );

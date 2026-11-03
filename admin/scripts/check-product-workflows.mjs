@@ -7,6 +7,7 @@ export async function checkProductWorkflows({
   owner,
   client,
   directory,
+  cronSecret,
 }) {
   const request = (path, method = "GET", body, cookie = owner) =>
     fetch(base + path, {
@@ -134,21 +135,23 @@ export async function checkProductWorkflows({
     {
       id: message.id,
       revision: message.revision || 0,
-      status: "In progress",
       internalNote: note,
     },
     client,
   );
   assert.equal(r.status, 200);
   const updated = await r.json();
-  assert.equal(updated.status, "In progress");
   assert.equal(updated.internalNote, note);
   assert.equal(
     (
       await request(
         "/api/builder/submissions",
         "PATCH",
-        { id: message.id, revision: message.revision || 0, status: "Closed" },
+        {
+          id: message.id,
+          revision: message.revision || 0,
+          internalNote: "Stale note",
+        },
         client,
       )
     ).status,
@@ -159,7 +162,7 @@ export async function checkProductWorkflows({
       await request(
         "/api/builder/submissions",
         "PATCH",
-        { id: message.id, revision: updated.revision, status: "Unknown" },
+        { id: message.id, revision: updated.revision, status: "In progress" },
         client,
       )
     ).status,
@@ -311,7 +314,59 @@ export async function checkProductWorkflows({
     (await request("/api/builder/backups?id=" + backup.id, "DELETE")).status,
     200,
   );
+  const oldId = crypto.randomUUID(),
+    recentId = crypto.randomUUID();
+  const oldFile = join(directory, "backups", oldId + ".json");
+  const recentFile = join(directory, "backups", recentId + ".json");
+  await writeFile(
+    oldFile,
+    JSON.stringify({
+      ...archive,
+      id: oldId,
+      createdAt: new Date(Date.now() - 8 * 86400000).toISOString(),
+    }),
+  );
+  await writeFile(
+    recentFile,
+    JSON.stringify({
+      ...archive,
+      id: recentId,
+      createdAt: new Date(Date.now() - 6 * 86400000).toISOString(),
+    }),
+  );
+  assert.equal((await fetch(base + "/api/cron/backups")).status, 401);
+  assert.equal(
+    (
+      await fetch(base + "/api/cron/backups", {
+        headers: { Authorization: "Bearer incorrect" },
+      })
+    ).status,
+    401,
+  );
+  assert(await readFile(oldFile));
+  const cleanup = await fetch(base + "/api/cron/backups", {
+    headers: { Authorization: "Bearer " + cronSecret },
+  });
+  assert.equal(cleanup.status, 200);
+  assert.equal((await cleanup.json()).removed, 1);
+  await assert.rejects(readFile(oldFile), { code: "ENOENT" });
+  assert(await readFile(recentFile));
+  await unlink(recentFile);
+  // Expired copies cannot be downloaded between scheduled runs either.
+  await writeFile(
+    oldFile,
+    JSON.stringify({
+      ...archive,
+      id: oldId,
+      createdAt: new Date(Date.now() - 8 * 86400000).toISOString(),
+    }),
+  );
+  assert.equal(
+    (await request("/api/builder/backups?download=" + oldId)).status,
+    404,
+  );
+  await assert.rejects(readFile(oldFile), { code: "ENOENT" });
   console.log(
-    "PASS: page/field/image/reorder/publish permissions, coalesced private autosaves, enquiry status/notes conflicts, full backup download/checksums and independent media restoration; corrupt and stale restores rejected.",
+    "PASS: page/field/image/reorder/publish permissions, coalesced private autosaves, enquiry notes conflicts and rejected status updates, full backup restoration and seven-day expiry; protected scheduled cleanup preserves recent copies.",
   );
 }
