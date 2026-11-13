@@ -160,67 +160,76 @@ export function Cart({
               <X size={22} />
             </button>
           </div>
-          {count === 0 ? (
-            <p className="text text--md text--muted">Your cart is empty.</p>
-          ) : (
-            <>
-              <ul className="store-cart__items">
-                {products
-                  .filter((item) => items[item.id] > 0)
-                  .map((item) => (
-                    <li key={item.id}>
-                      <img src={item.image} alt="" width={80} height={80} />
-                      <div>
-                        <h3 className="heading heading--sm">{item.name}</h3>
-                        <div className="store-cart__quantity">
+          <div className="store-cart__content">
+            {count === 0 ? (
+              <div className="store-cart__empty">
+                <ShoppingBag size={32} strokeWidth={1.25} aria-hidden="true" />
+                <p className="heading heading--sm">Your cart is empty.</p>
+              </div>
+            ) : (
+              <>
+                <ul className="store-cart__items">
+                  {products
+                    .filter((item) => items[item.id] > 0)
+                    .map((item) => (
+                      <li key={item.id}>
+                        <img src={item.image} alt="" width={80} height={80} />
+                        <div>
+                          <h3 className="heading heading--sm">{item.name}</h3>
+                          <div className="store-cart__quantity">
+                            <button
+                              type="button"
+                              className="store-cart__icon"
+                              aria-label={`Decrease ${item.name} quantity`}
+                              onClick={() => quantity(item.id, -1)}
+                            >
+                              <Minus size={16} />
+                            </button>
+                            <output aria-label={`${item.name} quantity`}>
+                              {items[item.id]}
+                            </output>
+                            <button
+                              type="button"
+                              className="store-cart__icon"
+                              aria-label={`Increase ${item.name} quantity`}
+                              disabled={items[item.id] >= 99}
+                              onClick={() => quantity(item.id, 1)}
+                            >
+                              <Plus size={16} />
+                            </button>
+                          </div>
                           <button
                             type="button"
-                            className="store-cart__icon"
-                            aria-label={`Decrease ${item.name} quantity`}
-                            onClick={() => quantity(item.id, -1)}
+                            className="store-cart__remove"
+                            onClick={() => quantity(item.id, -items[item.id])}
                           >
-                            <Minus size={16} />
-                          </button>
-                          <output aria-label={`${item.name} quantity`}>
-                            {items[item.id]}
-                          </output>
-                          <button
-                            type="button"
-                            className="store-cart__icon"
-                            aria-label={`Increase ${item.name} quantity`}
-                            disabled={items[item.id] >= 99}
-                            onClick={() => quantity(item.id, 1)}
-                          >
-                            <Plus size={16} />
+                            Remove {item.name}
                           </button>
                         </div>
-                        <button
-                          type="button"
-                          className="store-cart__remove"
-                          onClick={() => quantity(item.id, -items[item.id])}
-                        >
-                          Remove {item.name}
-                        </button>
-                      </div>
-                      <span className="text text--md">
-                        {format(item.price * items[item.id])}
-                      </span>
-                    </li>
-                  ))}
-              </ul>
+                        <span className="text text--md">
+                          {format(item.price * items[item.id])}
+                        </span>
+                      </li>
+                    ))}
+                </ul>
+              </>
+            )}
+          </div>
+          <footer className="store-cart__footer">
+            {count > 0 && (
               <p className="store-cart__total text text--lg" aria-live="polite">
                 <strong>Subtotal</strong>
                 <span>{format(total)}</span>
               </p>
-            </>
-          )}
-          <button
-            className="button button--outline"
-            type="button"
-            onClick={() => dialog.current?.close()}
-          >
-            Continue browsing
-          </button>
+            )}
+            <button
+              className="button button--outline"
+              type="button"
+              onClick={() => dialog.current?.close()}
+            >
+              Continue browsing
+            </button>
+          </footer>
         </div>
       </dialog>
     </>
