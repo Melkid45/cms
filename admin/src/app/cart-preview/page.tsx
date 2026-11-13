@@ -10,7 +10,14 @@ const names = [
   "Full screen",
 ];
 
-export default function CartPreview() {
+export default async function CartPreview({
+  searchParams,
+}: {
+  searchParams: Promise<{ layout?: string }>;
+}) {
+  const { layout } = await searchParams;
+  const selected = cartVariants.find((variant) => variant === layout);
+  const variants = selected ? [selected] : cartVariants;
   return (
     <main className="site-canvas container section-stack">
       <div className="section__content">
@@ -19,9 +26,11 @@ export default function CartPreview() {
           Add sample products and open the bag to try each layout.
         </p>
       </div>
-      {cartVariants.map((variant, index) => (
+      {variants.map((variant) => (
         <section key={variant} className="section__content">
-          <h2 className="heading heading--md">{names[index]}</h2>
+          <h2 className="heading heading--md">
+            {names[cartVariants.indexOf(variant)]}
+          </h2>
           <Cart variant={variant} demo />
         </section>
       ))}

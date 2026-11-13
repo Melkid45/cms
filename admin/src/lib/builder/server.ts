@@ -167,6 +167,13 @@ const schema = z.object({
   store: z
     .object({
       enabled: z.boolean(),
+      button: z
+        .object({
+          icon: z.enum(["bag", "cart", "basket"]),
+          image: z.string().max(2000).optional(),
+          label: z.string().trim().max(24).optional(),
+        })
+        .optional(),
       cart: z.enum(["drawer", "modal", "sheet", "wide", "full"]),
     })
     .optional(),

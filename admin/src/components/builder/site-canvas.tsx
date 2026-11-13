@@ -454,7 +454,12 @@ export function SiteCanvas({
             section={project.layout.header}
             project={project}
             headerAction={
-              project.store?.enabled && <Cart variant={project.store.cart} />
+              project.store?.enabled && (
+                <Cart
+                  variant={project.store.cart}
+                  button={project.store.button}
+                />
+              )
             }
           />
         </div>

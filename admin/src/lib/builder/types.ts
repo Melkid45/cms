@@ -130,8 +130,15 @@ export const cartVariants = [
 ] as const;
 export type CartVariant = (typeof cartVariants)[number];
 
+export const cartIcons = ["bag", "cart", "basket"] as const;
+export type CartButton = {
+  icon: (typeof cartIcons)[number];
+  image?: string;
+  label?: string;
+};
+
 export interface Project {
-  store?: { enabled: boolean; cart: CartVariant };
+  store?: { enabled: boolean; cart: CartVariant; button?: CartButton };
   revision: number;
   pages: CmsPage[];
   media: Media[];

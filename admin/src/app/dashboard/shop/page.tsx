@@ -1,3 +1,4 @@
+import "@/components/builder/cart.scss";
 import { redirect } from "next/navigation";
 import { ShopSettings } from "@/components/admin/shop-settings";
 import { currentUser } from "@/lib/builder/current-user";

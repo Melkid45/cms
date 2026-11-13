@@ -120,3 +120,33 @@
     cursor: pointer;
   }
 }
+
+.cart-trigger {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  min-width: 44px;
+  min-height: 44px;
+  padding: 0 10px;
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
+
+  &:hover {
+    background: var(--color-surface);
+  }
+  svg,
+  &__image {
+    flex: none;
+  }
+  &__image {
+    object-fit: contain;
+  }
+  &__count {
+    font-variant-numeric: tabular-nums;
+  }
+}

@@ -54,7 +54,11 @@ export function SiteSettings() {
     try {
       await saveProject({
         ...project,
-        store: { enabled, cart: project.store?.cart ?? "drawer" },
+        store: {
+          ...project.store,
+          enabled,
+          cart: project.store?.cart ?? "drawer",
+        },
       });
     } catch (error) {
       setNotice(

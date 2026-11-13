@@ -1,8 +1,16 @@
 "use client";
 /* eslint-disable @next/next/no-img-element */
 import { useEffect, useId, useRef, useState } from "react";
-import { Minus, Plus, ShoppingBag, X } from "lucide-react";
-import type { CartVariant } from "@/lib/builder/types";
+import {
+  Minus,
+  Plus,
+  ShoppingBag,
+  ShoppingCart,
+  ShoppingBasket,
+  X,
+} from "lucide-react";
+import { safeUrl } from "@/lib/builder/catalog";
+import type { CartButton, CartVariant } from "@/lib/builder/types";
 
 const products = [
   {
@@ -25,12 +33,32 @@ const money = new Intl.NumberFormat("en-GB", {
 });
 const format = (minor: number) => money.format(minor / 100);
 
+const icons = { bag: ShoppingBag, cart: ShoppingCart, basket: ShoppingBasket };
+
+export function CartSymbol({ button }: { button?: CartButton }) {
+  const Icon = icons[button?.icon ?? "bag"];
+  const image = safeUrl(button?.image || "", true);
+  return image ? (
+    <img
+      className="cart-trigger__image"
+      src={image}
+      alt=""
+      width={22}
+      height={22}
+    />
+  ) : (
+    <Icon size={22} strokeWidth={1.5} aria-hidden="true" />
+  );
+}
+
 export function Cart({
   variant,
   demo = false,
+  button,
 }: {
   variant: CartVariant;
   demo?: boolean;
+  button?: CartButton;
 }) {
   const dialog = useRef<HTMLDialogElement>(null);
   const title = useId();
@@ -96,14 +124,19 @@ export function Cart({
         </div>
       )}
       <button
-        className="store-cart__icon"
+        className="cart-trigger"
         type="button"
         aria-label={`Open cart, ${count} items`}
         aria-haspopup="dialog"
         onClick={() => dialog.current?.showModal()}
       >
-        <ShoppingBag size={22} aria-hidden="true" />
-        {count > 0 && <span aria-hidden="true">{count}</span>}
+        <CartSymbol button={button} />
+        {button?.label && <span>{button.label}</span>}
+        {count > 0 && (
+          <span className="cart-trigger__count" aria-hidden="true">
+            {count}
+          </span>
+        )}
       </button>
       <dialog
         ref={dialog}
