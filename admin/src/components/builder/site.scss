@@ -18,6 +18,10 @@
 @use "../../../../frontend/src/components/sections/testimonials/testimonials";
 @use "../../../../frontend/src/components/sections/faq/faq";
 @use "../../../../frontend/src/components/sections/contact/contact";
+@use "../../../../frontend/src/components/sections/project-details/project-details";
+@use "../../../../frontend/src/components/sections/team/team";
+@use "../../../../frontend/src/components/sections/partners/partners";
+@use "../../../../frontend/src/components/sections/location/location";
 .site-canvas {
   min-height: 100vh;
   background: var(--color-bg);

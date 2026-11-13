@@ -54,8 +54,8 @@ const { SectionRenderer } = load(
 );
 const { renderToStaticMarkup } = require("react-dom/server"),
   { createElement } = require("react");
-assert.equal(definitions.length, 105);
-assert.equal(new Set(definitions.map((d) => d.family)).size, 14);
+assert.equal(definitions.length, 125);
+assert.equal(new Set(definitions.map((d) => d.family)).size, 18);
 const project = seedProject();
 const { normalizeProject, preparePages, publicProject, hasDraftChanges } = load(
   path.join(root, "src/lib/builder/workflows.ts"),
@@ -221,6 +221,6 @@ assert.equal(safeUrl("data:text/html,x"), "");
 assert.equal(safeUrl("/site/home"), "/site/home");
 assert.equal((html.match(/<h1\b/g) || []).length, 1);
 console.log(
-  "105 approved variants render as React, screenshots/assets exist, editable content is escaped, unsafe URLs are rejected, three demo pages are connected.",
+  "125 approved variants render as React, screenshots/assets exist, editable content is escaped, unsafe URLs are rejected, three demo pages are connected.",
 );
 export { seedProject };

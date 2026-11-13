@@ -1,0 +1,199 @@
+.project-details {
+  &__layout {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 2fr);
+    gap: var(--layout-gap);
+  }
+
+  @media (min-width: 901px) and (min-height: 600px) {
+    &__layout > .section__content {
+      position: sticky;
+      top: calc(var(--header-height) + 24px);
+      align-self: start;
+    }
+  }
+
+  &__facts {
+    width: 100%;
+    margin: 0;
+    padding-block-start: 8px;
+
+    div {
+      display: flex;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 4px 16px;
+      padding-block: 14px;
+      border-top: 1px solid var(--color-border);
+    }
+
+    dt { color: var(--color-muted); }
+    dd { margin: 0; }
+  }
+
+  &__story {
+    display: grid;
+    gap: 28px;
+
+    img {
+      width: 100%;
+      height: auto;
+      aspect-ratio: 16 / 9;
+      object-fit: cover;
+      border-radius: var(--radius);
+    }
+  }
+
+  &__chapters {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 24px;
+
+    p { margin-top: 8px; }
+  }
+
+  @media (max-width: 900px) {
+    &__layout { grid-template-columns: 1fr; }
+  }
+
+  @media (max-width: 640px) {
+    &__chapters { grid-template-columns: 1fr; }
+  }
+}
+
+.project-details {
+  &__cover {
+    display: grid;
+    align-items: end;
+    isolation: isolate;
+    margin-bottom: 28px;
+    overflow: hidden;
+    border-radius: var(--radius);
+    background: var(--color-ink);
+    color: white;
+
+    > * { grid-area: 1 / 1; }
+
+    img {
+      width: 100%;
+      height: clamp(300px, 42vw, 680px);
+      object-fit: cover;
+      opacity: .6;
+    }
+
+    h2 { padding: var(--layout-gap); }
+  }
+
+  &__panel {
+    display: grid;
+    gap: var(--layout-gap);
+    padding: var(--layout-gap);
+    margin-bottom: 28px;
+    background: var(--color-surface);
+    border-radius: var(--radius);
+  }
+
+  &__metrics,
+  &__diptych,
+  &__timeline {
+    display: grid;
+    gap: var(--layout-gap);
+  }
+
+  &__metrics { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+
+  &__diptych {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 24px;
+    margin-top: 48px;
+
+    img {
+      width: 100%;
+      height: auto;
+      aspect-ratio: 4 / 3;
+      object-fit: cover;
+      border-radius: var(--radius);
+    }
+
+    figcaption {
+      display: grid;
+      gap: 12px;
+      margin-top: 24px;
+    }
+  }
+
+  &__timeline {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1.4fr);
+    padding-block: var(--layout-gap);
+    border-block: 1px solid var(--color-border);
+  }
+
+  &__steps {
+    display: grid;
+    gap: 24px;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+
+    li + li {
+      border-top: 1px solid var(--color-border);
+      padding-top: 24px;
+    }
+
+    p { margin-top: 8px; }
+  }
+
+  @media (max-width: 700px) {
+    &__metrics, &__diptych, &__timeline { grid-template-columns: 1fr; }
+    &__diptych {
+      gap: 32px;
+      margin-top: 32px;
+
+      figcaption { margin-top: 16px; }
+    }
+  }
+}
+
+.project-details {
+  &--cover &__cover {
+    img { opacity: 1; }
+    &::after {
+      content: "";
+      grid-area: 1 / 1;
+      align-self: stretch;
+      background: linear-gradient(0deg, rgb(0 0 0 / 72%), transparent 65%);
+    }
+    h2 { z-index: 1; }
+  }
+
+  &--cover &__chapters {
+    padding-block-start: 16px;
+    > div { border-top: 1px solid var(--color-border); padding-top: 20px; }
+  }
+
+  &--metrics &__panel {
+    background: var(--color-ink);
+    color: var(--color-bg);
+    .text--muted { color: color-mix(in srgb, var(--color-bg) 72%, transparent); }
+  }
+
+  &__metrics > div {
+    border-top: 1px solid color-mix(in srgb, currentColor 25%, transparent);
+    padding-top: 16px;
+  }
+
+  &--timeline &__steps {
+    counter-reset: project-stage;
+    li {
+      counter-increment: project-stage;
+      display: grid;
+      grid-template-columns: 48px minmax(0, 1fr);
+      gap: 16px;
+      &::before {
+        content: counter(project-stage, decimal-leading-zero);
+        font-variant-numeric: tabular-nums;
+        color: var(--color-muted);
+      }
+    }
+  }
+}
