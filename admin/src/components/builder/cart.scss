@@ -6,6 +6,8 @@ html:has(.store-cart[open]) {
   --cart-inset: clamp(20px, 4vw, 40px);
   --cart-entry: translateY(14px) scale(0.985);
   position: fixed;
+  inset: 0;
+  margin: auto;
   width: min(560px, 100% - 32px);
   max-height: calc(100dvh - 32px);
   padding: 0;
