@@ -189,6 +189,21 @@ for (const entry of definitions) {
     html.includes("heading") || entry.family === "header",
     `Missing shared typography: ${entry.id}`,
   );
+  if (entry.family === "header") {
+    const withCart = renderToStaticMarkup(
+      createElement(SectionRenderer, {
+        section,
+        project,
+        headerAction: createElement("button", { "aria-label": "Open cart" }),
+      }),
+    );
+    assert.equal(
+      (withCart.match(/aria-label="Open cart"/g) || []).length,
+      1,
+      entry.id,
+    );
+    assert(!html.includes('aria-label="Open cart"'), entry.id);
+  }
   assert(!html.includes("Legacy layout"));
   for (const field of entry.fields.filter(
     (f) => f.type === "image" && f.value.startsWith("/images/"),

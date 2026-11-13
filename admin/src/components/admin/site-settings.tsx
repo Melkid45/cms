@@ -1,14 +1,13 @@
 "use client";
 
+import Link from "next/link";
 import { useState } from "react";
 import { Globe, ShoppingBag } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Select, SelectOption } from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
-import { Button } from "@/components/ui/button";
 import { saveProject, useProject } from "@/lib/builder/client";
-import { cartVariants, type CartVariant } from "@/lib/builder/types";
 import { Switch } from "@/components/ui/switch";
 
 function SettingToggle({
@@ -17,12 +16,14 @@ function SettingToggle({
   description,
   checked,
   onChange,
+  disabled,
 }: {
   id: string;
   label: string;
   description: string;
   checked: boolean;
   onChange: (checked: boolean) => void;
+  disabled?: boolean;
 }) {
   return (
     <div className="flex items-center justify-between gap-5">
@@ -30,32 +31,36 @@ function SettingToggle({
         <Label htmlFor={id}>{label}</Label>
         <p className="mt-1 text-xs leading-5 text-neutral-400">{description}</p>
       </div>
-      <Switch id={id} name={id} checked={checked} onCheckedChange={onChange} />
+      <Switch
+        id={id}
+        name={id}
+        checked={checked}
+        disabled={disabled}
+        onCheckedChange={onChange}
+      />
     </div>
   );
 }
 
 export function SiteSettings() {
   const { project } = useProject();
-  const [draft, setDraft] = useState<{ enabled: boolean; cart: CartVariant }>();
-  const settings = draft ??
-    project?.store ?? { enabled: false, cart: "drawer" as const };
-  const { enabled: store, cart } = settings;
+  const store = project?.store?.enabled ?? false;
   const [busy, setBusy] = useState(false);
   const [notice, setNotice] = useState("");
-  async function saveStore() {
-    if (!project) return;
+  async function toggleStore(enabled: boolean) {
+    if (!project || busy) return;
     setBusy(true);
     setNotice("");
     try {
-      await saveProject({ ...project, store: settings });
-      setDraft(undefined);
-      setNotice("Cart settings saved.");
+      await saveProject({
+        ...project,
+        store: { enabled, cart: project.store?.cart ?? "drawer" },
+      });
     } catch (error) {
       setNotice(
         error instanceof Error
           ? error.message
-          : "Could not save cart settings.",
+          : "Could not save store settings.",
       );
     } finally {
       setBusy(false);
@@ -63,8 +68,6 @@ export function SiteSettings() {
   }
   const [indexing, setIndexing] = useState(true);
   const [maintenance, setMaintenance] = useState(false);
-  const [guest, setGuest] = useState(true);
-  const [delivery, setDelivery] = useState(true);
 
   return (
     <>
@@ -148,106 +151,21 @@ export function SiteSettings() {
           <SettingToggle
             id="siteOnlineStore"
             label="This website is an online store"
-            description="Show the cart icon in the website header."
+            description="Show the cart in the website header and enable Shop in the admin panel."
             checked={store}
-            onChange={(enabled) => setDraft({ ...settings, enabled })}
+            disabled={!project || busy}
+            onChange={toggleStore}
           />
           {store && (
-            <div className="space-y-5 border-t pt-5">
-              <div className="grid gap-2">
-                <Label htmlFor="cartLayout">Cart layout</Label>
-                <Select
-                  id="cartLayout"
-                  value={cart}
-                  onValueChange={(value) =>
-                    setDraft({ ...settings, cart: value as CartVariant })
-                  }
-                >
-                  {cartVariants.map((variant, index) => (
-                    <SelectOption key={variant} value={variant}>
-                      {
-                        [
-                          "Side drawer",
-                          "Centred dialog",
-                          "Bottom sheet",
-                          "Wide dialog",
-                          "Full screen",
-                        ][index]
-                      }
-                    </SelectOption>
-                  ))}
-                </Select>
-              </div>
-              <div className="grid gap-5 sm:grid-cols-2">
-                <div className="grid gap-2">
-                  <Label htmlFor="storeCurrency">Store currency</Label>
-                  <Select
-                    id="storeCurrency"
-                    name="storeCurrency"
-                    defaultValue="RUB"
-                  >
-                    <SelectOption value="RUB">RUB — Russian ruble</SelectOption>
-                    <SelectOption value="USD">USD — US dollar</SelectOption>
-                    <SelectOption value="EUR">EUR — Euro</SelectOption>
-                    <SelectOption value="GBP">GBP — British pound</SelectOption>
-                  </Select>
-                  <p className="text-xs text-neutral-400">
-                    Default currency for product prices and orders.
-                  </p>
-                </div>
-                <div className="grid gap-2">
-                  <Label htmlFor="orderEmail">Order notification email</Label>
-                  <Input
-                    id="orderEmail"
-                    name="orderEmail"
-                    type="email"
-                    placeholder="orders@example.com"
-                  />
-                  <p className="text-xs text-neutral-400">
-                    Leave empty to use the project contact email.
-                  </p>
-                </div>
-              </div>
-              <SettingToggle
-                id="storeGuestCheckout"
-                label="Guest checkout"
-                description="Let customers place orders without creating an account."
-                checked={guest}
-                onChange={setGuest}
-              />
-              <SettingToggle
-                id="storeDelivery"
-                label="Delivery required"
-                description="Collect a shipping address at checkout. Turn off for digital products or services."
-                checked={delivery}
-                onChange={setDelivery}
-              />
-              <p className="rounded-lg border bg-neutral-50 p-3 text-xs leading-5 text-neutral-500">
-                Payment methods, shipping rates and taxes will have their own
-                settings when the store is connected.
-              </p>
-            </div>
+            <Link className="text-sm underline" href="/dashboard/shop">
+              Open Shop settings
+            </Link>
           )}
-          <div className="flex flex-wrap items-center gap-4">
-            <Button
-              type="button"
-              disabled={!project || !draft || busy}
-              onClick={saveStore}
-            >
-              Save cart settings
-            </Button>
-            <a
-              className="text-sm underline"
-              href="/cart-preview"
-              target="_blank"
-              rel="noreferrer"
-            >
-              Preview cart layouts
-            </a>
+          {(busy || notice) && (
             <p role="status" className="text-sm">
-              {notice}
+              {busy ? "Saving…" : notice}
             </p>
-          </div>
+          )}
         </CardContent>
       </Card>
     </>

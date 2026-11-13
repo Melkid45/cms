@@ -17,6 +17,7 @@ import {
   PanelsTopLeft,
   Search,
   Settings,
+  ShoppingBag,
   Users,
   X,
 } from "lucide-react";
@@ -37,6 +38,7 @@ import { clientRoute, type Identity } from "@/lib/builder/access";
 const primaryNav = [
   { label: "Overview", href: "/dashboard", icon: Gauge, exact: true },
   { label: "Pages", href: "/dashboard/pages", icon: LayoutGrid },
+  { label: "Shop", href: "/dashboard/shop", icon: ShoppingBag },
   { label: "Layout", href: "/dashboard/layout", icon: PanelsTopLeft },
   { label: "Section library", href: "/dashboard/content", icon: FileText },
   { label: "Media library", href: "/dashboard/media", icon: ImageIcon },
@@ -52,6 +54,7 @@ const pageNames: Record<string, string> = {
   "/dashboard": "Overview",
   "/dashboard/pages": "Pages",
   "/dashboard/pages/new": "Create a page",
+  "/dashboard/shop": "Shop",
   "/dashboard/layout": "Layout",
   "/dashboard/content": "Section library",
   "/dashboard/media": "Media library",
@@ -102,8 +105,10 @@ export function AdminShell({
     (pathname.startsWith("/dashboard/pages/") ? "Edit page" : "Harbstone");
   const [showNotifications, setShowNotifications] = useState(false);
   const isOwner = identity.role === "super-admin";
-  const navigation = primaryNav.filter(
-    (item) => isOwner || ["/dashboard", "/dashboard/pages"].includes(item.href),
+  const navigation = primaryNav.filter((item) =>
+    item.href === "/dashboard/shop"
+      ? isOwner && project?.store?.enabled
+      : isOwner || ["/dashboard", "/dashboard/pages"].includes(item.href),
   );
   const management = systemNav.filter(
     (item) => isOwner || clientRoute(item.href),
