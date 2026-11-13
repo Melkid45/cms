@@ -4,6 +4,7 @@ import { useEffect, useRef, useState, type CSSProperties } from "react";
 import { X } from "lucide-react";
 import Splide from "@splidejs/splide";
 import "@splidejs/splide/css/core";
+import { Cart } from "./cart";
 import { SectionRenderer } from "./section-renderer";
 import type { Project, Section } from "@/lib/builder/types";
 import { sectionInfo } from "@/lib/builder/section-info";
@@ -449,7 +450,13 @@ export function SiteCanvas({
     >
       {layout && (
         <div className="builder-header-slot">
-          <SectionRenderer section={project.layout.header} project={project} />
+          <SectionRenderer
+            section={project.layout.header}
+            project={project}
+            headerAction={
+              project.store?.enabled && <Cart variant={project.store.cart} />
+            }
+          />
         </div>
       )}
       <main className="builder-sections section-stack">

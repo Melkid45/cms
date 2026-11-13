@@ -1,0 +1,122 @@
+.store-cart {
+  position: fixed;
+  width: min(560px, 100% - 32px);
+  max-height: calc(100dvh - 32px);
+  padding: 0;
+  border: 0;
+  border-radius: var(--radius);
+  background: var(--color-bg);
+  color: var(--color-ink);
+  overflow: auto;
+
+  &::backdrop {
+    background: rgb(0 0 0 / 45%);
+  }
+  &--drawer {
+    inset: 0 0 0 auto;
+    margin: 0;
+    max-height: 100dvh;
+    height: 100dvh;
+    border-radius: 0;
+  }
+  &--sheet {
+    inset: auto 0 0;
+    width: min(720px, 100%);
+    margin: 0 auto;
+    border-radius: var(--radius) var(--radius) 0 0;
+  }
+  &--wide {
+    width: min(880px, 100% - 32px);
+  }
+  &--full {
+    inset: 0;
+    margin: 0;
+    width: 100%;
+    max-width: none;
+    height: 100dvh;
+    max-height: none;
+    border-radius: 0;
+  }
+
+  &__body {
+    display: grid;
+    gap: 24px;
+    max-width: 880px;
+    margin-inline: auto;
+    padding: clamp(16px, 4vw, 48px);
+  }
+
+  &__header,
+  &__total,
+  &__quantity {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  &__header,
+  &__total {
+    justify-content: space-between;
+  }
+  &__total {
+    padding-top: 16px;
+    border-top: 1px solid var(--color-border);
+  }
+  &__icon {
+    position: relative;
+    display: inline-grid;
+    place-items: center;
+    width: 44px;
+    height: 44px;
+    flex: none;
+    border: 1px solid var(--color-border);
+    border-radius: 8px;
+    background: var(--color-bg);
+    color: var(--color-ink);
+    cursor: pointer;
+
+    span {
+      position: absolute;
+      top: -5px;
+      right: -5px;
+      min-width: 20px;
+      padding: 2px 4px;
+      border-radius: 20px;
+      background: var(--color-ink);
+      color: var(--color-bg);
+      font-size: 12px;
+    }
+  }
+  &__items {
+    display: grid;
+    gap: 16px;
+    padding: 0;
+    margin: 0;
+    list-style: none;
+
+    li {
+      display: grid;
+      grid-template-columns: clamp(44px, 12vw, 80px) minmax(0, 1fr) auto;
+      align-items: start;
+      gap: 12px;
+    }
+    img {
+      width: 100%;
+      height: auto;
+      aspect-ratio: 1;
+      object-fit: cover;
+      border-radius: 8px;
+    }
+  }
+  &__quantity {
+    gap: 8px;
+    margin-block: 8px;
+  }
+  &__remove {
+    padding: 0;
+    border: 0;
+    background: transparent;
+    color: var(--color-muted);
+    text-decoration: underline;
+    cursor: pointer;
+  }
+}

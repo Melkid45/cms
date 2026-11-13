@@ -1,3 +1,4 @@
+@use "cart";
 // Next bundles its own installed Manrope dependency through globals.css.
 // Shared frontend files must not depend on frontend/node_modules being installed.
 @use "../../../../frontend/src/styles/template/foundation" with (

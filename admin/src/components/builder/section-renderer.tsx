@@ -1,5 +1,5 @@
 /* eslint-disable @next/next/no-img-element */
-import { createElement, Fragment } from "react";
+import { createElement, Fragment, type ReactNode } from "react";
 import { definition, safeUrl } from "@/lib/builder/catalog";
 import { collectionItems } from "@/lib/builder/collections";
 import type {
@@ -40,11 +40,13 @@ export function SectionRenderer({
   project,
   first = false,
   selectLabel,
+  headerAction,
 }: {
   section: Section;
   project: Project;
   first?: boolean;
   selectLabel?: string;
+  headerAction?: ReactNode;
 }) {
   const entry = definition(section.variant);
   if (!entry || section.hidden) return null;
@@ -290,6 +292,18 @@ export function SectionRenderer({
       ].includes(tag)
     )
       return createElement(tag, props);
+    if (
+      headerAction &&
+      entry?.family === "header" &&
+      attrs.class?.split(/\s+/).includes("site-header__actions")
+    ) {
+      return createElement(
+        tag,
+        props,
+        <Fragment key="header-action">{headerAction}</Fragment>,
+        ...(children || []),
+      );
+    }
     return createElement(tag, props, ...(children || []));
   }
   return <>{entry.nodes.map((node, index) => render(node, index))}</>;

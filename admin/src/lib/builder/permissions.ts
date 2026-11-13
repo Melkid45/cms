@@ -25,6 +25,7 @@ export function clientProjectError(
   const denied =
     "Your account can edit content and reorder existing sections. Design and structure are managed by the super admin.";
   if (
+    !same(next.store, current.store) ||
     !same(next.layout, current.layout) ||
     !same(next.menus, current.menus) ||
     !same(next.media, current.media)

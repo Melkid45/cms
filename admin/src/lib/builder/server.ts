@@ -164,6 +164,12 @@ const schema = z.object({
     secondary: z.string().regex(/^#[0-9a-f]{6}$/i),
     alternative: z.string().regex(/^#[0-9a-f]{6}$/i),
   }),
+  store: z
+    .object({
+      enabled: z.boolean(),
+      cart: z.enum(["drawer", "modal", "sheet", "wide", "full"]),
+    })
+    .optional(),
   forms: z
     .object({
       enabled: z.boolean(),

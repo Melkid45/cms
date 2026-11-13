@@ -121,7 +121,17 @@ export interface Layout {
   footerMenus: string[];
   homePageId: string;
 }
+export const cartVariants = [
+  "drawer",
+  "modal",
+  "sheet",
+  "wide",
+  "full",
+] as const;
+export type CartVariant = (typeof cartVariants)[number];
+
 export interface Project {
+  store?: { enabled: boolean; cart: CartVariant };
   revision: number;
   pages: CmsPage[];
   media: Media[];
