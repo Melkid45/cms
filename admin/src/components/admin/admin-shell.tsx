@@ -55,6 +55,8 @@ const pageNames: Record<string, string> = {
   "/dashboard/pages": "Pages",
   "/dashboard/pages/new": "Create a page",
   "/dashboard/shop": "Shop",
+  "/dashboard/shop/settings": "Storefront settings",
+  "/dashboard/shop/products/new": "Add product",
   "/dashboard/layout": "Layout",
   "/dashboard/content": "Section library",
   "/dashboard/media": "Media library",
@@ -102,7 +104,11 @@ export function AdminShell({
   const pathname = usePathname();
   const currentPage =
     pageNames[pathname] ??
-    (pathname.startsWith("/dashboard/pages/") ? "Edit page" : "Harbstone");
+    (pathname.startsWith("/dashboard/pages/")
+      ? "Edit page"
+      : pathname.startsWith("/dashboard/shop/products/")
+        ? "Edit product"
+        : "Harbstone");
   const [showNotifications, setShowNotifications] = useState(false);
   const isOwner = identity.role === "super-admin";
   const navigation = primaryNav.filter((item) =>

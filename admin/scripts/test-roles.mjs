@@ -11,6 +11,7 @@ import { tmpdir } from "node:os";
 import { join, resolve } from "node:path";
 import { setTimeout as delay } from "node:timers/promises";
 import sharp from "sharp";
+import { checkProducts } from "./check-products.mjs";
 import { checkProductWorkflows } from "./check-product-workflows.mjs";
 const directory = await mkdtemp(join(tmpdir(), "harbstone-role-check-"));
 const port = Number(process.env.CMS_ROLE_TEST_PORT || 3101),
@@ -579,6 +580,7 @@ try {
     200,
   );
   await checkProductWorkflows({ base, owner, client, directory, cronSecret });
+  await checkProducts({ base, owner, client });
   r = await request(
     "/api/builder/accounts",
     "PATCH",
