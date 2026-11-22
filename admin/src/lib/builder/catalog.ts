@@ -1,4 +1,4 @@
-import { defaultForm } from "./form-defaults";
+import { variantForm } from "./form-defaults";
 import data from "./catalog.json";
 import type { Definition, Section } from "./types";
 import { collectionItems } from "./collections";
@@ -15,7 +15,7 @@ export function createSection(
     id,
     variant,
     ...(entry.family === "form"
-      ? { form: defaultForm(id, variant === "form-v2") }
+      ? { form: variantForm(id, variant) }
       : {}),
     values: Object.fromEntries(
       entry.fields.map((field) => [field.key, field.value]),

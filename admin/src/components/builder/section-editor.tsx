@@ -143,16 +143,12 @@ export function SectionEditor({
       />
     );
   if (entry.family === "form")
-    return (
-      <InlineFormEditor
-        value={
-          section.form || defaultForm(section.id, section.variant === "form-v2")
-        }
-        onChange={(form) => onChange({ ...section, form })}
-        contentOnly={contentOnly}
-        showImage={!contentOnly || section.clientAccess?.images !== false}
-      />
-    );
+    return <div className="space-y-5"><InlineFormEditor
+        value={section.form || defaultForm(section.id,section.variant === "form-v2")}
+        onChange={form=>onChange({...section,form})} contentOnly={contentOnly}
+        showImage={!contentOnly || section.clientAccess?.images !== false}/>
+        {entry.fields.length > 0 && <EditorDisclosure title="Contact details"><Fields id={section.id} fields={entry.fields.filter(f=>!contentOnly || fieldEditable(section,f))} values={section.values} onChange={values=>onChange({...section,values})}/></EditorDisclosure>}
+      </div>;
 
   const repeaters = (entry.repeaters || []).filter(
     (group) =>

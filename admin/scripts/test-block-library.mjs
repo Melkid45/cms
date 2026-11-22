@@ -54,8 +54,11 @@ const { SectionRenderer } = load(
 );
 const { renderToStaticMarkup } = require("react-dom/server"),
   { createElement } = require("react");
-assert.equal(definitions.length, 142);
+assert.equal(definitions.length, 145);
 assert.equal(new Set(definitions.map((d) => d.family)).size, 19);
+assert.equal(definitions.filter(d=>d.family === "form").length,6);
+const quickForm=createSection("form-v6","quick-form-check");assert.deepEqual(quickForm.form.fields.map(f=>f.name),["name","phone"]);assert.equal(quickForm.form.fields[1].type,"tel");
+const switchedForm=switchSection(quickForm,"form-v4");assert.deepEqual(switchedForm.form.fields,quickForm.form.fields);
 const project = seedProject();
 const {clientProjectError}=load(path.join(root,"src/lib/builder/permissions.ts"));
 const ownerProject=structuredClone(project);ownerProject.pages[0].sections.push(createSection("form-v1","embedded-form-check"));
@@ -242,7 +245,7 @@ assert.equal(safeUrl("data:text/html,x"), "");
 assert.equal(safeUrl("/site/home"), "/site/home");
 assert.equal((html.match(/<h1\b/g) || []).length, 1);
 console.log(
-  "142 approved variants render as React, screenshots/assets exist, editable content is escaped, unsafe URLs are rejected, three demo pages are connected.",
+  "145 approved variants render as React, screenshots/assets exist, editable content is escaped, unsafe URLs are rejected, three demo pages are connected.",
 );
 for (const entry of definitions) {
   const stressed = createSection(entry.id);
@@ -266,6 +269,6 @@ for (const entry of definitions) {
   );
 }
 console.log(
-  "PASS: all 142 variants render with long/unbroken client text, missing images and escaped markup. Layout overflow requires the browser audit.",
+  "PASS: all 145 variants render with long/unbroken client text, missing images and escaped markup. Layout overflow requires the browser audit.",
 );
 export { seedProject };

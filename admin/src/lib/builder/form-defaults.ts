@@ -43,3 +43,9 @@ export function defaultForm(id: string, photo = false): CmsForm {
     ],
   };
 }
+
+export function variantForm(id: string, variant: string): CmsForm {
+  const form=defaultForm(id,variant === "form-v2");
+  if(variant === "form-v6") return {...form,title:"A conversation is a good place to start.",description:"Leave your details and we’ll call you back to discuss what comes next.",buttonLabel:"Request a call",fields:form.fields.filter(f=>f.name !== "message").map(f=>f.name === "email" ? {...f,type:"tel",name:"phone",label:"Phone number",placeholder:"Your phone number"} : f)};
+  return form;
+}
