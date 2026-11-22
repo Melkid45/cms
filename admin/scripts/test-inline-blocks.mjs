@@ -3,6 +3,8 @@ import { readFile } from 'node:fs/promises';
 const base=process.env.CMS_TEST_URL || 'http://127.0.0.1:3000';
 if(!['localhost','127.0.0.1'].includes(new URL(base).hostname))throw Error('Isolated local server required');
 const response=await fetch(base+'/api/builder/session',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email:'deploy@example.test',password:'local-deploy-check-2026'})});assert.equal(response.status,200);const cookie=response.headers.get('set-cookie').split(';')[0];
+// Multi-site routes: public pages live under /site/{site key}/ (merged into the Harbstone snapshot).
+const siteKey=(await (await fetch(base+'/api/builder/sites',{headers:{Cookie:cookie}})).json()).current.key;
 const req=(path,method='GET',body,auth=true)=>fetch(base+path,{method,headers:{Origin:base,...(auth?{Cookie:cookie}:{}),...(body?{'Content-Type':'application/json'}:{})},body:body?JSON.stringify(body):undefined});
 const catalog=JSON.parse(await readFile(new URL('../src/lib/builder/catalog.json',import.meta.url),'utf8'));
 const section=(variant,id)=>({id,variant,values:Object.fromEntries(catalog.find(d=>d.id===variant).fields.map(f=>[f.key,f.value]))});
@@ -15,17 +17,17 @@ const hero=section('hero-v14','inline-hero');const link=catalog.find(d=>d.id===h
 project.forms={enabled:true,recipient:'',successMessage:'Thank you. Your message has been received.'};
 project.pages=project.pages.filter(p=>p.id!=='inline-page');project.pages.push({id:'inline-page',title:'Inline block test',slug:'inline-check',locale:'en',status:'Draft',sections:[hero,services,form],seo:{title:'Inline block test',description:'',keywords:'',image:'',noindex:true},updatedAt:new Date().toISOString()});
 let r=await req('/api/builder?publish=inline-page','PUT',project);assert.equal(r.status,200,await r.clone().text());project=await r.json();
-let html=await (await req('/site/inline-check','GET',undefined,false)).text();assert(html.includes('data-content-service="block-inline-services-item-0"'));assert(html.includes('name="topic"'));assert(html.includes('data-content-form="inline-enquiry"'));assert(html.includes('--form-columns:2'));
+let html=await (await req(`/site/${siteKey}/inline-check`,'GET',undefined,false)).text();assert(html.includes('data-content-service="block-inline-services-item-0"'));assert(html.includes('name="topic"'));assert(html.includes('data-content-form="inline-enquiry"'));assert(html.includes('--form-columns:2'));
 const token=await (await req('/api/forms/token?pageId=inline-page','GET',undefined,false)).json();await new Promise(r=>setTimeout(r,1100));
 const payload={pageId:'inline-page',sectionId:services.id,formId:form.id,serviceId:'block-inline-services-item-0',token:token.token,values:{name:'Test customer',email:'inline@example.test',topic:'Consultation'}};
 r=await req('/api/forms','POST',payload,false);assert.equal(r.status,200,await r.clone().text());
 r=await req('/api/forms','POST',{...payload,sectionId:'inline-hero',serviceId:undefined},false);assert.equal(r.status,200);
 r=await req('/api/forms','POST',{...payload,serviceId:'block-inline-services-item-1'},false);assert.equal(r.status,404);
 r=await req('/api/forms','POST',{...payload,values:{...payload.values,topic:'Invalid'}},false);assert.equal(r.status,400);
-const draft=structuredClone(project);draft.pages.find(p=>p.id==='inline-page').sections.find(s=>s.id===form.id).form.title='Private changed heading';r=await req('/api/builder','PUT',draft);assert.equal(r.status,200);project=await r.json();html=await (await req('/site/inline-check','GET',undefined,false)).text();assert(!html.includes('Private changed heading'));
+const draft=structuredClone(project);draft.pages.find(p=>p.id==='inline-page').sections.find(s=>s.id===form.id).form.title='Private changed heading';r=await req('/api/builder','PUT',draft);assert.equal(r.status,200);project=await r.json();html=await (await req(`/site/${siteKey}/inline-check`,'GET',undefined,false)).text();assert(!html.includes('Private changed heading'));
 let page=project.pages.find(p=>p.id==='inline-page');page.sections.find(s=>s.id===services.id).collections[group.id][0].detail.mode='page';r=await req('/api/builder?publish=inline-page','PUT',project);assert.equal(r.status,200);project=await r.json();
-r=await req('/site/services/block-inline-services-item-0','GET',undefined,false);assert.equal(r.status,200);assert((await r.text()).includes('Detailed information stays inside this service card.'));
-page=project.pages.find(p=>p.id==='inline-page');page.sections.find(s=>s.id===services.id).collections[group.id][0].detail.mode='none';r=await req('/api/builder?publish=inline-page','PUT',project);assert.equal(r.status,200);project=await r.json();assert.equal((await req('/site/services/block-inline-services-item-0','GET',undefined,false)).status,404);
+r=await req(`/site/${siteKey}/services/block-inline-services-item-0`,'GET',undefined,false);assert.equal(r.status,200);assert((await r.text()).includes('Detailed information stays inside this service card.'));
+page=project.pages.find(p=>p.id==='inline-page');page.sections.find(s=>s.id===services.id).collections[group.id][0].detail.mode='none';r=await req('/api/builder?publish=inline-page','PUT',project);assert.equal(r.status,200);project=await r.json();assert.equal((await req(`/site/${siteKey}/services/block-inline-services-item-0`,'GET',undefined,false)).status,404);
 // Restore a reviewable modal fixture on this isolated server.
 project.pages.find(p=>p.id==='inline-page').sections.find(s=>s.id===services.id).collections[group.id][0].detail.mode='modal';r=await req('/api/builder?publish=inline-page','PUT',project);assert.equal(r.status,200);
 console.log('PASS: embedded form definitions and service details, block button binding, durable submissions, invalid/disabled service rejection, private draft form content and published detail pages.');

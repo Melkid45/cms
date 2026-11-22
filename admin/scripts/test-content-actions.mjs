@@ -4,6 +4,8 @@ const base=process.env.CMS_TEST_URL || 'http://127.0.0.1:3000';
 if(!['localhost','127.0.0.1'].includes(new URL(base).hostname)) throw Error('Local isolated test server required');
 const login=await fetch(base+'/api/builder/session',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email:'deploy@example.test',password:'local-deploy-check-2026'})});assert.equal(login.status,200);
 const cookie=login.headers.get('set-cookie').split(';')[0];
+// Multi-site routes: public pages live under /site/{site key}/ (merged into the Harbstone snapshot).
+const siteKey=(await (await fetch(base+'/api/builder/sites',{headers:{Cookie:cookie}})).json()).current.key;
 const request=(path,method='GET',body,auth=true)=>fetch(base+path,{method,headers:{Origin:base,...(auth?{Cookie:cookie}:{}),...(body?{'Content-Type':'application/json'}:{})},body:body?JSON.stringify(body):undefined});
 const get=async()=>{const r=await request('/api/builder');assert.equal(r.status,200);return r.json();};
 const definitions=JSON.parse(await readFile(new URL('../src/lib/builder/catalog.json',import.meta.url),'utf8'));
@@ -19,7 +21,7 @@ const contactEntry=definitions.find(d=>d.family==='contact' && JSON.stringify(d.
 project.pages=project.pages.filter(p=>p.id!=='integration-page');
 project.pages.push({id:'integration-page',title:'Integration test',slug:'integration-check',locale:'en',status:'Draft',sections:[hero,services,contact],seo:{title:'Integration test',description:'',keywords:'',image:'',noindex:true},updatedAt:new Date().toISOString()});
 let response=await request('/api/builder?publish=integration-page','PUT',project);assert.equal(response.status,200,await response.clone().text());project=await response.json();
-const html=await (await request('/site/integration-check','GET',undefined,false)).text();assert(html.includes('data-content-form'));assert(html.includes('data-content-service'));assert(html.includes('name="topic"'));assert(html.includes('Project type'));assert(html.includes('/site/services/project-consultation'));
+const html=await (await request(`/site/${siteKey}/integration-check`,'GET',undefined,false)).text();assert(html.includes('data-content-form'));assert(html.includes('data-content-service'));assert(html.includes('name="topic"'));assert(html.includes('Project type'));assert(html.includes(`/site/${siteKey}/services/project-consultation`));
 const token=async(id)=>(await (await request('/api/forms/token?pageId='+encodeURIComponent(id),'GET',undefined,false)).json()).token;
 const signed=await token('integration-page');await new Promise(r=>setTimeout(r,1100));
 const payload={pageId:'integration-page',sectionId:hero.id,formId:f.id,token:signed,values:{name:'Test customer',email:'test@example.test',topic:'Consultation',message:'Integration test'}};
@@ -29,11 +31,11 @@ response=await request('/api/forms','POST',{...payload,sectionId:services.id},fa
 response=await request('/api/forms','POST',{...payload,sectionId:services.id,serviceId:'integration-service'},false);assert.equal(response.status,200,await response.clone().text());
 const serviceToken=await token('service:integration-service');await new Promise(r=>setTimeout(r,1100));
 response=await request('/api/forms','POST',{...payload,pageId:'service:integration-service',sectionId:'service:integration-service',serviceId:'integration-service',token:serviceToken},false);assert.equal(response.status,200,await response.clone().text());
-response=await request('/site/services/project-consultation','GET',undefined,false);assert.equal(response.status,200);assert((await response.text()).includes('Project consultation'));
+response=await request(`/site/${siteKey}/services/project-consultation`,'GET',undefined,false);assert.equal(response.status,200);assert((await response.text()).includes('Project consultation'));
 const invalid=structuredClone(project);invalid.formDefinitions[0].fields[1].name='name';response=await request('/api/builder','PUT',invalid);assert.equal(response.status,400);
 const missing=structuredClone(project);missing.formDefinitions=[];response=await request('/api/builder','PUT',missing);assert.equal(response.status,400);
 const draft=structuredClone(project);draft.services[0].status='Draft';response=await request('/api/builder','PUT',draft);assert.equal(response.status,200);project=await response.json();
-assert.equal((await request('/site/services/project-consultation','GET',undefined,false)).status,404);
+assert.equal((await request(`/site/${siteKey}/services/project-consultation`,'GET',undefined,false)).status,404);
 assert.equal((await request('/api/forms/token?pageId=service:integration-service','GET',undefined,false)).status,404);
 project.services[0].status='Published';response=await request('/api/builder','PUT',project);assert.equal(response.status,200);
 console.log('PASS: persisted forms/services, connected button and inline forms, service pages, Inbox submission, select validation, reference checks, unpublished service protection.');
