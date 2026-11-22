@@ -11,6 +11,7 @@ import { tmpdir } from "node:os";
 import { join, resolve } from "node:path";
 import { setTimeout as delay } from "node:timers/promises";
 import sharp from "sharp";
+import { checkSeo } from "./check-seo.mjs";
 import { checkProducts } from "./check-products.mjs";
 import { checkProductWorkflows } from "./check-product-workflows.mjs";
 const directory = await mkdtemp(join(tmpdir(), "harbstone-role-check-"));
@@ -396,6 +397,8 @@ try {
     const response = await put(next, client);
     assert.equal(response.status, 403, label);
   };
+  await reject("Form definitions", (p) => {p.formDefinitions=[{id:"forged-form",title:"Form",description:"",buttonLabel:"Send",layout:"compact",image:"",fields:[{id:"name",type:"text",name:"name",label:"Name",placeholder:"",required:true,width:"full",options:[]}]}];});
+  await reject("Service definitions", (p) => {p.services=[{id:"forged-service",title:"Service",slug:"service",summary:"",body:"",image:"",imageAlt:"",mode:"modal",status:"Draft",formId:""}];});
   await reject("Brand colours", (p) => {
     p.brand.primary = "#abcdef";
   });
@@ -558,6 +561,15 @@ try {
   assert.equal(r.status, 200, await r.text());
   project = await get(client);
   assert(project.media.length);
+  const uploaded = project.media[0];
+  assert(uploaded.thumbnailUrl, "Uploaded media needs a thumbnail");
+  const thumbResponse = await fetch(base + uploaded.thumbnailUrl);
+  assert.equal(thumbResponse.status, 200);
+  const thumbInfo = await sharp(
+    Buffer.from(await thumbResponse.arrayBuffer()),
+  ).metadata();
+  assert(thumbInfo.width <= 480 && thumbInfo.height <= 480);
+  assert.equal(thumbInfo.format, "webp");
   r = await put(project, client);
   assert.equal(r.status, 200, "Save after media upload");
   project = await r.json();
@@ -581,6 +593,20 @@ try {
   );
   await checkProductWorkflows({ base, owner, client, directory, cronSecret });
   await checkProducts({ base, owner, client });
+  await checkSeo({ base, owner });
+  const robots = await (await fetch(base + "/robots.txt")).text();
+  assert.match(robots, /Disallow: \/dashboard/);
+  const sitemapResponse = await fetch(base + "/sitemap.xml");
+  assert.equal(sitemapResponse.status, 200);
+  const sitemapText = await sitemapResponse.text();
+  assert(!sitemapText.includes("/dashboard"));
+  const dashboard = await (
+    await fetch(base + "/dashboard", { headers: { Cookie: owner } })
+  ).text();
+  assert.match(dashboard, /noindex/);
+  console.log(
+    "PASS: generated sitemap, private robots rules, admin noindex and optimized media thumbnails.",
+  );
   r = await request(
     "/api/builder/accounts",
     "PATCH",

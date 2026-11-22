@@ -3,11 +3,13 @@ import { createElement, Fragment, type ReactNode } from "react";
 import { definition, safeUrl } from "@/lib/builder/catalog";
 import { collectionItems } from "@/lib/builder/collections";
 import type {
+  ContentAction,
   Section,
   TemplateNode,
   Project,
   MenuItem,
 } from "@/lib/builder/types";
+import { SchemaForm } from "./schema-form";
 const camel = (key: string) =>
   key.replace(/-([a-z])/g, (_, letter) => letter.toUpperCase());
 const names: Record<string, string> = {
@@ -41,12 +43,14 @@ export function SectionRenderer({
   first = false,
   selectLabel,
   headerAction,
+  pageId,
 }: {
   section: Section;
   project: Project;
   first?: boolean;
   selectLabel?: string;
   headerAction?: ReactNode;
+  pageId?: string;
 }) {
   const entry = definition(section.variant);
   if (!entry || section.hidden) return null;
@@ -87,6 +91,7 @@ export function SectionRenderer({
     index: number,
     values = section.values,
     instance = "",
+    actions: Record<string,ContentAction> = section.actions || {},
   ): React.ReactNode {
     const rewriteId = (value: string) => `${suffix}${instance}-${value}`;
     if (node.repeat) {
@@ -103,6 +108,7 @@ export function SectionRenderer({
                   0,
                   { ...section.values, ...item.values },
                   `-${item.id}`,
+                  item.actions || section.actions || {},
                 )}
               </Fragment>
             ) : null;
@@ -128,7 +134,11 @@ export function SectionRenderer({
         props["aria-label"] = selectLabel;
       }
     }
-    if (node.tag === "form") props["data-cms-form"] = section.id;
+    if (node.tag === "form") {
+      const form = project.formDefinitions?.find(f=>f.id===section.formId);
+      if(form) return <SchemaForm key={index} definition={form} pageId={pageId} sectionId={section.id}/>;
+      props["data-cms-form"] = section.id;
+    }
     const attrs = { ...node.attrs };
     for (const [name, key] of Object.entries(node.bindings || {}))
       attrs[name] =
@@ -194,6 +204,16 @@ export function SectionRenderer({
       }
       props[name] = value;
     }
+    const action = node.bindings?.href ? actions[node.bindings.href] : undefined;
+    if(action) {
+      const form=action.type === "form" && project.formDefinitions?.find(f=>f.id===action.target);
+      const service=action.type === "service" && project.services?.find(s=>s.id===action.target);
+      if(form || service) {
+        props.href=service ? `/site/services/${service.slug}` : "#enquiry";
+        props[form ? "data-content-form" : "data-content-service"]=action.target;
+        props["data-action-section"]=section.id;
+      } else { props.href=undefined; props["aria-disabled"]=true; }
+    }
     if (node.tag === "input") {
       if (attrs.value) {
         props.defaultValue = attrs.value;
@@ -210,6 +230,7 @@ export function SectionRenderer({
     }
     if (node.tag === "img") {
       props.loading = first ? "eager" : "lazy";
+      props.decoding = "async";
       if (!props.src) return null;
     }
     const tag = first && node === mainHeading ? "h1" : node.tag;
@@ -276,7 +297,7 @@ export function SectionRenderer({
       ));
     } else
       children = node.children?.map((child, index) =>
-        render(child, index, values, instance),
+        render(child, index, values, instance, actions),
       );
     if (
       [

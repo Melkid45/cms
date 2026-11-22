@@ -58,8 +58,8 @@ const settings = [
     href: "#",
   },
   {
-    title: "Brand",
-    text: "Logo and website color palette",
+    title: "Site design",
+    text: "Colors, typography, corners and spacing",
     icon: Globe,
     href: "/dashboard/settings/setup",
   },

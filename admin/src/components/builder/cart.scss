@@ -277,3 +277,6 @@ html:has(.store-cart[open]) {
     font-variant-numeric: tabular-nums;
   }
 }
+.store-cart__currency {
+  display: block;
+}

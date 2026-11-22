@@ -25,6 +25,8 @@ export function clientProjectError(
   const denied =
     "Your account can edit content and reorder existing sections. Design and structure are managed by the super admin.";
   if (
+    !same(next.formDefinitions, current.formDefinitions) ||
+    !same(next.services, current.services) ||
     !same(next.store, current.store) ||
     !same(next.layout, current.layout) ||
     !same(next.menus, current.menus) ||
@@ -89,7 +91,7 @@ export function clientProjectError(
   }
 }
 function allowedSection(next: Section, old: Section) {
-  if (!same(next.clientAccess, old.clientAccess)) return false;
+  if (!same(next.actions, old.actions) || next.formId !== old.formId || !same(next.clientAccess, old.clientAccess)) return false;
   if (next.variant !== old.variant || next.hidden !== old.hidden) return false;
   const entry = definition(old.variant);
   const valid = new Set(
@@ -126,6 +128,7 @@ function allowedSection(next: Section, old: Section) {
       if (
         (!manage && items[i].id !== before?.id) ||
         (before && items[i].template !== before.template) ||
+        !same(items[i].actions, before?.actions) ||
         !valuesAllowed(
           items[i].values,
           before?.values || {},

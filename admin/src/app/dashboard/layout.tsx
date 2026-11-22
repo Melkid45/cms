@@ -1,3 +1,4 @@
+export const metadata = { robots: { index: false, follow: false } };
 import { AdminShell } from "@/components/admin/admin-shell";
 import { currentUser } from "@/lib/builder/current-user";
 

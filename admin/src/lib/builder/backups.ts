@@ -99,7 +99,9 @@ function urls(project: Project) {
     if (
       typeof value === "string" &&
       (/^\/(images|brand)\//.test(value) ||
-        /^\/api\/builder\/media\/[a-f0-9-]{36}$/.test(value) ||
+        /^\/api\/builder\/media\/[a-f0-9-]{36}(?:\?thumbnail=1)?$/.test(
+          value,
+        ) ||
         /^https:\/\/[^/]+\.public\.blob\.vercel-storage\.com\/cms-media\//.test(
           value,
         ))
@@ -114,9 +116,18 @@ function urls(project: Project) {
 }
 async function bytesAt(url: string): Promise<Buffer> {
   if (url.startsWith("/api/builder/media/")) {
-    const id = url.split("/").at(-1)!;
+    const target = new URL(url, "http://local");
+    const id = target.pathname.split("/").at(-1)!;
     if (!/^[a-f0-9-]{36}$/.test(id)) throw Error("Invalid media");
-    return readFile(path.join(dataDirectory, "media", id + ".webp"));
+    return readFile(
+      path.join(
+        dataDirectory,
+        "media",
+        id +
+          (target.searchParams.get("thumbnail") === "1" ? "-thumb" : "") +
+          ".webp",
+      ),
+    );
   }
   if (/^\/(images|brand)\//.test(url)) {
     const root = path.join(process.cwd(), "public"),

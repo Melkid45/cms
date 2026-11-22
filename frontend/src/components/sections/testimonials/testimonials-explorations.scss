@@ -1,0 +1,21 @@
+.testimonials {
+  &__conversation { display: grid; grid-template-columns: minmax(0, .8fr) minmax(0, 1.5fr); gap: clamp(40px, 7vw, 112px); align-items: center; }
+  &__conversation-photo { aspect-ratio: 4 / 5; }
+  &__conversation-copy { gap: 36px; }
+  &__conversation-copy blockquote { margin: 0; }
+  &__conversation-copy blockquote p { line-height: 1.3; }
+  &__voices { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 24px; align-items: stretch; }
+  &__voice { display: flex; flex-direction: column; justify-content: space-between; gap: 48px; padding: clamp(28px, 3vw, 48px); background: var(--color-surface); border-radius: var(--radius); }
+  &__voice:nth-child(2) { background: var(--color-ink); color: var(--color-bg); }
+  &__voice:nth-child(2) .text--muted { color: inherit; opacity: .65; }
+  &__voice blockquote { margin: 0; }
+}
+@media (max-width: 1024px) {
+  .testimonials__voices { grid-template-columns: minmax(0, 1fr); }
+  .testimonials__conversation { gap: 32px; }
+}
+@media (max-width: 767px) {
+  .testimonials__conversation { grid-template-columns: minmax(0, 1fr); }
+  .testimonials__conversation-copy { gap: 24px; }
+  .testimonials__conversation-photo { aspect-ratio: 5 / 4; }
+}

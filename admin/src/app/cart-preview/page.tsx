@@ -10,6 +10,7 @@ const names = [
   "Full screen",
 ];
 
+export const metadata = { robots: { index: false, follow: false } };
 export default async function CartPreview({
   searchParams,
 }: {

@@ -1,12 +1,21 @@
 "use client";
+import { ContentDialogs } from "./content-dialogs";
 /* eslint-disable @next/next/no-img-element */
-import { useEffect, useRef, useState, type CSSProperties } from "react";
+import {
+  useEffect,
+  useRef,
+  useState,
+  type ReactNode,
+  type CSSProperties,
+} from "react";
 import { X } from "lucide-react";
 import Splide from "@splidejs/splide";
 import "@splidejs/splide/css/core";
+import { WebsiteFonts } from "./website-fonts";
 import { Cart } from "./cart";
 import { SectionRenderer } from "./section-renderer";
 import type { Project, Section } from "@/lib/builder/types";
+import { designVariables } from "@/lib/builder/design";
 import { sectionInfo } from "@/lib/builder/section-info";
 export function SiteCanvas({
   project,
@@ -14,7 +23,9 @@ export function SiteCanvas({
   layout = true,
   pageId,
   onSelectSection,
+  children,
 }: {
+  children?: ReactNode;
   project: Project;
   sections: Section[];
   layout?: boolean;
@@ -120,7 +131,7 @@ export function SiteCanvas({
       );
     }
     el.querySelectorAll<HTMLElement>(
-      "[data-services-slider],[data-testimonials-slider],[data-projects-slider],[data-process-slider]",
+      "[data-services-slider],[data-testimonials-slider],[data-projects-slider],[data-process-slider],[data-projects-spotlight]",
     ).forEach((element) => {
       element.tabIndex = 0;
       if (!element.getAttribute("aria-label"))
@@ -130,7 +141,7 @@ export function SiteCanvas({
         );
       const variant = element.dataset.testimonialsSlider;
       const perPage =
-        element.hasAttribute("data-process-slider") || variant === "single"
+        element.hasAttribute("data-projects-spotlight") || element.hasAttribute("data-process-slider") || variant === "single"
           ? 1
           : ["split", "stories"].includes(variant || "")
             ? 2
@@ -150,18 +161,18 @@ export function SiteCanvas({
       }).mount();
       sliders.push(slider);
       const parent =
-        element.closest("[data-testimonials-controls],.process") ||
+        element.closest("[data-testimonials-controls],.process,.projects") ||
         element.parentElement;
       parent
         ?.querySelectorAll<HTMLElement>(
-          "[data-testimonials-prev],[data-process-prev]",
+          "[data-testimonials-prev],[data-process-prev],[data-projects-prev],[data-spotlight-prev]",
         )
         .forEach((button) =>
           button.addEventListener("click", () => slider.go("<"), { signal }),
         );
       parent
         ?.querySelectorAll<HTMLElement>(
-          "[data-testimonials-next],[data-process-next]",
+          "[data-testimonials-next],[data-process-next],[data-projects-next],[data-spotlight-next]",
         )
         .forEach((button) =>
           button.addEventListener("click", () => slider.go(">"), { signal }),
@@ -305,7 +316,7 @@ export function SiteCanvas({
       return token;
     };
     if (pageId) loadToken().catch(() => {});
-    el.querySelectorAll<HTMLFormElement>("form").forEach((form) => {
+    el.querySelectorAll<HTMLFormElement>("form:not([data-schema-form])").forEach((form) => {
       const trap = document.createElement("input");
       trap.name = "website";
       trap.tabIndex = -1;
@@ -396,21 +407,18 @@ export function SiteCanvas({
       document.documentElement.removeAttribute("data-site-menu-open");
     };
   }, [project, sections, layout, pageId]);
-  const b = project.brand;
   const style = {
-    "--color-ink": b.primary,
-    "--color-bg": b.secondary,
-    "--color-accent": b.alternative,
-    "--color-surface": `color-mix(in srgb, ${b.secondary} 93%, ${b.primary})`,
-    "--color-muted": `color-mix(in srgb, ${b.primary} 65%, ${b.secondary})`,
-    "--color-border": `color-mix(in srgb, ${b.primary} 18%, ${b.secondary})`,
-    "--color-interactive": b.primary,
-    "--color-button-hover": `color-mix(in srgb, ${b.primary} 85%, white)`,
+    ...designVariables(project.brand),
   } as CSSProperties;
   return (
     <div
       ref={root}
       className="site-canvas"
+      data-corners={project.brand.corners || "rounded"}
+      data-secondary-button-style={project.brand.secondaryButtonStyle || "outline"}
+      data-secondary-button-motion={project.brand.secondaryButtonMotion || project.brand.buttonMotion || "fade"}
+      data-button-style={project.brand.buttonStyle || "filled"}
+      data-button-motion={project.brand.buttonMotion || "fade"}
       data-select-sections={onSelectSection ? "true" : undefined}
       style={style}
       onClickCapture={(event) => {
@@ -432,10 +440,11 @@ export function SiteCanvas({
         if (section) onSelectSection(section.dataset.sectionId!);
       }}
       onClick={(event) => {
+        if ((event.target as Element).closest("[data-content-service],[data-content-form]")) return;
         const button = (event.target as Element).closest<HTMLElement>(
           "[data-gallery-photo],[data-project]",
         );
-        if (!button) return;
+        if (!button || button.matches("[data-content-service],[data-content-form]")) return;
         const card = button.closest("article") || button;
         const image = card.querySelector<HTMLImageElement>("img");
         if (!image) return;
@@ -448,11 +457,13 @@ export function SiteCanvas({
         });
       }}
     >
+      <ContentDialogs project={project} pageId={pageId} />
+      <WebsiteFonts fonts={[project.brand.headingFont, project.brand.bodyFont]} />
       {layout && (
         <div className="builder-header-slot">
           <SectionRenderer
             section={project.layout.header}
-            project={project}
+            project={project} pageId={pageId}
             headerAction={
               project.store?.enabled && (
                 <Cart
@@ -471,7 +482,7 @@ export function SiteCanvas({
             <SectionRenderer
               key={`${section.id}-${section.variant}`}
               section={section}
-              project={project}
+              project={project} pageId={pageId}
               first={i === 0}
               selectLabel={
                 onSelectSection
@@ -480,9 +491,10 @@ export function SiteCanvas({
               }
             />
           ))}
+        {children}
       </main>
       {layout && (
-        <SectionRenderer section={project.layout.footer} project={project} />
+        <SectionRenderer section={project.layout.footer} project={project} pageId={pageId} />
       )}
       <dialog
         ref={lightbox}

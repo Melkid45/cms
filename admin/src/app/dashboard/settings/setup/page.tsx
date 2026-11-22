@@ -4,7 +4,10 @@ import { BrandEditor } from "@/components/builder/brand-editor";
 export default function Page() {
   return (
     <div className="rise-in w-full">
-      <PageHeader title="Brand setup" description="Upload your logo and define the colors used across the website." />
+      <PageHeader
+        title="Site design"
+        description="One visual system for every page. Preview changes, then apply them across your website."
+      />
       <BrandEditor />
     </div>
   );

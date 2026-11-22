@@ -1,4 +1,5 @@
 @use "cart";
+@use "button-theme";
 // Next bundles its own installed Manrope dependency through globals.css.
 // Shared frontend files must not depend on frontend/node_modules being installed.
 @use "../../../../frontend/src/styles/template/foundation" with (
@@ -23,11 +24,18 @@
 @use "../../../../frontend/src/components/sections/team/team";
 @use "../../../../frontend/src/components/sections/partners/partners";
 @use "../../../../frontend/src/components/sections/location/location";
+@use "../../../../frontend/src/components/sections/hero/hero-explorations";
+@use "../../../../frontend/src/components/sections/about/about-explorations";
+@use "../../../../frontend/src/components/sections/services/services-explorations";
+@use "../../../../frontend/src/components/sections/advantages/advantages-explorations";
+@use "../../../../frontend/src/components/sections/projects/projects-explorations";
+@use "../../../../frontend/src/components/sections/testimonials/testimonials-explorations";
+@use "connected-content";
 .site-canvas {
   min-height: 100vh;
   background: var(--color-bg);
   color: var(--color-ink);
-  font-family: "Manrope Variable", Manrope, sans-serif;
+  font-family: var(--site-body-font, "Manrope Variable"), Manrope, sans-serif;
 }
 .builder-logo {
   width: auto;
@@ -115,4 +123,20 @@
     outline: 3px solid var(--color-ink);
     outline-offset: -3px;
   }
+}
+
+// Client copy can contain long names, URLs and identifiers without spaces.
+.site-canvas :where(h1,h2,h3,h4,p,li,dt,dd,a,button,label) {
+  overflow-wrap: anywhere;
+}
+.site-canvas :where(.section__content,.section__heading,.section__description) {
+  min-width: 0;
+}
+
+// Explicit square mode includes older variants with fixed decorative radii.
+.site-canvas[data-corners="square"] :where(section, header, footer, dialog, img, figure, a, button, input, textarea, [class*="__card"], [class*="__panel"], [class*="__surface"], [class*="__visual"], [class*="__frame"], [class*="__row"]) {
+  border-radius: 0;
+}
+.site-canvas :where(.button, .process__arrow, .testimonials__arrow) {
+  border-radius: var(--radius-button, 8px);
 }

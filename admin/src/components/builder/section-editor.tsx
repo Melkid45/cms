@@ -15,13 +15,20 @@ import {
   defaultSectionAccess,
   allowedCollectionIds,
 } from "@/lib/builder/section-info";
+import { useProject } from "@/lib/builder/client";
+import { Select, SelectOption } from "@/components/ui/select";
+import { ActionPicker } from "./action-picker";
+import type { ContentAction } from "@/lib/builder/types";
 import { Switch } from "@/components/ui/switch";
 function Fields({
   fields,
   values,
   id,
   onChange,
+  actions, onAction,
 }: {
+  actions?: Record<string, ContentAction>;
+  onAction?: (key:string, action:ContentAction|undefined)=>void;
   fields: Field[];
   values: Record<string, string>;
   id: string;
@@ -39,7 +46,8 @@ function Fields({
           }
         >
           <Label htmlFor={`${id}-${field.key}`}>{field.label}</Label>
-          {field.type === "image" ? (
+          {field.type === "url" && onAction && <ActionPicker value={actions?.[field.key]} onChange={action=>onAction(field.key,action)}/>}
+          {actions?.[field.key] ? null : field.type === "image" ? (
             <MediaPicker
               value={values[field.key] ?? field.value}
               onChange={(value) => onChange({ ...values, [field.key]: value })}
@@ -91,6 +99,7 @@ export function SectionEditor({
   onChange: (section: Section) => void;
   contentOnly?: boolean;
 }) {
+  const {project} = useProject();
   const entry = definition(section.variant);
   if (!entry) return null;
   const repeaters = (entry.repeaters || []).filter(
@@ -113,6 +122,7 @@ export function SectionEditor({
   const categories = [...new Set(main.map(category))];
   return (
     <div className="space-y-4">
+      {!contentOnly && JSON.stringify(entry.nodes).includes('"tag":"form"') && <div className="space-y-2 rounded-xl border bg-white p-4"><Label>Form</Label><Select value={section.formId || "template"} onValueChange={id=>onChange({...section,formId:id === "template" ? undefined : id})}><SelectOption value="template">Original template form</SelectOption>{project?.formDefinitions?.map(f=><SelectOption key={f.id} value={f.id}>{f.title}</SelectOption>)}</Select></div>}
       {contentOnly && !visible.length && (
         <p className="text-sm text-neutral-500">
           These fields are managed by your administrator.
@@ -124,6 +134,8 @@ export function SectionEditor({
             id={section.id}
             fields={main.filter((f) => category(f) === name)}
             values={section.values}
+            actions={section.actions}
+            onAction={contentOnly ? undefined : (key,action)=>{const actions={...section.actions};if(action)actions[key]=action;else delete actions[key];onChange({...section,actions});}}
             onChange={(values) => onChange({ ...section, values })}
           />
         </EditorDisclosure>
@@ -289,6 +301,8 @@ export function SectionEditor({
                       id={`${section.id}-${item.id}`}
                       fields={fields}
                       values={item.values}
+                      actions={item.actions}
+                      onAction={contentOnly ? undefined : (key,action)=>{const actions={...item.actions};if(action)actions[key]=action;else delete actions[key];update(items.map(i=>i.id===item.id ? {...i,actions} : i));}}
                       onChange={(values) =>
                         update(
                           items.map((i) =>

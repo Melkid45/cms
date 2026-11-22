@@ -1,3 +1,4 @@
+import type { WebsiteFont } from "./fonts";
 export type FieldType = "heading" | "textarea" | "text" | "url" | "image";
 export interface Field {
   key: string;
@@ -27,6 +28,8 @@ export interface Definition {
   thumbnail: string;
 }
 export interface Section {
+  actions?: Record<string, ContentAction>;
+  formId?: string;
   clientAccess?: SectionAccess;
   id: string;
   variant: string;
@@ -35,6 +38,7 @@ export interface Section {
   collections?: Record<string, CollectionItem[]>;
 }
 export interface CollectionItem {
+  actions?: Record<string, ContentAction>;
   id: string;
   template: number;
   values: Record<string, string>;
@@ -97,6 +101,7 @@ export interface Menu {
   placement?: "header" | "footer";
 }
 export interface Media {
+  thumbnailUrl?: string;
   id: string;
   name: string;
   url: string;
@@ -113,6 +118,17 @@ export interface Brand {
   primary: string;
   secondary: string;
   alternative: string;
+  buttonColor?: string;
+  secondaryButtonStyle?: "filled" | "outline" | "soft";
+  secondaryButtonMotion?: "fade" | "lift" | "scale" | "shine" | "none";
+  buttonStyle?: "filled" | "outline" | "soft";
+  buttonMotion?: "fade" | "lift" | "scale" | "shine" | "none";
+  headingFont?: WebsiteFont;
+  bodyFont?: WebsiteFont;
+  headingScale?: "compact" | "standard" | "large";
+  corners?: "square" | "subtle" | "rounded";
+  containerWidth?: 1440 | 1600 | 1820 | 1920;
+  density?: "compact" | "standard" | "spacious";
 }
 export interface Layout {
   header: Section;
@@ -137,8 +153,51 @@ export type CartButton = {
   label?: string;
 };
 
+export const catalogVariants = [
+  "grid",
+  "sidebar",
+  "editorial",
+  "list",
+] as const;
+export type CatalogVariant = (typeof catalogVariants)[number];
+export const productPageVariants = [
+  "split",
+  "gallery",
+  "spotlight",
+  "panel",
+  "editorial",
+] as const;
+export type ProductPageVariant = (typeof productPageVariants)[number];
+export const productCardVariants = [
+  "minimal",
+  "framed",
+  "soft",
+  "overlay",
+  "compact",
+] as const;
+export type ProductCardVariant = (typeof productCardVariants)[number];
+export interface CatalogSettings {
+  productPage?: ProductPageVariant;
+  productCard?: ProductCardVariant;
+  variant?: CatalogVariant;
+  enabled: boolean;
+  title: string;
+  description: string;
+  categories: boolean;
+  availability: boolean;
+  search: boolean;
+  attributes: string[];
+}
+
 export interface Project {
-  store?: { enabled: boolean; cart: CartVariant; button?: CartButton };
+  formDefinitions?: CmsForm[];
+  services?: CmsService[];
+  store?: {
+    enabled: boolean;
+    cart: CartVariant;
+    button?: CartButton;
+    catalog?: CatalogSettings;
+  };
   revision: number;
   pages: CmsPage[];
   media: Media[];
@@ -159,4 +218,37 @@ export interface FormSettings {
   recipient: string;
   successMessage: string;
   enabled: boolean;
+}
+
+export type ContentAction = { type: "form" | "service"; target: string };
+export interface CmsFormField {
+  id: string;
+  type: "text" | "email" | "tel" | "textarea" | "select" | "checkbox" | "date" | "number";
+  name: string;
+  label: string;
+  placeholder: string;
+  required: boolean;
+  width: "half" | "full";
+  options: string[];
+}
+export interface CmsForm {
+  id: string;
+  title: string;
+  description: string;
+  buttonLabel: string;
+  layout: "compact" | "split";
+  image: string;
+  fields: CmsFormField[];
+}
+export interface CmsService {
+  id: string;
+  title: string;
+  slug: string;
+  summary: string;
+  body: string;
+  image: string;
+  imageAlt: string;
+  mode: "modal" | "drawer" | "page" | "editorial";
+  status: "Draft" | "Published";
+  formId: string;
 }

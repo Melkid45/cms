@@ -54,7 +54,7 @@ const { SectionRenderer } = load(
 );
 const { renderToStaticMarkup } = require("react-dom/server"),
   { createElement } = require("react");
-assert.equal(definitions.length, 125);
+assert.equal(definitions.length, 139);
 assert.equal(new Set(definitions.map((d) => d.family)).size, 18);
 const project = seedProject();
 const { normalizeProject, preparePages, publicProject, hasDraftChanges } = load(
@@ -236,6 +236,30 @@ assert.equal(safeUrl("data:text/html,x"), "");
 assert.equal(safeUrl("/site/home"), "/site/home");
 assert.equal((html.match(/<h1\b/g) || []).length, 1);
 console.log(
-  "125 approved variants render as React, screenshots/assets exist, editable content is escaped, unsafe URLs are rejected, three demo pages are connected.",
+  "139 approved variants render as React, screenshots/assets exist, editable content is escaped, unsafe URLs are rejected, three demo pages are connected.",
+);
+for (const entry of definitions) {
+  const stressed = createSection(entry.id);
+  for (const field of entry.fields) {
+    if (["heading", "text"].includes(field.type))
+      stressed.values[field.key] =
+        "LongUnbrokenClientContent".repeat(12) + " <script>alert(1)</script>";
+    if (field.type === "image") stressed.values[field.key] = "";
+  }
+  const markup = renderToStaticMarkup(
+    createElement(SectionRenderer, { section: stressed, project, first: true }),
+  );
+  assert(
+    markup.length > 0,
+    entry.id + " must render with missing images and long text",
+  );
+  assert(!markup.includes("<script>"), entry.id + " must escape content");
+  assert(
+    !markup.includes('src=""'),
+    entry.id + " must not request the current page as an image",
+  );
+}
+console.log(
+  "PASS: all 139 variants render with long/unbroken client text, missing images and escaped markup. Layout overflow requires the browser audit.",
 );
 export { seedProject };

@@ -107,6 +107,7 @@ export function publicProject(project: Project): Project {
   };
   return {
     ...project,
+    services: project.services?.filter(s => s.status === "Published"),
     layout: {
       ...project.layout,
       header: publicSection(project.layout.header),

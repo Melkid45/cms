@@ -1,4 +1,6 @@
 import "server-only";
+import { actionsSchema, formDefinitionSchema, serviceSchema } from "./content-schema";
+import { websiteFontIds } from "./fonts";
 import { readFile, writeFile, rename, mkdir } from "node:fs/promises";
 import path from "node:path";
 import {
@@ -27,6 +29,8 @@ const globalStore = globalThis as typeof globalThis & {
   cmsDatabaseReady?: Promise<void>;
 };
 const section = z.object({
+  actions: actionsSchema.optional(),
+  formId: z.string().max(100).optional(),
   clientAccess: z
     .object({
       text: z.boolean(),
@@ -50,6 +54,7 @@ const section = z.object({
           z.object({
             id: z.string().min(1).max(100),
             template: z.number().int().min(0).max(100),
+            actions: actionsSchema.optional(),
             values: z.record(z.string(), z.string().max(20000)),
           }),
         )
@@ -82,6 +87,8 @@ const item: z.ZodType<import("./types").MenuItem> = z.lazy(() =>
   }),
 );
 const schema = z.object({
+  formDefinitions: z.array(formDefinitionSchema).max(100).optional(),
+  services: z.array(serviceSchema).max(200).optional(),
   revision: z.number().int().nonnegative(),
   pages: z
     .array(
@@ -135,6 +142,7 @@ const schema = z.object({
         height: z.number(),
         size: z.number(),
         mime: z.string().max(100),
+        thumbnailUrl: z.string().max(2000).optional(),
         alt: z.string().max(500),
       }),
     )
@@ -163,10 +171,39 @@ const schema = z.object({
     primary: z.string().regex(/^#[0-9a-f]{6}$/i),
     secondary: z.string().regex(/^#[0-9a-f]{6}$/i),
     alternative: z.string().regex(/^#[0-9a-f]{6}$/i),
+    buttonColor: z.string().regex(/^#[0-9a-f]{6}$/i).optional(),
+    secondaryButtonStyle: z.enum(["filled", "outline", "soft"]).optional(),
+    secondaryButtonMotion: z.enum(["fade", "lift", "scale", "shine", "none"]).optional(),
+    buttonStyle: z.enum(["filled", "outline", "soft"]).optional(),
+    buttonMotion: z.enum(["fade", "lift", "scale", "shine", "none"]).optional(),
+    headingFont: z.enum(websiteFontIds).optional(),
+    bodyFont: z.enum(websiteFontIds).optional(),
+    headingScale: z.enum(["compact", "standard", "large"]).optional(),
+    corners: z.enum(["square", "subtle", "rounded"]).optional(),
+    containerWidth: z.union([z.literal(1440), z.literal(1600), z.literal(1820), z.literal(1920)]).optional(),
+    density: z.enum(["compact", "standard", "spacious"]).optional(),
   }),
   store: z
     .object({
       enabled: z.boolean(),
+      catalog: z
+        .object({
+          enabled: z.boolean(),
+          title: z.string().trim().min(1).max(160),
+          variant: z.enum(["grid", "sidebar", "editorial", "list"]).optional(),
+          productPage: z
+            .enum(["split", "gallery", "spotlight", "panel", "editorial"])
+            .optional(),
+          productCard: z
+            .enum(["minimal", "framed", "soft", "overlay", "compact"])
+            .optional(),
+          description: z.string().max(1000),
+          categories: z.boolean(),
+          availability: z.boolean(),
+          search: z.boolean(),
+          attributes: z.array(z.string().trim().min(1).max(100)).max(30),
+        })
+        .optional(),
       button: z
         .object({
           icon: z.enum(["bag", "cart", "basket"]),
@@ -316,6 +353,16 @@ export async function writeProject(
       )
     )
       throw new StoreError(`Select a ${placement} menu for this navigation.`);
+  }
+  const formIds = new Set(next.formDefinitions?.map(f => f.id));
+  const serviceIds = new Set(next.services?.map(s => s.id));
+  if (formIds.size !== (next.formDefinitions?.length || 0) || serviceIds.size !== (next.services?.length || 0) || new Set(next.services?.map(s => s.slug)).size !== (next.services?.length || 0)) throw new StoreError("Use unique form IDs and service slugs.");
+  for (const service of next.services || []) if (service.formId && !formIds.has(service.formId)) throw new StoreError("Choose an existing form for this service.");
+  for (const block of [...next.pages.flatMap(p => p.sections), next.layout.header, next.layout.footer]) {
+    if (block.formId && !formIds.has(block.formId)) throw new StoreError("Choose an existing form.");
+    for (const actions of [block.actions, ...Object.values(block.collections || {}).flat().map(i => i.actions)]) {
+      for (const action of Object.values(actions || {})) if (!(action.type === "form" ? formIds : serviceIds).has(action.target)) throw new StoreError("This button points to a missing form or service.");
+    }
   }
   const prepare = (current: Project): Project => {
     if (current.revision !== next.revision)

@@ -1,7 +1,7 @@
 import { randomUUID } from "node:crypto";
 import { mkdir, writeFile, unlink } from "node:fs/promises";
 import path from "node:path";
-import sharp from "sharp";
+import { optimizeImage } from "./image-processing";
 import { safeSvg } from "@/lib/builder/svg";
 import { put, del } from "@vercel/blob";
 import {
@@ -43,20 +43,22 @@ export async function storeMedia(request: Request) {
         );
       }
     }
-    const input = sharp(bytes, {
-      limitInputPixels: 40000000,
-    }).rotate();
-    const { data, info } = await input
-      .resize({
-        width: 4000,
-        height: 4000,
-        fit: "inside",
-        withoutEnlargement: true,
-      })
-      .webp({ quality: 90 })
-      .toBuffer({ resolveWithObject: true });
+    let optimized;
+    try {
+      optimized = await optimizeImage(bytes);
+    } catch (error) {
+      throw new StoreError(
+        error instanceof Error && error.message.startsWith("Animated")
+          ? error.message
+          : "This image could not be processed. Choose a valid image under 40 megapixels.",
+        400,
+      );
+    }
+    const { data, info } = optimized.main;
+    const thumbnail = optimized.thumbnail.data;
     const id = randomUUID();
     let url: string;
+    let thumbnailUrl: string;
     if (process.env.BLOB_READ_WRITE_TOKEN) {
       const blob = await put(`cms-media/${id}.webp`, data, {
         access: "public",
@@ -65,6 +67,13 @@ export async function storeMedia(request: Request) {
       });
       url = blob.url;
       cleanup = () => del(url);
+      const preview = await put(`cms-media/${id}-thumb.webp`, thumbnail, {
+        access: "public",
+        contentType: "image/webp",
+        addRandomSuffix: false,
+      });
+      thumbnailUrl = preview.url;
+      cleanup = () => del([url, thumbnailUrl]);
     } else {
       if (process.env.VERCEL)
         throw new StoreError(
@@ -79,11 +88,16 @@ export async function storeMedia(request: Request) {
       await writeFile(dest, data, { mode: 0o600 });
       url = `/api/builder/media/${id}`;
       cleanup = () => unlink(dest);
+      const thumbDest = path.join(dataDirectory, "media", `${id}-thumb.webp`);
+      await writeFile(thumbDest, thumbnail, { mode: 0o600 });
+      thumbnailUrl = `/api/builder/media/${id}?thumbnail=1`;
+      cleanup = () => Promise.allSettled([unlink(dest), unlink(thumbDest)]);
     }
     const asset = {
       id,
       name: file.name,
       url,
+      thumbnailUrl,
       width: info.width,
       height: info.height,
       size: data.length,

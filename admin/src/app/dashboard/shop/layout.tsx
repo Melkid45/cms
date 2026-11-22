@@ -23,6 +23,12 @@ export default async function ShopLayout({
         </Link>
         <Link
           className="font-medium hover:underline"
+          href="/dashboard/shop/catalog"
+        >
+          Catalog
+        </Link>
+        <Link
+          className="font-medium hover:underline"
           href="/dashboard/shop/settings"
         >
           Storefront settings

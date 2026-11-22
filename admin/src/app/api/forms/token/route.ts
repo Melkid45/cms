@@ -6,7 +6,7 @@ export async function GET(request: Request) {
     const project = await readProject();
     if (
       !project.forms?.enabled ||
-      !project.pages.some((p) => p.id === pageId && p.published && !p.deletedAt)
+      (!project.pages.some((p) => p.id === pageId && p.published && !p.deletedAt) && !project.services?.some(s => pageId === `service:${s.id}` && s.status === "Published"))
     )
       throw new StoreError("Form unavailable.", 404);
     return Response.json(

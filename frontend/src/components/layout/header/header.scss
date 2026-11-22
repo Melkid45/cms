@@ -47,13 +47,13 @@ html[data-site-menu-open] { overflow: hidden; }
 
 // Floating variation uses shared typography and navigation behavior.
 .site-header--floating {
-  padding: 16px;
+  padding-block: 16px;
   background: transparent;
   .site-header__row {
     min-height: 88px;
     padding-inline: 24px;
     border: 1px solid var(--color-border);
-    border-radius: 20px;
+    border-radius: var(--radius);
     background: var(--color-bg);
     box-shadow: 0 8px 32px rgb(0 0 0 / 6%);
   }
@@ -61,7 +61,7 @@ html[data-site-menu-open] { overflow: hidden; }
 }
 @media (max-width: 600px) {
   .site-header--floating {
-    padding: 12px;
-    .site-header__row { min-height: 72px; padding: 8px 16px; border-radius: 16px; }
+    padding-block: 12px;
+    .site-header__row { min-height: 72px; padding: 8px 16px; }
   }
 }

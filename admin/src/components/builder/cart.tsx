@@ -10,28 +10,36 @@ import {
   X,
 } from "lucide-react";
 import { safeUrl } from "@/lib/builder/catalog";
+import {
+  useCartItems,
+  setCartQuantity,
+  reconcileCart,
+} from "@/lib/shop/cart-client";
+import type { CartResult } from "@/lib/shop/cart-types";
 import type { CartButton, CartVariant } from "@/lib/builder/types";
 
-const products = [
+const demoProducts = [
   {
     id: "chair",
     name: "Alder Chair",
     image: "/images/alder-chair.jpg",
     price: 24000,
+    currency: "GBP",
+    limit: 99,
   },
   {
     id: "table",
     name: "Alder Table",
     image: "/images/alder-table.jpg",
     price: 48000,
+    currency: "GBP",
+    limit: 99,
   },
 ];
-const storageKey = "harbstone-cart-v1";
-const money = new Intl.NumberFormat("en-GB", {
-  style: "currency",
-  currency: "GBP",
-});
-const format = (minor: number) => money.format(minor / 100);
+const format = (minor: number, currency: string) =>
+  new Intl.NumberFormat("en-GB", { style: "currency", currency }).format(
+    minor / 100,
+  );
 
 const icons = { bag: ShoppingBag, cart: ShoppingCart, basket: ShoppingBasket };
 
@@ -62,49 +70,75 @@ export function Cart({
 }) {
   const dialog = useRef<HTMLDialogElement>(null);
   const title = useId();
-  const [items, setItems] = useState<Record<string, number>>({});
+  const [demoItems, setDemoItems] = useState<Record<string, number>>({});
+  const stored = useCartItems();
+  const [quote, setQuote] = useState<CartResult>({
+    items: [],
+    adjusted: false,
+  });
+  const [error, setError] = useState("");
+  const [pending, setPending] = useState(!demo);
+  const [refresh, setRefresh] = useState(0);
+  const [notice, setNotice] = useState("");
   useEffect(() => {
     if (demo) return;
-    function restore() {
+    const controller = new AbortController();
+    async function load() {
+      setPending(true);
+      setError("");
       try {
-        const saved = JSON.parse(localStorage.getItem(storageKey) || "{}");
-        setItems(
+        const response = await fetch("/api/shop/cart", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(stored),
+          signal: controller.signal,
+        });
+        const data = await response.json();
+        if (!response.ok)
+          throw new Error(data.error || "Could not update the cart.");
+        if (controller.signal.aborted) return;
+        setQuote(data);
+        if (data.adjusted)
+          setNotice("Your cart was updated to match current availability.");
+        reconcileCart(
+          stored,
           Object.fromEntries(
-            products.map(({ id }) => {
-              const value = saved?.[id];
-              return [
-                id,
-                Number.isInteger(value) && value >= 0 && value <= 99
-                  ? value
-                  : 0,
-              ];
-            }),
+            (data as CartResult).items.map((item) => [item.id, item.quantity]),
           ),
         );
-      } catch {
-        setItems({});
+      } catch (e) {
+        if (!controller.signal.aborted)
+          setError(
+            e instanceof Error ? e.message : "Could not update the cart.",
+          );
+      } finally {
+        if (!controller.signal.aborted) setPending(false);
       }
     }
-    restore();
-    window.addEventListener("storage", restore);
-    return () => window.removeEventListener("storage", restore);
-  }, [demo]);
+    void load();
+    return () => controller.abort();
+  }, [stored, demo, refresh]);
+  const products = demo ? demoProducts : quote.items;
+  const items = demo
+    ? demoItems
+    : Object.fromEntries(quote.items.map((item) => [item.id, item.quantity]));
   function quantity(id: string, change: number) {
-    const next = {
-      ...items,
-      [id]: Math.max(0, Math.min(99, (items[id] || 0) + change)),
-    };
-    setItems(next);
-    if (!demo) {
-      try {
-        localStorage.setItem(storageKey, JSON.stringify(next));
-      } catch {}
-    }
+    const product = products.find((item) => item.id === id);
+    const value = Math.max(
+      0,
+      Math.min(product?.limit ?? 99, (items[id] || 0) + change),
+    );
+    if (demo) setDemoItems((current) => ({ ...current, [id]: value }));
+    else setCartQuantity(id, value);
   }
   const count = products.reduce((sum, item) => sum + (items[item.id] || 0), 0);
-  const total = products.reduce(
-    (sum, item) => sum + item.price * (items[item.id] || 0),
-    0,
+  const totals = products.reduce<Record<string, number>>(
+    (sum, item) => ({
+      ...sum,
+      [item.currency]:
+        (sum[item.currency] || 0) + item.price * (items[item.id] || 0),
+    }),
+    {},
   );
 
   return (
@@ -128,7 +162,10 @@ export function Cart({
         type="button"
         aria-label={`Open cart, ${count} items`}
         aria-haspopup="dialog"
-        onClick={() => dialog.current?.showModal()}
+        onClick={() => {
+          setRefresh((value) => value + 1);
+          dialog.current?.showModal();
+        }}
       >
         <CartSymbol button={button} />
         {button?.label && <span>{button.label}</span>}
@@ -160,7 +197,28 @@ export function Cart({
               <X size={22} />
             </button>
           </div>
-          <div className="store-cart__content">
+          <div className="store-cart__content" aria-busy={pending}>
+            {error && (
+              <p role="alert">
+                {error}{" "}
+                <button
+                  type="button"
+                  onClick={() => setRefresh((value) => value + 1)}
+                >
+                  Retry
+                </button>
+              </p>
+            )}
+            {notice && (
+              <p role="status" className="text text--sm">
+                {notice}
+              </p>
+            )}
+            {pending && (
+              <p role="status" className="text text--sm">
+                Updating cart…
+              </p>
+            )}
             {count === 0 ? (
               <div className="store-cart__empty">
                 <ShoppingBag size={32} strokeWidth={1.25} aria-hidden="true" />
@@ -173,13 +231,18 @@ export function Cart({
                     .filter((item) => items[item.id] > 0)
                     .map((item) => (
                       <li key={item.id}>
-                        <img src={item.image} alt="" width={80} height={80} />
+                        {item.image ? (
+                          <img src={item.image} alt="" width={80} height={80} />
+                        ) : (
+                          <ShoppingBag size={32} aria-hidden="true" />
+                        )}
                         <div>
                           <h3 className="heading heading--sm">{item.name}</h3>
                           <div className="store-cart__quantity">
                             <button
                               type="button"
                               className="store-cart__icon"
+                              disabled={pending && !demo}
                               aria-label={`Decrease ${item.name} quantity`}
                               onClick={() => quantity(item.id, -1)}
                             >
@@ -192,7 +255,10 @@ export function Cart({
                               type="button"
                               className="store-cart__icon"
                               aria-label={`Increase ${item.name} quantity`}
-                              disabled={items[item.id] >= 99}
+                              disabled={
+                                (pending && !demo) ||
+                                items[item.id] >= item.limit
+                              }
                               onClick={() => quantity(item.id, 1)}
                             >
                               <Plus size={16} />
@@ -201,13 +267,15 @@ export function Cart({
                           <button
                             type="button"
                             className="store-cart__remove"
+                            aria-label={`Remove ${item.name}`}
+                            disabled={pending && !demo}
                             onClick={() => quantity(item.id, -items[item.id])}
                           >
-                            Remove {item.name}
+                            Remove
                           </button>
                         </div>
                         <span className="text text--md">
-                          {format(item.price * items[item.id])}
+                          {format(item.price * items[item.id], item.currency)}
                         </span>
                       </li>
                     ))}
@@ -219,7 +287,13 @@ export function Cart({
             {count > 0 && (
               <p className="store-cart__total text text--lg" aria-live="polite">
                 <strong>Subtotal</strong>
-                <span>{format(total)}</span>
+                <span>
+                  {Object.entries(totals).map(([currency, total]) => (
+                    <span className="store-cart__currency" key={currency}>
+                      {format(total, currency)}
+                    </span>
+                  ))}
+                </span>
               </p>
             )}
             <button

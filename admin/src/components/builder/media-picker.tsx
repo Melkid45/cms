@@ -135,7 +135,9 @@ export function MediaPicker({
                     className={`relative overflow-hidden rounded-lg border text-left ${asset.url === value ? "border-black ring-1 ring-black" : ""}`}
                   >
                     <img
-                      src={asset.url}
+                      src={asset.thumbnailUrl || asset.url}
+                      loading="lazy"
+                      decoding="async"
                       alt={asset.alt}
                       className="aspect-[4/3] w-full bg-neutral-100 object-cover"
                     />

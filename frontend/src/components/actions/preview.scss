@@ -1,0 +1,11 @@
+.action-preview { padding-block: clamp(32px, 5vw, 80px); }
+.action-preview__grid { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.4fr); align-items: start; gap: var(--layout-gap); }
+.action-preview__settings fieldset { width: 100%; padding: 0; border: 0; margin: 0; }
+.action-preview__settings legend { margin-bottom: 16px; }
+.action-preview__choices { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+.action-preview__choices label { display: flex; gap: 12px; align-items: center; padding: 18px; border: 1px solid var(--color-border); border-radius: var(--radius-button); cursor: pointer; }
+.action-preview__choices label:has(:checked) { background: var(--color-surface); border-color: var(--color-ink); }
+.action-preview__choices input { accent-color: var(--color-ink); }
+.action-preview__card { display: grid; gap: 28px; }
+.action-preview__card .section__media { aspect-ratio: 1.8 / 1; }
+@media(max-width:767px) { .action-preview__grid { grid-template-columns: minmax(0, 1fr); } }

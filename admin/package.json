@@ -12,7 +12,9 @@
     "test:api": "node scripts/test-builder-api.mjs",
     "check:deploy": "node scripts/check-deploy.mjs",
     "test:workflows": "node scripts/test-workflows.mjs",
-    "test:roles": "node scripts/test-roles.mjs"
+    "test:roles": "node scripts/test-roles.mjs",
+    "test:images": "node scripts/test-image-processing.mjs",
+    "test:content": "node scripts/test-content-actions.mjs"
   },
   "dependencies": {
     "@base-ui/react": "^1.8.0",
@@ -26,7 +28,7 @@
     "class-variance-authority": "^0.7.1",
     "cn": "^0.4.0",
     "lucide-react": "^1.47.0",
-    "next": "^16.4.3",
+    "next": "16.4.6",
     "nodemailer": "^10.2.1",
     "parse5": "^8.0.1",
     "postgres": "^3.4.9",
@@ -47,7 +49,7 @@
     "@types/react": "^19",
     "@types/react-dom": "^19",
     "eslint": "^9",
-    "eslint-config-next": "^16.4.3",
+    "eslint-config-next": "16.4.6",
     "prettier": "^3.9.10",
     "sass": "^1.106.1",
     "tailwindcss": "^4",

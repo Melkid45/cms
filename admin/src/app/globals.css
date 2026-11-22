@@ -160,3 +160,7 @@
     linear-gradient(to bottom, rgb(255 255 255 / 0.07) 1px, transparent 1px);
   background-size: 32px 32px;
 }
+
+.design-color-picker::-webkit-color-swatch-wrapper { padding: 0; }
+.design-color-picker::-webkit-color-swatch { border: 0; border-radius: 999px; }
+.design-color-picker::-moz-color-swatch { border: 0; border-radius: 999px; }

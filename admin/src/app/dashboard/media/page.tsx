@@ -76,10 +76,11 @@ export default function MediaPage() {
                 className={`overflow-hidden rounded-xl border bg-white text-left ${selected === m.id ? "ring-1 ring-black" : ""}`}
               >
                 <img
-                  src={m.url}
+                  src={m.thumbnailUrl || m.url}
+                  loading="lazy"
+                  decoding="async"
                   alt={m.alt}
                   className="aspect-[4/3] w-full bg-neutral-100 object-cover"
-                  loading="lazy"
                 />
                 <span className="block truncate p-3 text-xs">{m.name}</span>
               </button>
