@@ -91,7 +91,26 @@ export function clientProjectError(
   }
 }
 function allowedSection(next: Section, old: Section) {
-  if (!same(next.actions, old.actions) || next.formId !== old.formId || !same(next.clientAccess, old.clientAccess)) return false;
+  if (!same(next.form, old.form)) {
+    if (!next.form || !old.form) return false;
+    const access = old.clientAccess || { text: true, images: true };
+    const clean = (form: NonNullable<Section["form"]>) => ({
+      ...form,
+      ...(access.text ? { title: "", description: "", buttonLabel: "" } : {}),
+      ...(access.images ? { image: "" } : {}),
+      fields: form.fields.map((field) => ({
+        ...field,
+        ...(access.text ? { label: "", placeholder: "", options: [] } : {}),
+      })),
+    });
+    if (!same(clean(next.form), clean(old.form))) return false;
+  }
+  if (
+    !same(next.actions, old.actions) ||
+    next.formId !== old.formId ||
+    !same(next.clientAccess, old.clientAccess)
+  )
+    return false;
   if (next.variant !== old.variant || next.hidden !== old.hidden) return false;
   const entry = definition(old.variant);
   const valid = new Set(
@@ -129,6 +148,16 @@ function allowedSection(next: Section, old: Section) {
         (!manage && items[i].id !== before?.id) ||
         (before && items[i].template !== before.template) ||
         !same(items[i].actions, before?.actions) ||
+        !same(
+          items[i].detail &&
+            (old.clientAccess?.text !== false
+              ? { ...items[i].detail, body: "" }
+              : items[i].detail),
+          before?.detail &&
+            (old.clientAccess?.text !== false
+              ? { ...before.detail, body: "" }
+              : before.detail),
+        ) ||
         !valuesAllowed(
           items[i].values,
           before?.values || {},

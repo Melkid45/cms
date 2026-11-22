@@ -6,13 +6,14 @@ const image = z
   .max(2000)
   .refine((v) => !v || !!safeUrl(v, true), "Choose a valid image URL");
 export const actionSchema = z.object({
-  type: z.enum(["form", "service"]),
+  type: z.enum(["form", "service", "none"]),
   target: id,
 });
 export const actionsSchema = z
   .record(z.string().max(100), actionSchema)
   .refine((v) => Object.keys(v).length <= 100);
 export const formDefinitionSchema = z.object({
+  columns: z.union([z.literal(1), z.literal(2), z.literal(3)]).optional(),
   id,
   title: z.string().trim().min(1).max(200),
   description: z.string().max(2000),

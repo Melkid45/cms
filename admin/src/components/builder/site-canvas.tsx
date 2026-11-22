@@ -1,8 +1,10 @@
 "use client";
+import { connectedContent } from "@/lib/builder/inline-content";
 import { ContentDialogs } from "./content-dialogs";
 /* eslint-disable @next/next/no-img-element */
 import {
   useEffect,
+  useMemo,
   useRef,
   useState,
   type ReactNode,
@@ -18,8 +20,8 @@ import type { Project, Section } from "@/lib/builder/types";
 import { designVariables } from "@/lib/builder/design";
 import { sectionInfo } from "@/lib/builder/section-info";
 export function SiteCanvas({
-  project,
-  sections,
+  project: sourceProject,
+  sections: sourceSections,
   layout = true,
   pageId,
   onSelectSection,
@@ -32,6 +34,7 @@ export function SiteCanvas({
   pageId?: string;
   onSelectSection?: (id: string) => void;
 }) {
+  const {project,sections}=useMemo(()=>connectedContent(sourceProject,sourceSections),[sourceProject,sourceSections]);
   const root = useRef<HTMLDivElement>(null);
   const lightbox = useRef<HTMLDialogElement>(null);
   const [photo, setPhoto] = useState<{

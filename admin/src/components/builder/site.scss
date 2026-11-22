@@ -31,6 +31,7 @@
 @use "../../../../frontend/src/components/sections/projects/projects-explorations";
 @use "../../../../frontend/src/components/sections/testimonials/testimonials-explorations";
 @use "connected-content";
+@use "../../../../frontend/src/components/sections/form/form";
 .site-canvas {
   min-height: 100vh;
   background: var(--color-bg);

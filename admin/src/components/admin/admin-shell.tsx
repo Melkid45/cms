@@ -38,8 +38,6 @@ import { clientRoute, type Identity } from "@/lib/builder/access";
 const primaryNav = [
   { label: "Overview", href: "/dashboard", icon: Gauge, exact: true },
   { label: "Pages", href: "/dashboard/pages", icon: LayoutGrid },
-  { label: "Services", href: "/dashboard/services", icon: FolderKanban },
-  { label: "Forms", href: "/dashboard/forms", icon: FileText },
   { label: "Shop", href: "/dashboard/shop", icon: ShoppingBag },
   { label: "Layout", href: "/dashboard/layout", icon: PanelsTopLeft },
   { label: "Section library", href: "/dashboard/content", icon: FileText },

@@ -1,3 +1,4 @@
+import { defaultForm } from "./form-defaults";
 import data from "./catalog.json";
 import type { Definition, Section } from "./types";
 import { collectionItems } from "./collections";
@@ -13,6 +14,9 @@ export function createSection(
   return {
     id,
     variant,
+    ...(entry.family === "form"
+      ? { form: defaultForm(id, variant === "form-v2") }
+      : {}),
     values: Object.fromEntries(
       entry.fields.map((field) => [field.key, field.value]),
     ),
@@ -40,6 +44,11 @@ export function switchSection(section: Section, variant: string): Section {
     throw new Error("Choose a variation from the same family.");
   const next = createSection(variant, section.id),
     counts: Record<string, number> = {};
+  if (section.form)
+    next.form = {
+      ...section.form,
+      layout: variant === "form-v2" ? "split" : "compact",
+    };
   for (const field of to.fields) {
     const role = field.role || field.type,
       index = (counts[role] = (counts[role] || 0) + 1) - 1;
@@ -66,6 +75,7 @@ export function switchSection(section: Section, variant: string): Section {
           );
           return {
             id: item.id,
+            detail: item.detail,
             template,
             values: Object.fromEntries(
               group.items[template].fields.map((key) => {

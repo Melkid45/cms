@@ -61,11 +61,11 @@ export function SchemaForm({
   return (
     <div className={`cms-form cms-form--${form.layout}`}>
       {form.layout === "split" && safeUrl(form.image, true) && (
-        <img
+        <figure className="cms-form__media"><img
           className="cms-form__image"
           src={safeUrl(form.image, true)}
           alt=""
-        />
+        /></figure>
       )}
       <form
         data-schema-form="true"
@@ -129,7 +129,14 @@ export function SchemaForm({
             <p className="text text--md text--muted">{form.description}</p>
           )}
         </div>
-        <div className="cms-form__fields">
+        <div
+          className="cms-form__fields"
+          style={
+            {
+              "--form-columns": form.columns || 2,
+            } as import("react").CSSProperties
+          }
+        >
           {form.fields.map((field) => {
             const id = `${prefix}-${field.id}`;
             const common = {

@@ -54,9 +54,15 @@ const { SectionRenderer } = load(
 );
 const { renderToStaticMarkup } = require("react-dom/server"),
   { createElement } = require("react");
-assert.equal(definitions.length, 139);
-assert.equal(new Set(definitions.map((d) => d.family)).size, 18);
+assert.equal(definitions.length, 142);
+assert.equal(new Set(definitions.map((d) => d.family)).size, 19);
 const project = seedProject();
+const {clientProjectError}=load(path.join(root,"src/lib/builder/permissions.ts"));
+const ownerProject=structuredClone(project);ownerProject.pages[0].sections.push(createSection("form-v1","embedded-form-check"));
+let clientChange=structuredClone(ownerProject);clientChange.pages[0].sections.at(-1).form.title="Edited form heading";assert.equal(clientProjectError(clientChange,ownerProject),undefined);
+clientChange=structuredClone(ownerProject);clientChange.pages[0].sections.at(-1).form.columns=3;assert(clientProjectError(clientChange,ownerProject));
+clientChange=structuredClone(ownerProject);clientChange.pages[0].sections.at(-1).form.fields[0].type="email";assert(clientProjectError(clientChange,ownerProject));
+
 const { normalizeProject, preparePages, publicProject, hasDraftChanges } = load(
   path.join(root, "src/lib/builder/workflows.ts"),
 );
@@ -236,7 +242,7 @@ assert.equal(safeUrl("data:text/html,x"), "");
 assert.equal(safeUrl("/site/home"), "/site/home");
 assert.equal((html.match(/<h1\b/g) || []).length, 1);
 console.log(
-  "139 approved variants render as React, screenshots/assets exist, editable content is escaped, unsafe URLs are rejected, three demo pages are connected.",
+  "142 approved variants render as React, screenshots/assets exist, editable content is escaped, unsafe URLs are rejected, three demo pages are connected.",
 );
 for (const entry of definitions) {
   const stressed = createSection(entry.id);
@@ -260,6 +266,6 @@ for (const entry of definitions) {
   );
 }
 console.log(
-  "PASS: all 139 variants render with long/unbroken client text, missing images and escaped markup. Layout overflow requires the browser audit.",
+  "PASS: all 142 variants render with long/unbroken client text, missing images and escaped markup. Layout overflow requires the browser audit.",
 );
 export { seedProject };

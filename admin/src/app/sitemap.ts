@@ -1,3 +1,4 @@
+import { connectedContent } from "@/lib/builder/inline-content";
 import type { MetadataRoute } from "next";
 import { readProject } from "@/lib/builder/server";
 import { publicProject } from "@/lib/builder/workflows";
@@ -5,7 +6,7 @@ import { siteOrigin } from "@/lib/builder/seo";
 import { listProducts } from "@/lib/shop/products";
 export const dynamic = "force-dynamic";
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  const project = publicProject(await readProject()),
+  const project = connectedContent(publicProject(await readProject())).project,
     origin = siteOrigin(project);
   if (!origin) return [];
   const entries: MetadataRoute.Sitemap = project.pages
@@ -16,7 +17,10 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
         ? { lastModified: p.updatedAt }
         : {}),
     }));
-  for (const service of project.services || []) entries.push({url:new URL(`/site/services/${service.slug}`,origin).href});
+  for (const service of project.services || [])
+    entries.push({
+      url: new URL(`/site/services/${service.slug}`, origin).href,
+    });
   if (project.store?.enabled && project.store.catalog?.enabled) {
     entries.push({ url: new URL("/site/catalog", origin).href });
     for (const p of await listProducts())

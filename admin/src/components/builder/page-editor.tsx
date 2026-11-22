@@ -326,6 +326,7 @@ function Editor({ initial, project }: { initial?: CmsPage; project: Project }) {
                                 {
                                   ...structuredClone(section),
                                   id: crypto.randomUUID(),
+                                  ...(section.form ? {form:{...structuredClone(section.form),id:crypto.randomUUID()}} : {}),
                                 },
                                 ...page.sections.slice(index + 1),
                               ],
@@ -402,6 +403,7 @@ function Editor({ initial, project }: { initial?: CmsPage; project: Project }) {
                             </p>
                           </div>
                           <SectionEditor
+                            availableSections={page.sections}
                             section={section}
                             onChange={updateSection}
                           />

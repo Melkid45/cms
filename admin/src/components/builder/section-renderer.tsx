@@ -135,7 +135,7 @@ export function SectionRenderer({
       }
     }
     if (node.tag === "form") {
-      const form = project.formDefinitions?.find(f=>f.id===section.formId);
+      const form = section.form || project.formDefinitions?.find(f=>f.id===section.formId);
       if(form) return <SchemaForm key={index} definition={form} pageId={pageId} sectionId={section.id}/>;
       props["data-cms-form"] = section.id;
     }
@@ -205,6 +205,7 @@ export function SectionRenderer({
       props[name] = value;
     }
     const action = node.bindings?.href ? actions[node.bindings.href] : undefined;
+    if(action?.type === "none" && node.tag === "a") return null;
     if(action) {
       const form=action.type === "form" && project.formDefinitions?.find(f=>f.id===action.target);
       const service=action.type === "service" && project.services?.find(s=>s.id===action.target);

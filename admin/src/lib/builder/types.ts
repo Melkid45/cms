@@ -30,6 +30,7 @@ export interface Definition {
 export interface Section {
   actions?: Record<string, ContentAction>;
   formId?: string;
+  form?: CmsForm;
   clientAccess?: SectionAccess;
   id: string;
   variant: string;
@@ -38,6 +39,7 @@ export interface Section {
   collections?: Record<string, CollectionItem[]>;
 }
 export interface CollectionItem {
+  detail?: { mode: "none" | "modal" | "drawer" | "page" | "editorial"; body: string; formId: string };
   actions?: Record<string, ContentAction>;
   id: string;
   template: number;
@@ -220,7 +222,7 @@ export interface FormSettings {
   enabled: boolean;
 }
 
-export type ContentAction = { type: "form" | "service"; target: string };
+export type ContentAction = { type: "form" | "service" | "none"; target: string };
 export interface CmsFormField {
   id: string;
   type: "text" | "email" | "tel" | "textarea" | "select" | "checkbox" | "date" | "number";
@@ -232,6 +234,7 @@ export interface CmsFormField {
   options: string[];
 }
 export interface CmsForm {
+  columns?: 1 | 2 | 3;
   id: string;
   title: string;
   description: string;

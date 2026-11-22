@@ -1,7 +1,8 @@
 "use client";
-import type { ContentAction } from "@/lib/builder/types";
-import { useProject } from "@/lib/builder/client";
+import { createContext, useContext } from "react";
+import type { ContentAction, CmsForm } from "@/lib/builder/types";
 import { Select, SelectOption } from "@/components/ui/select";
+export const BlockFormsContext = createContext<CmsForm[]>([]);
 export function ActionPicker({
   value,
   onChange,
@@ -9,44 +10,42 @@ export function ActionPicker({
   value?: ContentAction;
   onChange: (value: ContentAction | undefined) => void;
 }) {
-  const { project } = useProject();
-  const forms = project?.formDefinitions || [];
-  const services = project?.services || [];
+  const forms = useContext(BlockFormsContext);
   return (
     <div className="space-y-2">
       <Select
-        aria-label="Link action"
-        value={value?.type || "link"}
-        onValueChange={(type) => {
-          if (type === "link") onChange(undefined);
-          else {
-            const first = (type === "form" ? forms : services)[0];
-            if (first)
-              onChange({
-                type: type as ContentAction["type"],
-                target: first.id,
-              });
-          }
-        }}
+        aria-label="Click action"
+        value={value?.type === "service" ? "legacy" : value?.type || "link"}
+        onValueChange={(type) =>
+          onChange(
+            type === "link"
+              ? undefined
+              : type === "none"
+                ? { type: "none", target: "none" }
+                : forms[0]
+                  ? { type: "form", target: forms[0].id }
+                  : undefined,
+          )
+        }
       >
         <SelectOption value="link">Open link</SelectOption>
+        <SelectOption value="none">No action</SelectOption>
         <SelectOption value="form" disabled={!forms.length}>
-          Open form
+          Open a form block
         </SelectOption>
-        <SelectOption value="service" disabled={!services.length}>
-          Open service
-        </SelectOption>
+        {value?.type === "service" && (
+          <SelectOption value="legacy">Existing service link</SelectOption>
+        )}
       </Select>
-      {value && (
+      {value?.type === "form" && (
         <Select
-          aria-label="Action target"
+          aria-label="Form block"
           value={value.target}
-          onValueChange={(target) => onChange({ ...value, target })}
+          onValueChange={(target) => onChange({ type: "form", target })}
         >
-          {(value.type === "form" ? forms : services).map((item) => (
-            <SelectOption key={item.id} value={item.id}>
-              {item.title}
-              {"status" in item && item.status === "Draft" ? " · Draft" : ""}
+          {forms.map((f) => (
+            <SelectOption key={f.id} value={f.id}>
+              {f.title}
             </SelectOption>
           ))}
         </Select>

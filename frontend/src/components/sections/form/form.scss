@@ -1,0 +1,6 @@
+.form-section--centered .cms-form { max-width: 900px; margin-inline: auto; }
+.form-section--photo .cms-form { padding: clamp(24px,4vw,64px); background: var(--color-surface); border-radius: var(--radius); }
+.form-section--aside .cms-form__body { grid-template-columns: 1fr 1.2fr; column-gap: var(--layout-gap); }
+.form-section--aside .cms-form__intro { grid-column: 1; grid-row: 1 / 5; padding-right: 40px; }
+.form-section--aside .cms-form__body > :not(.cms-form__intro) { grid-column: 2; }
+@media(max-width:767px) { .form-section--aside .cms-form__body { grid-template-columns: 1fr; } .form-section--aside .cms-form__intro { grid-row: auto; padding-right: 0; } .form-section--aside .cms-form__body > :not(.cms-form__intro) { grid-column: 1; } }

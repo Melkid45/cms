@@ -2,6 +2,7 @@ import { z } from "zod";
 import { validateFormValues } from "@/lib/builder/form-values";
 import { definition } from "@/lib/builder/catalog";
 import type { TemplateNode } from "@/lib/builder/types";
+import { connectedContent } from "@/lib/builder/inline-content";
 import { readProject, errorResponse, StoreError } from "@/lib/builder/server";
 import {
   receiveSubmission,
@@ -11,7 +12,7 @@ export const runtime = "nodejs";
 const schema = z.object({
   pageId: z.string().max(100),
   formId: z.string().max(100).optional(),
-  serviceId: z.string().max(100).optional(),
+  serviceId: z.string().max(300).optional(),
   sectionId: z.string().max(100),
   token: z.string().max(1000),
   website: z.string().max(500).default(""),
@@ -40,28 +41,78 @@ export async function POST(request: Request) {
       });
     if (!validateFormToken(input.token, input.pageId))
       throw new StoreError("Please reload the page and try again.", 403);
-    const project = await readProject();
+    const project = connectedContent(await readProject(), [], true).project;
     const page = project.pages.find(
       (p) => p.id === input.pageId && !p.deletedAt && p.published,
     );
-    const standaloneService = input.pageId.startsWith("service:") ? project.services?.find(s=>s.id === input.pageId.slice(8) && s.status === "Published") : undefined;
+    const standaloneService = input.pageId.startsWith("service:")
+      ? project.services?.find(
+          (s) => s.id === input.pageId.slice(8) && s.status === "Published",
+        )
+      : undefined;
     if ((!page && !standaloneService) || !project.forms?.enabled)
       throw new StoreError("Form unavailable.", 404);
-    const block = page ? [...page.published!.sections, project.layout.header, project.layout.footer].find(s => s.id === input.sectionId && !s.hidden) : undefined;
-    if(input.formId) {
-      const form = project.formDefinitions?.find(f=>f.id === input.formId);
-      const actions = [block?.actions, ...Object.values(block?.collections || {}).flat().map(i=>i.actions)].flatMap(a=>Object.values(a || {}));
-      const service = input.serviceId ? project.services?.find(s=>s.id === input.serviceId && s.status === "Published") : undefined;
-      const boundService = service && actions.some(a=>a.type === "service" && a.target === service.id) && service.formId === input.formId;
-      const standalone = standaloneService && input.sectionId === `service:${standaloneService.id}` && standaloneService.formId === input.formId;
-      const boundForm = block && (block.formId === input.formId || actions.some(a=>a.type === "form" && a.target === input.formId));
-      if(!form || (!boundForm && !boundService && !standalone)) throw new StoreError("Form unavailable.",404);
-      let values:Record<string,string>;
-      try {values=validateFormValues(form,input.values);} catch(error) {throw new StoreError(error instanceof Error ? error.message : "Check the form fields.");}
-      await receiveSubmission({pageId:page?.id || input.pageId,pageTitle:page?.published?.title || standaloneService!.title,sectionId:input.sectionId,values:{...values, ...(service || standaloneService ? {Service:(service || standaloneService)!.title} : {})}}, request.headers.get("x-forwarded-for")?.split(",")[0].trim() || "local",project.forms.recipient,project.website);
-      return Response.json({ok:true,message:project.forms.successMessage});
+    const block = page
+      ? [
+          ...page.published!.sections,
+          project.layout.header,
+          project.layout.footer,
+        ].find((s) => s.id === input.sectionId && !s.hidden)
+      : undefined;
+    if (input.formId) {
+      const form = project.formDefinitions?.find((f) => f.id === input.formId);
+      const actions = [
+        block?.actions,
+        ...Object.values(block?.collections || {})
+          .flat()
+          .map((i) => i.actions),
+      ].flatMap((a) => Object.values(a || {}));
+      const service = input.serviceId
+        ? project.services?.find(
+            (s) => s.id === input.serviceId && s.status === "Published",
+          )
+        : undefined;
+      const boundService =
+        service &&
+        actions.some((a) => a.type === "service" && a.target === service.id) &&
+        service.formId === input.formId;
+      const standalone =
+        standaloneService &&
+        input.sectionId === `service:${standaloneService.id}` &&
+        standaloneService.formId === input.formId;
+      const boundForm =
+        block &&
+        (block.formId === input.formId ||
+          actions.some((a) => a.type === "form" && a.target === input.formId));
+      if (!form || (!boundForm && !boundService && !standalone))
+        throw new StoreError("Form unavailable.", 404);
+      let values: Record<string, string>;
+      try {
+        values = validateFormValues(form, input.values);
+      } catch (error) {
+        throw new StoreError(
+          error instanceof Error ? error.message : "Check the form fields.",
+        );
+      }
+      await receiveSubmission(
+        {
+          pageId: page?.id || input.pageId,
+          pageTitle: page?.published?.title || standaloneService!.title,
+          sectionId: input.sectionId,
+          values: {
+            ...values,
+            ...(service || standaloneService
+              ? { Service: (service || standaloneService)!.title }
+              : {}),
+          },
+        },
+        request.headers.get("x-forwarded-for")?.split(",")[0].trim() || "local",
+        project.forms.recipient,
+        project.website,
+      );
+      return Response.json({ ok: true, message: project.forms.successMessage });
     }
-    if(!page) throw new StoreError("Form unavailable.",404);
+    if (!page) throw new StoreError("Form unavailable.", 404);
     const entry = block && !block.formId && definition(block.variant);
     if (!entry) throw new StoreError("Form unavailable.", 404);
     const fields: { name: string; type?: string; required: boolean }[] = [];
