@@ -13,11 +13,13 @@ import { richText } from "./rich-text";
 import { rootedHref } from "@/lib/builder/domains/names";
 import { responsiveImage } from "@/lib/builder/responsive-image";
 import type {
+  ContentAction,
   Section,
   TemplateNode,
   Project,
   MenuItem,
 } from "@/lib/builder/types";
+import { SchemaForm } from "./schema-form";
 const camel = (key: string) =>
   key.replace(/-([a-z])/g, (_, letter) => letter.toUpperCase());
 const names: Record<string, string> = {
@@ -90,6 +92,7 @@ export function SectionRenderer({
   lead = false,
   selectLabel,
   siteKey,
+  siteId,
   pageId,
   locale,
   rootLinks = false,
@@ -102,6 +105,8 @@ export function SectionRenderer({
   selectLabel?: string;
   // Public key of the website; page links become /site/{siteKey}/{slug}.
   siteKey?: string;
+  // Website id: forms of the form builder (section.form) send enquiries to this website.
+  siteId?: string;
   // Current page and its language: menus, logo link and language switcher follow it.
   pageId?: string;
   locale?: string;
@@ -184,6 +189,7 @@ export function SectionRenderer({
     index: number,
     values = section.values,
     instance = "",
+    actions: Record<string,ContentAction> = section.actions || {},
   ): React.ReactNode {
     const rewriteId = (value: string) => `${suffix}${instance}-${value}`;
     if (node.repeat) {
@@ -200,6 +206,7 @@ export function SectionRenderer({
                   0,
                   { ...section.values, ...item.values },
                   `-${item.id}`,
+                  item.actions || section.actions || {},
                 )}
               </Fragment>
             ) : null;
@@ -226,7 +233,27 @@ export function SectionRenderer({
         props["aria-label"] = selectLabel;
       }
     }
-    if (node.tag === "form") props["data-cms-form"] = section.id;
+    if (node.tag === "form") {
+      // A form of the form builder (section.form, or a website form chosen by id) replaces the
+      // template's own form fields; template forms stay as they are (site-runtime.tsx).
+      const form =
+        section.form ||
+        (section.formId
+          ? project.formDefinitions?.find((f) => f.id === section.formId)
+          : undefined);
+      if (form)
+        return (
+          <SchemaForm
+            key={index}
+            definition={form}
+            pageId={pageId}
+            sectionId={section.id}
+            siteId={siteId}
+            locale={locale}
+          />
+        );
+      props["data-cms-form"] = section.id;
+    }
     const attrs = { ...node.attrs };
     for (const [name, key] of Object.entries(node.bindings || {}))
       attrs[name] =
@@ -296,6 +323,30 @@ export function SectionRenderer({
         continue;
       }
       props[name] = value;
+    }
+    // Button actions (action-picker.tsx): open a form or a service (dialog, drawer or page).
+    const action = node.bindings?.href ? actions[node.bindings.href] : undefined;
+    if (action?.type === "none" && node.tag === "a") return null;
+    if (action && action.type !== "none") {
+      const form =
+        action.type === "form" &&
+        project.formDefinitions?.find((f) => f.id === action.target);
+      const service =
+        action.type === "service" &&
+        project.services?.find((s) => s.id === action.target);
+      if (form || service) {
+        props.href = service
+          ? siteKey
+            ? link(`/site/${siteKey}/services/${service.slug}`)
+            : "#service"
+          : "#enquiry";
+        props[form ? "data-content-form" : "data-content-service"] =
+          action.target;
+        props["data-action-section"] = section.id;
+      } else {
+        props.href = undefined;
+        props["aria-disabled"] = true;
+      }
     }
     if (node.tag === "input") {
       if (attrs.value) {
@@ -458,7 +509,7 @@ export function SectionRenderer({
       ));
     } else
       children = node.children?.map((child, index) =>
-        render(child, index, values, instance),
+        render(child, index, values, instance, actions),
       );
     if (
       [

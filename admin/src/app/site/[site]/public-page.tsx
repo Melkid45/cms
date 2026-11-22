@@ -10,6 +10,7 @@ import { siteByKey } from "@/lib/builder/sites";
 import {
   SiteCanvasMarkup,
   canvasRootProps,
+  cartLookOf,
   checkoutTarget,
 } from "@/components/builder/site-canvas-markup";
 import { SiteRuntime } from "@/components/builder/site-runtime";
@@ -32,7 +33,7 @@ import { seoPack } from "@/lib/builder/seo/pack";
 import { siteCssHref } from "@/lib/builder/site-css";
 
 // Metadata and the page share one storage read per request.
-const website = cache(async (key: string) => {
+export const website = cache(async (key: string) => {
   const site = await siteByKey(key);
   if (!site) return null;
   // A website switched off for non-payment shows only a notice, whatever the page.
@@ -264,6 +265,7 @@ export async function PublicPageView({
             id: checkout.id,
             href: link(pageHref(project, site.key, checkout)),
           },
+          cartLook: cartLookOf(project),
         }}
       >
         <SiteCanvasMarkup
@@ -271,6 +273,7 @@ export async function PublicPageView({
           sections={page.sections}
           pageId={page.id}
           siteKey={site.key}
+          siteId={site.id}
           locale={page.locale}
           rootLinks={address?.onDomain}
         />

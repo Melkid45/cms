@@ -25,6 +25,9 @@ export function clientProjectError(
   const denied =
     "Your account can edit content and reorder existing sections. Design and structure are managed by the super admin.";
   if (
+    !same(next.formDefinitions, current.formDefinitions) ||
+    !same(next.services, current.services) ||
+    !same(next.store, current.store) ||
     !same(next.layout, current.layout) ||
     !same(next.menus, current.menus) ||
     !same(next.media, current.media)
@@ -96,7 +99,27 @@ export function clientProjectError(
   }
 }
 function allowedSection(next: Section, old: Section) {
-  if (!same(next.clientAccess, old.clientAccess)) return false;
+  // Forms of the form builder: a client may change only texts (and the image) it is allowed to.
+  if (!same(next.form, old.form)) {
+    if (!next.form || !old.form) return false;
+    const access = old.clientAccess || { text: true, images: true };
+    const clean = (form: NonNullable<Section["form"]>) => ({
+      ...form,
+      ...(access.text ? { title: "", description: "", buttonLabel: "" } : {}),
+      ...(access.images ? { image: "" } : {}),
+      fields: form.fields.map((field) => ({
+        ...field,
+        ...(access.text ? { label: "", placeholder: "", options: [] } : {}),
+      })),
+    });
+    if (!same(clean(next.form), clean(old.form))) return false;
+  }
+  if (
+    !same(next.actions, old.actions) ||
+    next.formId !== old.formId ||
+    !same(next.clientAccess, old.clientAccess)
+  )
+    return false;
   if (
     next.variant !== old.variant ||
     next.hidden !== old.hidden ||
@@ -138,6 +161,17 @@ function allowedSection(next: Section, old: Section) {
       if (
         (!manage && items[i].id !== before?.id) ||
         (before && items[i].template !== before.template) ||
+        !same(items[i].actions, before?.actions) ||
+        !same(
+          items[i].detail &&
+            (old.clientAccess?.text !== false
+              ? { ...items[i].detail, body: "" }
+              : items[i].detail),
+          before?.detail &&
+            (old.clientAccess?.text !== false
+              ? { ...before.detail, body: "" }
+              : before.detail),
+        ) ||
         !valuesAllowed(
           items[i].values,
           before?.values || {},

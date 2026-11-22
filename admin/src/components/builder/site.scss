@@ -21,6 +21,22 @@
 @use "../../../../frontend/src/components/sections/logos/logos";
 @use "../../../../frontend/src/components/sections/calculator/calculator";
 @use "../../../../frontend/src/components/sections/team/team";
+// Merged from origin/main: new families (team v1-v5 share team.scss above), exploration variants
+// (a <family>-explorations part loads with its family, lib/builder/site-css.ts), forms of the
+// form builder and service dialogs (connected-content), the cart window and the button looks.
+@use "../../../../frontend/src/components/sections/project-details/project-details";
+@use "../../../../frontend/src/components/sections/partners/partners";
+@use "../../../../frontend/src/components/sections/location/location";
+@use "../../../../frontend/src/components/sections/form/form";
+@use "../../../../frontend/src/components/sections/hero/hero-explorations";
+@use "../../../../frontend/src/components/sections/about/about-explorations";
+@use "../../../../frontend/src/components/sections/services/services-explorations";
+@use "../../../../frontend/src/components/sections/advantages/advantages-explorations";
+@use "../../../../frontend/src/components/sections/projects/projects-explorations";
+@use "../../../../frontend/src/components/sections/testimonials/testimonials-explorations";
+@use "connected-content";
+@use "cart";
+@use "button-theme";
 // Library-wide refresh rules must load after every section style.
 @use "../../../../frontend/src/styles/template/refresh";
 .site-canvas {

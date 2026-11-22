@@ -29,6 +29,9 @@ export interface Definition {
   thumbnail: string;
 }
 export interface Section {
+  actions?: Record<string, ContentAction>;
+  formId?: string;
+  form?: CmsForm;
   clientAccess?: SectionAccess;
   id: string;
   variant: string;
@@ -39,6 +42,8 @@ export interface Section {
   collections?: Record<string, CollectionItem[]>;
 }
 export interface CollectionItem {
+  detail?: { mode: "none" | "modal" | "drawer" | "page" | "editorial"; body: string; formId: string };
+  actions?: Record<string, ContentAction>;
   id: string;
   template: number;
   values: Record<string, string>;
@@ -111,6 +116,8 @@ export interface Menu {
   locale?: string;
 }
 export interface Media {
+  // Legacy (origin/main thumbnails): kept so saving never drops it; previews use image-variants.
+  thumbnailUrl?: string;
   id: string;
   name: string;
   url: string;
@@ -127,6 +134,19 @@ export interface Brand {
   primary: string;
   secondary: string;
   alternative: string;
+  // Legacy design fields from origin/main (Ilya's Site design). Kept so saving never drops them;
+  // the website design lives in project.style + project.fonts (style-presets.ts, font-pairs.ts).
+  buttonColor?: string;
+  secondaryButtonStyle?: "filled" | "outline" | "soft";
+  secondaryButtonMotion?: "fade" | "lift" | "scale" | "shine" | "none";
+  buttonStyle?: "filled" | "outline" | "soft";
+  buttonMotion?: "fade" | "lift" | "scale" | "shine" | "none";
+  headingFont?: string;
+  bodyFont?: string;
+  headingScale?: "compact" | "standard" | "large";
+  corners?: "square" | "subtle" | "rounded";
+  containerWidth?: 1440 | 1600 | 1820 | 1920;
+  density?: "compact" | "standard" | "spacious";
 }
 export interface Layout {
   header: Section;
@@ -140,7 +160,71 @@ export interface Layout {
     { header?: Record<string, string>; footer?: Record<string, string> }
   >;
 }
+export const cartVariants = [
+  "drawer",
+  "modal",
+  "sheet",
+  "wide",
+  "full",
+] as const;
+export type CartVariant = (typeof cartVariants)[number];
+
+export const cartIcons = ["bag", "cart", "basket"] as const;
+export type CartButton = {
+  icon: (typeof cartIcons)[number];
+  image?: string;
+  label?: string;
+};
+
+// Legacy storefront settings of origin/main (its /site/catalog pages were not merged: the
+// catalogue is blocks on pages, lib/builder/products). Kept only so saving never drops them.
+export const catalogVariants = [
+  "grid",
+  "sidebar",
+  "editorial",
+  "list",
+] as const;
+export type CatalogVariant = (typeof catalogVariants)[number];
+export const productPageVariants = [
+  "split",
+  "gallery",
+  "spotlight",
+  "panel",
+  "editorial",
+] as const;
+export type ProductPageVariant = (typeof productPageVariants)[number];
+export const productCardVariants = [
+  "minimal",
+  "framed",
+  "soft",
+  "overlay",
+  "compact",
+] as const;
+export type ProductCardVariant = (typeof productCardVariants)[number];
+export interface CatalogSettings {
+  productPage?: ProductPageVariant;
+  productCard?: ProductCardVariant;
+  variant?: CatalogVariant;
+  enabled: boolean;
+  title: string;
+  description: string;
+  categories: boolean;
+  availability: boolean;
+  search: boolean;
+  attributes: string[];
+}
+
 export interface Project {
+  formDefinitions?: CmsForm[];
+  services?: CmsService[];
+  // Shop cart look (cart.tsx): layout of the cart window and the header cart button. The cart
+  // itself is ours (cart-widgets.ts, real orders). enabled/catalog: legacy origin/main fields.
+  store?: {
+    enabled?: boolean;
+    cart: CartVariant;
+    button?: CartButton;
+    catalog?: CatalogSettings;
+  };
   revision: number;
   pages: CmsPage[];
   media: Media[];
@@ -218,4 +302,38 @@ export interface FormSettings {
   // Success message per page language (multilingual websites); falls back to successMessage.
   messages?: Record<string, string>;
   enabled: boolean;
+}
+
+export type ContentAction = { type: "form" | "service" | "none"; target: string };
+export interface CmsFormField {
+  id: string;
+  type: "text" | "email" | "tel" | "textarea" | "select" | "checkbox" | "date" | "number";
+  name: string;
+  label: string;
+  placeholder: string;
+  required: boolean;
+  width: "half" | "full";
+  options: string[];
+}
+export interface CmsForm {
+  columns?: 1 | 2 | 3;
+  id: string;
+  title: string;
+  description: string;
+  buttonLabel: string;
+  layout: "compact" | "split";
+  image: string;
+  fields: CmsFormField[];
+}
+export interface CmsService {
+  id: string;
+  title: string;
+  slug: string;
+  summary: string;
+  body: string;
+  image: string;
+  imageAlt: string;
+  mode: "modal" | "drawer" | "page" | "editorial";
+  status: "Draft" | "Published";
+  formId: string;
 }

@@ -297,6 +297,7 @@ const pageNames: Record<string, string> = {
   "/dashboard/billing": "Billing",
   "/dashboard/team": "Team",
   "/dashboard/settings/style": "Website style",
+  "/dashboard/settings/cart": "Shop cart",
   "/dashboard/pages": "Pages",
   "/dashboard/pages/new": "Create a page",
   "/dashboard/layout": "Layout",

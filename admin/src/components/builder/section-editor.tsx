@@ -15,13 +15,23 @@ import {
   defaultSectionAccess,
   allowedCollectionIds,
 } from "@/lib/builder/section-info";
+import { useProject } from "@/lib/builder/client";
+import { Select, SelectOption } from "@/components/ui/select";
+import { InlineFormEditor } from "./inline-form-editor";
+import { defaultForm } from "@/lib/builder/form-defaults";
+import { ActionPicker, BlockFormsContext } from "./action-picker";
+import type { ContentAction } from "@/lib/builder/types";
 import { Switch } from "@/components/ui/switch";
 function Fields({
   fields,
   values,
   id,
   onChange,
+  actions,
+  onAction,
 }: {
+  actions?: Record<string, ContentAction>;
+  onAction?: (key: string, action: ContentAction | undefined) => void;
   fields: Field[];
   values: Record<string, string>;
   id: string;
@@ -39,13 +49,19 @@ function Fields({
           }
         >
           <Label htmlFor={`${id}-${field.key}`}>{field.label}</Label>
-          {field.type === "image" || field.type === "video" ? (
+          {field.type === "url" && onAction && (
+            <ActionPicker
+              value={actions?.[field.key]}
+              onChange={(action) => onAction(field.key, action)}
+            />
+          )}
+          {actions?.[field.key] ? null : field.type === "image" || field.type === "video" ? (
             <MediaPicker
               kind={field.type}
               value={values[field.key] ?? field.value}
               onChange={(value) => onChange({ ...values, [field.key]: value })}
             />
-          ) :["heading", "textarea"].includes(field.type) ? (
+          ) : ["heading", "textarea"].includes(field.type) ? (
             <Textarea
               id={`${id}-${field.key}`}
               value={values[field.key] ?? field.value}
@@ -87,13 +103,54 @@ export function SectionEditor({
   section,
   onChange,
   contentOnly = false,
+  availableSections = [],
 }: {
   section: Section;
   onChange: (section: Section) => void;
   contentOnly?: boolean;
+  availableSections?: Section[];
 }) {
+  const { project } = useProject();
   const entry = definition(section.variant);
   if (!entry) return null;
+  const inlineForms = [
+    ...new Map(
+      [
+        ...(project?.pages.flatMap((p) => p.sections) || []),
+        ...availableSections,
+        section,
+      ]
+        .filter((s) => !s.hidden && s.form)
+        .map((s) => [s.form!.id, s.form!]),
+    ).values(),
+  ];
+  const forms = [
+    ...inlineForms,
+    ...(project?.formDefinitions || []).filter(
+      (f) => !inlineForms.some((i) => i.id === f.id),
+    ),
+  ];
+  if (contentOnly && section.form && section.clientAccess?.text === false)
+    return section.clientAccess?.images === false ? (
+      <p className="text-sm text-neutral-500">
+        This form is managed by your administrator.
+      </p>
+    ) : (
+      <MediaPicker
+        value={section.form.image}
+        onChange={(image) =>
+          onChange({ ...section, form: { ...section.form!, image } })
+        }
+      />
+    );
+  if (entry.family === "form")
+    return <div className="space-y-5"><InlineFormEditor
+        value={section.form || defaultForm(section.id,section.variant === "form-v2")}
+        onChange={form=>onChange({...section,form})} contentOnly={contentOnly}
+        showImage={!contentOnly || section.clientAccess?.images !== false}/>
+        {entry.fields.length > 0 && <EditorDisclosure title="Contact details"><Fields id={section.id} fields={entry.fields.filter(f=>!contentOnly || fieldEditable(section,f))} values={section.values} onChange={values=>onChange({...section,values})}/></EditorDisclosure>}
+      </div>;
+
   const repeaters = (entry.repeaters || []).filter(
     (group) =>
       !contentOnly ||
@@ -107,231 +164,450 @@ export function SectionEditor({
   const repeatedKeys = new Set(
     repeaters.flatMap((group) => group.items.flatMap((item) => item.fields)),
   );
+  const replacedKeys = new Set<string>();
+  const walkForm = (
+    nodes: import("@/lib/builder/types").TemplateNode[],
+    inside = false,
+  ) => {
+    for (const node of nodes) {
+      const active = inside || node.tag === "form";
+      if (active) {
+        if (node.field) replacedKeys.add(node.field);
+        Object.values(node.bindings || {}).forEach((key) =>
+          replacedKeys.add(key),
+        );
+      }
+      walkForm(node.children || [], active);
+    }
+  };
+  if (section.form) walkForm(entry.nodes);
   const visible = entry.fields.filter(
-    (field) => !contentOnly || fieldEditable(section, field),
+    (field) =>
+      !replacedKeys.has(field.key) &&
+      (!contentOnly || fieldEditable(section, field)),
   );
   const main = visible.filter((field) => !repeatedKeys.has(field.key));
   const categories = [...new Set(main.map(category))];
   return (
-    <div className="space-y-4">
-      {contentOnly && !visible.length && (
-        <p className="text-sm text-neutral-500">
-          These fields are managed by your administrator.
-        </p>
-      )}
-      {!contentOnly && (
-        <label className="flex items-center justify-between gap-4 rounded-xl bg-white p-4 text-sm">
-          <span className="font-medium">Background</span>
-          <select
-            value={section.tone || ""}
-            onChange={(e) =>
-              onChange({
-                ...section,
-                tone: (e.target.value || undefined) as Section["tone"],
-              })
-            }
-            className="h-9 rounded-lg bg-neutral-50 px-3 text-sm outline-none focus-visible:ring-2 focus-visible:ring-neutral-900"
-          >
-            <option value="">Page background</option>
-            <option value="tint">Tinted</option>
-            <option value="dark">Dark</option>
-            <option value="accent">Accent colour</option>
-          </select>
-        </label>
-      )}
-      {categories.map((name, index) => (
-        <EditorDisclosure key={name} defaultOpen={index === 0} title={name}>
-          <Fields
-            id={section.id}
-            fields={main.filter((f) => category(f) === name)}
-            values={section.values}
-            onChange={(values) => onChange({ ...section, values })}
+    <BlockFormsContext.Provider value={forms}>
+      <div className="space-y-4">
+        {section.form && (
+          <InlineFormEditor
+            value={section.form}
+            onChange={(form) => onChange({ ...section, form })}
+            contentOnly={contentOnly}
+            showImage={!contentOnly || section.clientAccess?.images !== false}
           />
-        </EditorDisclosure>
-      ))}
-      {repeaters.map((group) => {
-        const items = collectionItems(section, entry, group);
-        const limit = group.max ?? 30;
-        const canManage =
-          !contentOnly || collectionEditable(section, entry, group);
-        const allEditable = group.items.every((item) =>
-          item.fields.every((key) => {
-            const field = entry.fields.find((f) => f.key === key);
-            return !!field && fieldEditable(section, field);
-          }),
-        );
-        const update = (items: CollectionItem[]) =>
-          onChange({
-            ...section,
-            collections: { ...section.collections, [group.id]: items },
-          });
-        return (
-          <div
-            key={group.id}
-            className="space-y-3 rounded-xl border bg-white p-4"
-          >
-            <div className="flex items-center justify-between">
-              <h3 className="text-sm font-semibold">
-                {group.label} · {items.length}
-              </h3>
-              {canManage && (
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="sm"
-                  disabled={items.length >= limit}
-                  onClick={() =>
-                    update([...items, newCollectionItem(entry, group)])
-                  }
-                >
-                  <Plus />
-                  Add item
-                </Button>
-              )}
+        )}
+        {!section.form &&
+          !contentOnly &&
+          JSON.stringify(entry.nodes).includes('"tag":"form"') && (
+            <div className="space-y-3 rounded-xl border bg-white p-4">
+              <p className="text-sm font-medium">Form fields</p>
+              {section.formId ? (
+                <p className="text-sm text-neutral-500">
+                  This block uses an existing form. Customize it here to keep
+                  the changes with this section.
+                </p>
+              ) : null}
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() =>
+                  onChange({
+                    ...section,
+                    form: {...structuredClone(
+                      project?.formDefinitions?.find(
+                        (f) => f.id === section.formId,
+                      ) || defaultForm(section.id),
+                    ),id:section.id},
+                    formId: undefined,
+                  })
+                }
+              >
+                Customize fields
+              </Button>
             </div>
-            {!contentOnly && (
-              <div className="space-y-2 rounded-lg bg-neutral-50 p-3">
-                <label className="flex items-center justify-between gap-4 text-xs">
-                  <span>Client can add, remove and reorder items</span>
-                  <Switch
-                    disabled={!allEditable}
-                    checked={collectionEditable(section, entry, group)}
-                    onCheckedChange={(checked) => {
-                      const access =
-                        section.clientAccess || defaultSectionAccess;
-                      const groups = allowedCollectionIds(section, entry);
-                      onChange({
-                        ...section,
-                        clientAccess: {
-                          ...access,
-                          collections: checked
-                            ? [
-                                ...groups.filter((id) => id !== group.id),
-                                group.id,
-                              ]
-                            : groups.filter((id) => id !== group.id),
-                        },
-                      });
-                    }}
-                  />
-                </label>
-                {!allEditable && (
-                  <p className="text-xs text-neutral-500">
-                    Enable editing for this list’s text and images before
-                    allowing item changes.
-                  </p>
+          )}
+        {contentOnly && !visible.length && (
+          <p className="text-sm text-neutral-500">
+            These fields are managed by your administrator.
+          </p>
+        )}
+        {!contentOnly && (
+          <label className="flex items-center justify-between gap-4 rounded-xl bg-white p-4 text-sm">
+            <span className="font-medium">Background</span>
+            <select
+              value={section.tone || ""}
+              onChange={(e) =>
+                onChange({
+                  ...section,
+                  tone: (e.target.value || undefined) as Section["tone"],
+                })
+              }
+              className="h-9 rounded-lg bg-neutral-50 px-3 text-sm outline-none focus-visible:ring-2 focus-visible:ring-neutral-900"
+            >
+              <option value="">Page background</option>
+              <option value="tint">Tinted</option>
+              <option value="dark">Dark</option>
+              <option value="accent">Accent colour</option>
+            </select>
+          </label>
+        )}
+        {categories.map((name, index) => (
+          <EditorDisclosure key={name} defaultOpen={index === 0} title={name}>
+            <Fields
+              id={section.id}
+              fields={main.filter((f) => category(f) === name)}
+              values={section.values}
+              actions={section.actions}
+              onAction={
+                contentOnly
+                  ? undefined
+                  : (key, action) => {
+                      const actions = { ...section.actions };
+                      if (action) actions[key] = action;
+                      else delete actions[key];
+                      onChange({ ...section, actions });
+                    }
+              }
+              onChange={(values) => onChange({ ...section, values })}
+            />
+          </EditorDisclosure>
+        ))}
+        {repeaters.map((group) => {
+          const items = collectionItems(section, entry, group);
+          const limit = group.max ?? 30;
+          const canManage =
+            !contentOnly || collectionEditable(section, entry, group);
+          const allEditable = group.items.every((item) =>
+            item.fields.every((key) => {
+              const field = entry.fields.find((f) => f.key === key);
+              return !!field && fieldEditable(section, field);
+            }),
+          );
+          const update = (items: CollectionItem[]) =>
+            onChange({
+              ...section,
+              collections: { ...section.collections, [group.id]: items },
+            });
+          return (
+            <div
+              key={group.id}
+              className="space-y-3 rounded-xl border bg-white p-4"
+            >
+              <div className="flex items-center justify-between">
+                <h3 className="text-sm font-semibold">
+                  {group.label} · {items.length}
+                </h3>
+                {canManage && (
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    disabled={items.length >= limit}
+                    onClick={() =>
+                      update([...items, newCollectionItem(entry, group)])
+                    }
+                  >
+                    <Plus />
+                    Add item
+                  </Button>
                 )}
               </div>
-            )}
-            {items.map((item, index) => {
-              const keys = group.items[item.template].fields;
-              const fields = visible.filter((f) => keys.includes(f.key));
-              if (contentOnly && !fields.length) return null;
-              const title =
-                fields.find((f) => f.type === "heading") ||
-                fields.find((f) => f.role === "Button / link label") ||
-                fields.find((f) => f.type === "textarea") ||
-                fields.find((f) => f.type === "text");
-              return (
-                <EditorDisclosure
-                  key={item.id}
-                  defaultOpen={index === 0}
-                  title={
-                    <>
-                      {index + 1}.{" "}
-                      {(title
-                        ? (item.values[title.key] ?? title.value)
-                        : "Image"
-                      )
-                        .replace(/\n/g, " ")
-                        .slice(0, 70) || "New item"}
-                    </>
-                  }
-                >
-                  <div className="space-y-4">
-                    {canManage && (
-                      <div className="flex justify-end gap-1">
-                        {[-1, 1].map((direction) => (
+              {!contentOnly && (
+                <div className="space-y-2 rounded-lg bg-neutral-50 p-3">
+                  <label className="flex items-center justify-between gap-4 text-xs">
+                    <span>Client can add, remove and reorder items</span>
+                    <Switch
+                      disabled={!allEditable}
+                      checked={collectionEditable(section, entry, group)}
+                      onCheckedChange={(checked) => {
+                        const access =
+                          section.clientAccess || defaultSectionAccess;
+                        const groups = allowedCollectionIds(section, entry);
+                        onChange({
+                          ...section,
+                          clientAccess: {
+                            ...access,
+                            collections: checked
+                              ? [
+                                  ...groups.filter((id) => id !== group.id),
+                                  group.id,
+                                ]
+                              : groups.filter((id) => id !== group.id),
+                          },
+                        });
+                      }}
+                    />
+                  </label>
+                  {!allEditable && (
+                    <p className="text-xs text-neutral-500">
+                      Enable editing for this list’s text and images before
+                      allowing item changes.
+                    </p>
+                  )}
+                </div>
+              )}
+              {items.map((item, index) => {
+                const keys = group.items[item.template].fields;
+                const fields = visible.filter(
+                  (f) =>
+                    keys.includes(f.key) &&
+                    !(
+                      entry.family === "services" &&
+                      (f.type === "url" ||
+                        ((item.detail?.mode || "none") === "none" &&
+                          f.role === "Button / link label"))
+                    ),
+                );
+                if (contentOnly && !fields.length) return null;
+                const title =
+                  fields.find((f) => f.type === "heading") ||
+                  fields.find((f) => f.role === "Button / link label") ||
+                  fields.find((f) => f.type === "textarea") ||
+                  fields.find((f) => f.type === "text");
+                return (
+                  <EditorDisclosure
+                    key={item.id}
+                    defaultOpen={index === 0}
+                    title={
+                      <>
+                        {index + 1}.{" "}
+                        {(title
+                          ? (item.values[title.key] ?? title.value)
+                          : "Image"
+                        )
+                          .replace(/\n/g, " ")
+                          .slice(0, 70) || "New item"}
+                      </>
+                    }
+                  >
+                    <div className="space-y-4">
+                      {!contentOnly && entry.family === "services" && (
+                        <div className="space-y-3 rounded-lg bg-neutral-50 p-3">
+                          <Label>Service preview</Label>
+                          <Select
+                            value={item.detail?.mode || "none"}
+                            onValueChange={(mode) =>
+                              update(
+                                items.map((i) =>
+                                  i.id === item.id
+                                    ? {
+                                        ...i,
+                                        detail: {
+                                          body: i.detail?.body || "",
+                                          formId: i.detail?.formId || "",
+                                          mode: mode as NonNullable<
+                                            CollectionItem["detail"]
+                                          >["mode"],
+                                        },
+                                      }
+                                    : i,
+                                ),
+                              )
+                            }
+                          >
+                            <SelectOption value="none">Don’t open</SelectOption>
+                            <SelectOption value="modal">
+                              Centered modal
+                            </SelectOption>
+                            <SelectOption value="drawer">
+                              Side panel
+                            </SelectOption>
+                            <SelectOption value="page">
+                              Separate page
+                            </SelectOption>
+                            <SelectOption value="editorial">
+                              Editorial page
+                            </SelectOption>
+                          </Select>
+                          {item.detail && item.detail.mode !== "none" && (
+                            <>
+                              <Label htmlFor={`${item.id}-detail`}>
+                                Full description
+                              </Label>
+                              <Textarea
+                                id={`${item.id}-detail`}
+                                rows={5}
+                                value={item.detail.body}
+                                onChange={(e) =>
+                                  update(
+                                    items.map((i) =>
+                                      i.id === item.id
+                                        ? {
+                                            ...i,
+                                            detail: {
+                                              ...item.detail!,
+                                              body: e.target.value,
+                                            },
+                                          }
+                                        : i,
+                                    ),
+                                  )
+                                }
+                              />
+                              <Label>Enquiry button</Label>
+                              <Select
+                                value={item.detail.formId || "none"}
+                                onValueChange={(id) =>
+                                  update(
+                                    items.map((i) =>
+                                      i.id === item.id
+                                        ? {
+                                            ...i,
+                                            detail: {
+                                              ...item.detail!,
+                                              formId: id === "none" ? "" : id,
+                                            },
+                                          }
+                                        : i,
+                                    ),
+                                  )
+                                }
+                              >
+                                <SelectOption value="none">
+                                  No button
+                                </SelectOption>
+                                {forms.map((f) => (
+                                  <SelectOption key={f.id} value={f.id}>
+                                    {f.title}
+                                  </SelectOption>
+                                ))}
+                              </Select>
+                            </>
+                          )}
+                        </div>
+                      )}
+                      {contentOnly &&
+                        item.detail &&
+                        item.detail.mode !== "none" &&
+                        section.clientAccess?.text !== false && (
+                          <div className="space-y-2">
+                            <Label htmlFor={`${item.id}-detail`}>
+                              Full description
+                            </Label>
+                            <Textarea
+                              id={`${item.id}-detail`}
+                              rows={5}
+                              value={item.detail.body}
+                              onChange={(e) =>
+                                update(
+                                  items.map((i) =>
+                                    i.id === item.id
+                                      ? {
+                                          ...i,
+                                          detail: {
+                                            ...item.detail!,
+                                            body: e.target.value,
+                                          },
+                                        }
+                                      : i,
+                                  ),
+                                )
+                              }
+                            />
+                          </div>
+                        )}
+                      {canManage && (
+                        <div className="flex justify-end gap-1">
+                          {[-1, 1].map((direction) => (
+                            <Button
+                              type="button"
+                              key={direction}
+                              variant="ghost"
+                              size="icon-sm"
+                              aria-label={`Move item ${index + 1} ${direction < 0 ? "up" : "down"}`}
+                              disabled={
+                                index + direction < 0 ||
+                                index + direction >= items.length
+                              }
+                              onClick={() => {
+                                const next = [...items];
+                                [next[index], next[index + direction]] = [
+                                  next[index + direction],
+                                  next[index],
+                                ];
+                                update(next);
+                              }}
+                            >
+                              {direction < 0 ? <ArrowUp /> : <ArrowDown />}
+                            </Button>
+                          ))}
                           <Button
                             type="button"
-                            key={direction}
                             variant="ghost"
                             size="icon-sm"
-                            aria-label={`Move item ${index + 1} ${direction < 0 ? "up" : "down"}`}
-                            disabled={
-                              index + direction < 0 ||
-                              index + direction >= items.length
+                            aria-label={`Duplicate item ${index + 1}`}
+                            disabled={items.length >= limit}
+                            onClick={() =>
+                              update([
+                                ...items.slice(0, index + 1),
+                                {
+                                  ...structuredClone(item),
+                                  id: crypto.randomUUID(),
+                                },
+                                ...items.slice(index + 1),
+                              ])
                             }
-                            onClick={() => {
-                              const next = [...items];
-                              [next[index], next[index + direction]] = [
-                                next[index + direction],
-                                next[index],
-                              ];
-                              update(next);
-                            }}
                           >
-                            {direction < 0 ? <ArrowUp /> : <ArrowDown />}
+                            <Copy />
                           </Button>
-                        ))}
-                        <Button
-                          type="button"
-                          variant="ghost"
-                          size="icon-sm"
-                          aria-label={`Duplicate item ${index + 1}`}
-                          disabled={items.length >= limit}
-                          onClick={() =>
-                            update([
-                              ...items.slice(0, index + 1),
-                              {
-                                ...structuredClone(item),
-                                id: crypto.randomUUID(),
-                              },
-                              ...items.slice(index + 1),
-                            ])
-                          }
-                        >
-                          <Copy />
-                        </Button>
-                        <Button
-                          type="button"
-                          variant="ghost"
-                          size="icon-sm"
-                          aria-label={`Remove item ${index + 1}`}
-                          disabled={items.length <= 1}
-                          onClick={() =>
-                            update(items.filter((i) => i.id !== item.id))
-                          }
-                        >
-                          <Trash2 />
-                        </Button>
-                      </div>
-                    )}
-                    <Fields
-                      id={`${section.id}-${item.id}`}
-                      fields={fields}
-                      values={item.values}
-                      onChange={(values) =>
-                        update(
-                          items.map((i) =>
-                            i.id === item.id ? { ...i, values } : i,
-                          ),
-                        )
-                      }
-                    />
-                  </div>
-                </EditorDisclosure>
-              );
-            })}
-            {canManage && (
-              <p className="text-xs text-neutral-400">
-                1–{limit} items. Remove, duplicate or reorder without changing
-                the layout.
-              </p>
-            )}
-          </div>
-        );
-      })}
-    </div>
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            size="icon-sm"
+                            aria-label={`Remove item ${index + 1}`}
+                            disabled={items.length <= 1}
+                            onClick={() =>
+                              update(items.filter((i) => i.id !== item.id))
+                            }
+                          >
+                            <Trash2 />
+                          </Button>
+                        </div>
+                      )}
+                      <Fields
+                        id={`${section.id}-${item.id}`}
+                        fields={fields}
+                        values={item.values}
+                        actions={item.actions}
+                        onAction={
+                          contentOnly
+                            ? undefined
+                            : (key, action) => {
+                                const actions = { ...item.actions };
+                                if (action) actions[key] = action;
+                                else delete actions[key];
+                                update(
+                                  items.map((i) =>
+                                    i.id === item.id ? { ...i, actions } : i,
+                                  ),
+                                );
+                              }
+                        }
+                        onChange={(values) =>
+                          update(
+                            items.map((i) =>
+                              i.id === item.id ? { ...i, values } : i,
+                            ),
+                          )
+                        }
+                      />
+                    </div>
+                  </EditorDisclosure>
+                );
+              })}
+              {canManage && (
+                <p className="text-xs text-neutral-400">
+                  1–{limit} items. Remove, duplicate or reorder without changing
+                  the layout.
+                </p>
+              )}
+            </div>
+          );
+        })}
+      </div>
+    </BlockFormsContext.Provider>
   );
 }

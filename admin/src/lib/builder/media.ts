@@ -60,6 +60,15 @@ export async function storeMedia(
         );
       }
     }
+    // Animated GIF/WebP would silently keep only the first frame: refuse them with a clear message.
+    const pages = await sharp(bytes, { limitInputPixels: 40000000 })
+      .metadata()
+      .then((m) => m.pages || 1)
+      .catch(() => 1);
+    if (pages > 1)
+      throw new StoreError(
+        "Animated images are not supported. Choose a still image.",
+      );
     const input = sharp(bytes, {
       limitInputPixels: 40000000,
     }).rotate();

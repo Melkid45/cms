@@ -1,0 +1,22 @@
+.about {
+  &__perspective { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.6fr) minmax(0, 1fr); gap: var(--layout-gap); align-items: center; }
+  &__perspective-first { aspect-ratio: auto; height: clamp(420px, 40vw, 640px); }
+  &__perspective-copy { padding-block: 32px; }
+  &__perspective-last { aspect-ratio: auto; height: clamp(420px, 40vw, 640px); }
+  &__connected { display: grid; grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr); gap: 24px; }
+  &__connected > .section__media { aspect-ratio: auto; min-height: 520px; }
+  &__connected-copy { display: flex; flex-direction: column; justify-content: space-between; gap: 48px; padding: clamp(28px, 4vw, 64px); border-radius: var(--radius); background: var(--color-surface); }
+  &__connected-copy .section__support { gap: 32px; }
+}
+@media (max-width: 1100px) {
+  .about__perspective { grid-template-columns: minmax(0, 1fr) minmax(0, 1.5fr); }
+  .about__perspective-last { display: none; }
+  .about__connected { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+@media (max-width: 767px) {
+  .about__perspective, .about__connected { grid-template-columns: minmax(0, 1fr); gap: 24px; }
+  .about__perspective-copy { grid-row: 1; padding: 0; }
+  .about__perspective-first { height: 380px; }
+  .about__perspective-last { display: block; height: 380px; width: 100%; margin: 0; }
+  .about__connected > .section__media { min-height: 340px; }
+}

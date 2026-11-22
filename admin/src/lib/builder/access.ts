@@ -44,6 +44,7 @@ export function designerRoute(path: string) {
     path === "/dashboard/settings/project" ||
     path === "/dashboard/settings/setup" ||
     path === "/dashboard/settings/style" ||
+    path === "/dashboard/settings/cart" ||
     path === "/dashboard/seo"
   );
 }

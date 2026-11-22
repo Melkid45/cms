@@ -16,7 +16,9 @@
     "check:deploy": "node scripts/check-deploy.mjs",
     "test:workflows": "node scripts/test-workflows.mjs",
     "test:roles": "node scripts/test-roles.mjs",
-    "test:domains": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON scripts/test-domains.mjs"
+    "test:domains": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON scripts/test-domains.mjs",
+    "test:content": "node scripts/test-content-actions.mjs",
+    "test:inline": "node scripts/test-inline-blocks.mjs"
   },
   "dependencies": {
     "@base-ui/react": "^1.8.0",

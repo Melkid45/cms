@@ -156,6 +156,7 @@ export default defineConfig({
       '@': srcDir,
     },
   },
+  server: { fs: { allow: [path.resolve(root, "..") ] } },
   build: {
     rollupOptions: {
       input: getHtmlEntries(),

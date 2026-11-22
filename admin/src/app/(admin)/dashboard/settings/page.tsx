@@ -9,6 +9,7 @@ import {
   Megaphone,
   MessageCircle,
   Palette,
+  ShoppingCart,
   SlidersHorizontal,
 } from "lucide-react";
 import { AdminPanel } from "@/components/admin/admin-panel";
@@ -78,6 +79,12 @@ const settings = [
     href: "/dashboard/settings/style",
   },
   {
+    title: "Shop cart",
+    text: "Cart window layout and the header cart button",
+    icon: ShoppingCart,
+    href: "/dashboard/settings/cart",
+  },
+  {
     title: "Social accounts",
     text: "Facebook Page, Instagram and TikTok for one-click posts",
     icon: Megaphone,
@@ -103,6 +110,7 @@ export default async function SettingsPage() {
   // Designers: the design screens; clients: their website settings only.
   const designer = [
     "/dashboard/settings/style",
+    "/dashboard/settings/cart",
     "/dashboard/settings/setup",
     "/dashboard/settings/project",
   ];

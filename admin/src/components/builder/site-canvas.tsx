@@ -1,14 +1,15 @@
 "use client";
-import { useMemo, useRef } from "react";
+import { useMemo, useRef, type ReactNode } from "react";
 import type { Project, Section } from "@/lib/builder/types";
 import { sectionInfo } from "@/lib/builder/section-info";
 import { pageHref } from "@/lib/builder/i18n";
 import {
   SiteCanvasMarkup,
   canvasRootProps,
+  cartLookOf,
   checkoutTarget,
 } from "./site-canvas-markup";
-import { useLightbox, useSiteRuntime } from "./site-runtime";
+import { RuntimeCart, useLightbox, useSiteRuntime, type SiteRuntimeOptions } from "./site-runtime";
 import { siteFontVariables } from "./site-fonts";
 // Website canvas rendered in the browser: editor preview, library pages and /canvas.
 // Public pages render the same markup on the server instead (SitePublicCanvas) and ship only
@@ -22,6 +23,7 @@ export function SiteCanvas({
   siteKey,
   locale,
   onSelectSection,
+  children,
 }: {
   project: Project;
   sections: Section[];
@@ -33,14 +35,14 @@ export function SiteCanvas({
   // Page language (multilingual websites): header/footer texts, menus, switcher, form notices.
   locale?: string;
   onSelectSection?: (id: string) => void;
+  // Extra content after the sections (standalone service page).
+  children?: ReactNode;
 }) {
   const root = useRef<HTMLDivElement>(null);
   const checkoutPage = checkoutTarget(project, locale);
   // Behaviours re-mount whenever the editor renders new markup.
   const version = useMemo(() => ({}), [project, sections, layout]); // eslint-disable-line react-hooks/exhaustive-deps
-  useSiteRuntime(
-    root,
-    {
+  const options: SiteRuntimeOptions = {
       siteId,
       pageId,
       locale,
@@ -50,9 +52,9 @@ export function SiteCanvas({
         id: checkoutPage.id,
         href: pageHref(project, siteKey, checkoutPage),
       },
-    },
-    version,
-  );
+      cartLook: cartLookOf(project),
+  };
+  useSiteRuntime(root, options, version);
   const { onClick, dialog } = useLightbox();
   const rootProps = canvasRootProps(project, locale);
   return (
@@ -87,14 +89,18 @@ export function SiteCanvas({
         layout={layout}
         pageId={pageId}
         siteKey={siteKey}
+        siteId={siteId}
         locale={locale}
         selectLabel={
           onSelectSection
             ? (section) => `Edit ${sectionInfo(section).title}`
             : undefined
         }
-      />
+      >
+        {children}
+      </SiteCanvasMarkup>
       {dialog}
+      <RuntimeCart options={options} />
     </div>
   );
 }

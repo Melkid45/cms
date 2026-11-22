@@ -5,7 +5,11 @@ import { Check } from "lucide-react";
 import { Label } from "@/components/ui/label";
 import type { Project } from "@/lib/builder/types";
 import {
+  BUTTON_MOTIONS,
   BUTTON_SHAPES,
+  BUTTON_STYLES,
+  CONTAINER_WIDTHS,
+  HEADING_SCALES,
   SPACINGS,
   STYLE_PRESETS,
   type SiteStyle,
@@ -79,6 +83,11 @@ export function applyLook(project: Project, look: Look): Project {
   };
 }
 
+// Drops undefined keys (the style keeps only values that were chosen).
+function defined<T extends object>(value: T): Partial<T> {
+  return Object.fromEntries(Object.entries(value).filter(([, v]) => v !== undefined)) as Partial<T>;
+}
+const title = (s: string | number) => (typeof s === "number" ? `${s} px` : s[0].toUpperCase() + s.slice(1));
 const selectClass =
   "h-10 w-full rounded-xl bg-white px-3 text-sm shadow-[0_0_0_1px_rgb(0_0_0/0.06)] outline-none focus-visible:shadow-[0_0_0_2px_rgb(0_0_0/0.5)]";
 
@@ -115,7 +124,16 @@ export function StylePresetFields({
                 key={preset.id}
                 type="button"
                 aria-pressed={active}
-                onClick={() => onChange(lookFromPreset(preset), preset.fonts)}
+                onClick={() => {
+                  // A preset sets colours, corners, spacing and button shape; the button look,
+                  // heading size and width chosen below stay.
+                  const next = lookFromPreset(preset);
+                  const { buttonColor, buttonStyle, buttonMotion, secondaryButtonStyle, secondaryButtonMotion, headingScale, containerWidth } = look.style;
+                  onChange(
+                    { ...next, style: { ...next.style, ...defined({ buttonColor, buttonStyle, buttonMotion, secondaryButtonStyle, secondaryButtonMotion, headingScale, containerWidth }) } },
+                    preset.fonts,
+                  );
+                }}
                 className={`relative rounded-xl bg-white p-4 text-left shadow-[0_0_0_1px_rgb(0_0_0/0.06)] transition-colors hover:bg-neutral-50 ${active ? "shadow-[0_0_0_2px_rgb(0_0_0/0.8)]" : ""}`}
               >
                 <span
@@ -201,6 +219,110 @@ export function StylePresetFields({
             ))}
           </select>
         </label>
+      </div>
+      <ButtonLayoutFields look={look} setStyle={setStyle} />
+    </div>
+  );
+}
+
+// Button colour, look and hover motion, heading size and content width (merged from the
+// origin/main Site design screen). "Library default" leaves the value unset: the website keeps
+// the look of its blocks (button-theme.scss switches on only when a value is chosen).
+function ButtonLayoutFields({
+  look,
+  setStyle,
+}: {
+  look: Look;
+  setStyle: (patch: Partial<SiteStyle>) => void;
+}) {
+  const style = look.style;
+  const choice = <T extends string | number>(
+    label: string,
+    value: T | undefined,
+    options: readonly T[],
+    onPick: (value: T | undefined) => void,
+  ) => (
+    <label className="grid gap-2 text-sm font-medium">
+      {label}
+      <select
+        className={selectClass}
+        value={value === undefined ? "" : String(value)}
+        onChange={(e) => {
+          const raw = e.target.value;
+          onPick(
+            raw === ""
+              ? undefined
+              : (options.find((o) => String(o) === raw) as T | undefined),
+          );
+        }}
+      >
+        <option value="">Library default</option>
+        {options.map((o) => (
+          <option key={String(o)} value={String(o)}>
+            {title(o)}
+          </option>
+        ))}
+      </select>
+    </label>
+  );
+  const buttonColor = style.buttonColor || look.ink;
+  return (
+    <div className="grid gap-4">
+      <div>
+        <Label>Buttons, headings and width</Label>
+        <p className="mt-1 text-sm text-neutral-500">
+          Colour, look and hover effect of the main and secondary buttons,
+          heading size and the maximum content width.
+        </p>
+      </div>
+      <div className="grid gap-4 sm:grid-cols-3">
+        <label className="grid gap-2 text-sm font-medium">
+          Button colour
+          <span className="flex items-center gap-2">
+            <input
+              type="color"
+              value={buttonColor}
+              onChange={(e) => setStyle({ buttonColor: e.target.value })}
+              className="h-10 w-12 cursor-pointer rounded-lg bg-white p-1 shadow-[0_0_0_1px_rgb(0_0_0/0.06)]"
+            />
+            <code className="text-xs text-neutral-500">
+              {style.buttonColor || "Text colour"}
+            </code>
+            {style.buttonColor && (
+              <button
+                type="button"
+                className="text-xs text-neutral-500 underline"
+                onClick={() => setStyle({ buttonColor: undefined })}
+              >
+                Reset
+              </button>
+            )}
+          </span>
+        </label>
+        {choice("Main button", style.buttonStyle, BUTTON_STYLES, (v) =>
+          setStyle({ buttonStyle: v }),
+        )}
+        {choice("Main button hover", style.buttonMotion, BUTTON_MOTIONS, (v) =>
+          setStyle({ buttonMotion: v }),
+        )}
+        {choice(
+          "Secondary button",
+          style.secondaryButtonStyle,
+          BUTTON_STYLES,
+          (v) => setStyle({ secondaryButtonStyle: v }),
+        )}
+        {choice(
+          "Secondary button hover",
+          style.secondaryButtonMotion,
+          BUTTON_MOTIONS,
+          (v) => setStyle({ secondaryButtonMotion: v }),
+        )}
+        {choice("Heading size", style.headingScale, HEADING_SCALES, (v) =>
+          setStyle({ headingScale: v }),
+        )}
+        {choice("Content width", style.containerWidth, CONTAINER_WIDTHS, (v) =>
+          setStyle({ containerWidth: v }),
+        )}
       </div>
     </div>
   );

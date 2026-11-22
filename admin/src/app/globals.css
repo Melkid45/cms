@@ -187,3 +187,6 @@
   background-color: #fff;
   border-color: #e2e2e2;
 }
+.design-color-picker::-webkit-color-swatch-wrapper { padding: 0; }
+.design-color-picker::-webkit-color-swatch { border: 0; border-radius: 999px; }
+.design-color-picker::-moz-color-swatch { border: 0; border-radius: 999px; }

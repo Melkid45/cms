@@ -1,0 +1,94 @@
+{
+  "axiom": {
+    "url": "/demo-axiom.html",
+    "settings": {
+      "name": "Axiom Engineering",
+      "logo": "",
+      "footerLogo": "",
+      "primary": "#1D2B3A",
+      "secondary": "#F5F7FA",
+      "alternative": "#C6D8ED",
+      "buttonColor": "#224C85",
+      "headingFont": "source-sans",
+      "bodyFont": "inter",
+      "headingScale": "compact",
+      "corners": "square",
+      "containerWidth": 1440,
+      "density": "compact",
+      "buttonStyle": "filled",
+      "buttonMotion": "fade",
+      "secondaryButtonStyle": "outline",
+      "secondaryButtonMotion": "fade"
+    },
+    "sections": [
+      "hero-v14",
+      "about-v9",
+      "services-v10",
+      "advantages-v9",
+      "projects-v11",
+      "contact-v5"
+    ]
+  },
+  "forma": {
+    "url": "/demo-forma.html",
+    "settings": {
+      "name": "Forma Studio",
+      "logo": "",
+      "footerLogo": "",
+      "primary": "#282522",
+      "secondary": "#FAF8F4",
+      "alternative": "#F1B573",
+      "buttonColor": "#282522",
+      "headingFont": "onest",
+      "bodyFont": "manrope",
+      "headingScale": "standard",
+      "corners": "rounded",
+      "containerWidth": 1820,
+      "density": "standard",
+      "buttonStyle": "filled",
+      "buttonMotion": "lift",
+      "secondaryButtonStyle": "soft",
+      "secondaryButtonMotion": "fade"
+    },
+    "sections": [
+      "hero-v12",
+      "about-v8",
+      "services-v9",
+      "advantages-v8",
+      "pricing-v6",
+      "testimonials-v12",
+      "contact-v6"
+    ]
+  },
+  "maison": {
+    "url": "/demo-maison.html",
+    "settings": {
+      "name": "Maison Retreat",
+      "logo": "",
+      "footerLogo": "",
+      "primary": "#352F2A",
+      "secondary": "#F8F4EC",
+      "alternative": "#D8C5A8",
+      "buttonColor": "#5E4938",
+      "headingFont": "cormorant-garamond",
+      "bodyFont": "source-sans",
+      "headingScale": "large",
+      "corners": "subtle",
+      "containerWidth": 1600,
+      "density": "spacious",
+      "buttonStyle": "outline",
+      "buttonMotion": "fade",
+      "secondaryButtonStyle": "soft",
+      "secondaryButtonMotion": "fade"
+    },
+    "sections": [
+      "hero-v13",
+      "about-v8",
+      "services-v10",
+      "projects-v11",
+      "advantages-v9",
+      "faq-v6",
+      "contact-v8"
+    ]
+  }
+}

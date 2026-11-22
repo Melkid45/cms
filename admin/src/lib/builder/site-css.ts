@@ -8,7 +8,18 @@ import type { Section, TemplateNode } from "./types";
 // the order of site.scss. A family is also included when a template uses its classes (e.g. a
 // services block with faq__ items), rich text (content), pop-up sections (calculator) or the
 // account / search / chat pop-ups (contact: the header account menu is styled there).
-const ALWAYS = new Set(["base", "header", "footer", "refresh", "site"]);
+// connected-content (forms of the form builder, service dialogs), cart (cart window) and
+// button-theme (button looks) are small and may be needed by any page.
+const ALWAYS = new Set([
+  "base",
+  "header",
+  "footer",
+  "refresh",
+  "site",
+  "connected-content",
+  "cart",
+  "button-theme",
+]);
 const families = new Set(data.order.filter((id) => !ALWAYS.has(id)));
 const hashes = data.hashes as Record<string, string>;
 function scan(nodes: TemplateNode[], used: Set<string>) {
@@ -43,5 +54,11 @@ export function siteCssParts(sections: Section[]) {
     for (const group of entry.repeaters || [])
       scan(group.items.map((item) => item.node), used);
   }
-  return data.order.filter((id) => ALWAYS.has(id) || used.has(id));
+  // <family>-explorations parts (origin/main variants) load with their family.
+  return data.order.filter(
+    (id) =>
+      ALWAYS.has(id) ||
+      used.has(id) ||
+      used.has(id.replace(/-explorations$/, "")),
+  );
 }

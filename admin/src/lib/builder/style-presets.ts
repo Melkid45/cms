@@ -5,6 +5,15 @@ import type { FontPairId } from "./font-pairs";
 
 export const SPACINGS = ["compact", "normal", "airy"] as const;
 export const BUTTON_SHAPES = ["square", "rounded", "pill"] as const;
+// Button look / hover motion, heading size and content width (from origin/main Site design).
+export const BUTTON_STYLES = ["filled", "outline", "soft"] as const;
+export const BUTTON_MOTIONS = ["fade", "lift", "scale", "shine", "none"] as const;
+export const HEADING_SCALES = ["compact", "standard", "large"] as const;
+export const CONTAINER_WIDTHS = [1440, 1600, 1820, 1920] as const;
+export type ButtonStyle = (typeof BUTTON_STYLES)[number];
+export type ButtonMotion = (typeof BUTTON_MOTIONS)[number];
+export type HeadingScale = (typeof HEADING_SCALES)[number];
+export type ContainerWidth = (typeof CONTAINER_WIDTHS)[number];
 export type Spacing = (typeof SPACINGS)[number];
 export type ButtonShape = (typeof BUTTON_SHAPES)[number];
 
@@ -18,6 +27,17 @@ export interface SiteStyle {
   radius?: number;
   spacing?: Spacing;
   buttons?: ButtonShape;
+  // Main button colour (#rrggbb; empty = the brand primary colour) and the look + hover motion
+  // of main and secondary (outline) buttons. Unset = the library look (button-theme.scss is inactive).
+  buttonColor?: string;
+  buttonStyle?: ButtonStyle;
+  buttonMotion?: ButtonMotion;
+  secondaryButtonStyle?: ButtonStyle;
+  secondaryButtonMotion?: ButtonMotion;
+  // Heading size multiplier (compact 0.85, standard 1, large 1.12).
+  headingScale?: HeadingScale;
+  // Maximum content width in px (library default 1820).
+  containerWidth?: ContainerWidth;
 }
 
 export interface StylePreset {
@@ -127,6 +147,7 @@ const BUTTON: Record<ButtonShape, string> = {
   rounded: "10px",
   pill: "999px",
 };
+const HEADING_SCALE: Record<HeadingScale, number> = { compact: 0.85, standard: 1, large: 1.12 };
 const hex = (value?: string) => (value && /^#[0-9a-f]{6}$/i.test(value) ? value : "");
 
 // CSS variables for the .site-canvas root (only the values that are set).
@@ -167,5 +188,31 @@ export function styleVars(style?: SiteStyle, bg?: string): Record<string, string
     vars["--radius"] = `${style.radius}px`;
   if (style.spacing && SPACE[style.spacing]) vars["--section-space"] = SPACE[style.spacing];
   if (style.buttons && BUTTON[style.buttons]) vars["--button-radius"] = BUTTON[style.buttons];
+  if (hex(style.buttonColor)) {
+    const c = style.buttonColor!;
+    vars["--color-button"] = c;
+    vars["--color-interactive"] = c;
+    vars["--color-button-text"] = contrast(c, "#ffffff") >= contrast(c, "#000000") ? "#ffffff" : "#000000";
+    vars["--color-button-hover"] = `color-mix(in srgb, ${c} 85%, white)`;
+  }
+  if (style.headingScale && HEADING_SCALE[style.headingScale] !== undefined)
+    vars["--heading-scale"] = String(HEADING_SCALE[style.headingScale]);
+  if (style.containerWidth && (CONTAINER_WIDTHS as readonly number[]).includes(style.containerWidth))
+    vars["--container-width"] = `${style.containerWidth}px`;
   return vars;
+}
+// data-* attributes of the .site-canvas root that switch on button-theme.scss (only when the
+// website chose a button look; otherwise the library buttons stay as they are).
+export function buttonAttrs(style?: SiteStyle): Record<string, string> {
+  if (
+    !style ||
+    (!hex(style.buttonColor) && !style.buttonStyle && !style.secondaryButtonStyle && !style.buttonMotion && !style.secondaryButtonMotion)
+  )
+    return {};
+  return {
+    "data-button-style": style.buttonStyle || "filled",
+    "data-button-motion": style.buttonMotion || "fade",
+    "data-secondary-button-style": style.secondaryButtonStyle || "outline",
+    "data-secondary-button-motion": style.secondaryButtonMotion || style.buttonMotion || "fade",
+  };
 }

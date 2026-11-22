@@ -57,6 +57,7 @@ const nextConfig: NextConfig = {
       },
     ];
   },
+  distDir: process.env.CMS_BUILD_DIRECTORY || ".next",
   turbopack: { root: path.resolve(__dirname, "..") },
   outputFileTracingRoot: path.resolve(__dirname, ".."),
 };

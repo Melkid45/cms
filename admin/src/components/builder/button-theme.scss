@@ -1,0 +1,114 @@
+// One implementation for the public site and settings previews.
+$primary: ":is(.button:not(.button--outline):not(.button--light):not(.button--accent), .design-button:not(.design-button--secondary))";
+$secondary: ":is(.button--outline, .design-button--secondary)";
+[data-button-style] :is(.button, .design-button) {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  line-height: 1;
+  border-radius: var(--button-radius, var(--radius-button, 8px));
+  transition:
+    background-color 0.22s ease,
+    color 0.22s ease,
+    border-color 0.22s ease,
+    transform 0.22s ease,
+    box-shadow 0.22s ease;
+}
+.design-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 52px;
+  padding: 14px 24px;
+  border: 1px solid transparent;
+  font: inherit;
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 1;
+  cursor: pointer;
+}
+@mixin appearance($attribute, $target) {
+  [#{$attribute}="filled"] #{$target} {
+    background: var(--color-button, var(--color-ink));
+    color: var(--color-button-text, white);
+    border-color: transparent;
+    &:is(:hover, :focus-visible) {
+      background: var(--color-button-hover);
+    }
+  }
+  [#{$attribute}="outline"] #{$target} {
+    background: transparent;
+    color: var(--color-button, var(--color-ink));
+    border-color: currentColor;
+    &:is(:hover, :focus-visible) {
+      background: var(--color-button);
+      color: var(--color-button-text);
+      border-color: var(--color-button);
+    }
+  }
+  [#{$attribute}="soft"] #{$target} {
+    background: color-mix(in srgb, var(--color-button) 12%, var(--button-soft-surface, var(--color-bg)));
+    color: var(--color-button);
+    border-color: transparent;
+    &:is(:hover, :focus-visible) {
+      background: color-mix(in srgb, var(--color-button) 22%, var(--button-soft-surface, var(--color-bg)));
+    }
+  }
+}
+@mixin motion($attribute, $target) {
+  [#{$attribute}="lift"] #{$target}:not(:disabled):is(:hover, :focus-visible) {
+    transform: translateY(-3px);
+    box-shadow: 0 6px 16px
+      color-mix(in srgb, var(--color-button) 16%, transparent);
+  }
+  [#{$attribute}="scale"] #{$target}:not(:disabled):is(:hover, :focus-visible) {
+    transform: scale(1.035);
+  }
+  [#{$attribute}="shine"] #{$target}::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    background: linear-gradient(
+      110deg,
+      transparent 20%,
+      rgb(255 255 255 / 35%) 50%,
+      transparent 80%
+    );
+    transform: translateX(-110%);
+    transition: transform 0.5s ease;
+  }
+  [#{$attribute}="shine"]
+    #{$target}:not(:disabled):is(:hover, :focus-visible)::after {
+    transform: translateX(110%);
+  }
+  [#{$attribute}="none"] #{$target} {
+    transition: none;
+  }
+}
+@include appearance("data-button-style", $primary);
+@include appearance("data-secondary-button-style", $secondary);
+@include motion(
+  "data-button-motion",
+  ":is(.button, .design-button):not(.button--outline):not(.design-button--secondary)"
+);
+@include motion("data-secondary-button-motion", $secondary);
+[data-button-style] :is(.button, .design-button):active {
+  transform: none;
+}
+@media (prefers-reduced-motion: reduce) {
+  [data-button-style] :is(.button, .design-button) {
+    transition: none;
+    transform: none !important;
+  }
+  [data-button-style] :is(.button, .design-button)::after {
+    display: none;
+  }
+}
+
+// Contextual inverse buttons retain contrast for every secondary style.
+:is(.contact__dark, .site-footer--dark) .button--outline {
+  --color-button: var(--color-bg);
+  --color-button-text: var(--color-ink);
+  --button-soft-surface: var(--color-ink);
+}

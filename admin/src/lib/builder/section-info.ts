@@ -53,9 +53,11 @@ export function sectionInfo(section: Section) {
   const image = entry?.fields.find((f) => f.type === "image");
   return {
     title:
-      (title
-        ? (section.values[title.key] ?? title.value)
-        : entry?.title || "Section"
+      (
+        section.form?.title ||
+        (title
+          ? (section.values[title.key] ?? title.value)
+          : entry?.title || "Section")
       )
         .replace(/\s+/g, " ")
         .trim()
@@ -63,9 +65,9 @@ export function sectionInfo(section: Section) {
       entry?.title ||
       "Section",
     family: entry?.title || "Section",
-    image: image
-      ? (section.values[image.key] ?? image.value)
-      : entry?.thumbnail,
+    image:
+      section.form?.image ||
+      (image ? (section.values[image.key] ?? image.value) : entry?.thumbnail),
     thumbnail: entry?.thumbnail,
   };
 }

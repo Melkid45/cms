@@ -93,6 +93,97 @@
    1440
   ]
  },
+ "/images/demo-sites/engineer.jpg": {
+  "width": 1600,
+  "height": 1067,
+  "widths": [
+   320,
+   480,
+   640,
+   828,
+   1080
+  ]
+ },
+ "/images/demo-sites/retreat.jpg": {
+  "width": 1800,
+  "height": 1800,
+  "widths": [
+   320,
+   480,
+   640,
+   828,
+   1080,
+   1440
+  ]
+ },
+ "/images/demo-sites/workshop.jpg": {
+  "width": 1600,
+  "height": 1067,
+  "widths": [
+   320,
+   480,
+   640,
+   828,
+   1080
+  ]
+ },
+ "/images/hero-explorations/chair.jpg": {
+  "width": 1800,
+  "height": 2250,
+  "widths": [
+   320,
+   480,
+   640,
+   828,
+   1080,
+   1440
+  ]
+ },
+ "/images/hero-explorations/manufacturing.jpg": {
+  "width": 2000,
+  "height": 1333,
+  "widths": [
+   320,
+   480,
+   640,
+   828,
+   1080,
+   1440
+  ]
+ },
+ "/images/hero-explorations/movement.jpg": {
+  "width": 1000,
+  "height": 667,
+  "widths": [
+   320,
+   480,
+   640,
+   828
+  ]
+ },
+ "/images/hero-explorations/stay.jpg": {
+  "width": 2200,
+  "height": 1467,
+  "widths": [
+   320,
+   480,
+   640,
+   828,
+   1080,
+   1440,
+   1920
+  ]
+ },
+ "/images/hero-explorations/training.jpg": {
+  "width": 1000,
+  "height": 667,
+  "widths": [
+   320,
+   480,
+   640,
+   828
+  ]
+ },
  "/images/hero/details.jpg": {
   "width": 1200,
   "height": 800,
@@ -160,6 +251,65 @@
    1440
   ]
  },
+ "/images/section-explorations/daniel.jpg": {
+  "width": 700,
+  "height": 1050,
+  "widths": [
+   320,
+   480
+  ]
+ },
+ "/images/section-explorations/emma.jpg": {
+  "width": 900,
+  "height": 1350,
+  "widths": [
+   320,
+   480,
+   640
+  ]
+ },
+ "/images/section-explorations/room.jpg": {
+  "width": 1800,
+  "height": 1350,
+  "widths": [
+   320,
+   480,
+   640,
+   828,
+   1080,
+   1440
+  ]
+ },
+ "/images/section-explorations/sophie.jpg": {
+  "width": 400,
+  "height": 599,
+  "widths": [
+   320
+  ]
+ },
+ "/images/section-explorations/studio.jpg": {
+  "width": 1400,
+  "height": 933,
+  "widths": [
+   320,
+   480,
+   640,
+   828,
+   1080
+  ]
+ },
+ "/images/section-explorations/team.jpg": {
+  "width": 1800,
+  "height": 1201,
+  "widths": [
+   320,
+   480,
+   640,
+   828,
+   1080,
+   1440
+  ]
+ },
  "/images/showcase/northline-home.jpg": {
   "width": 1600,
   "height": 1000,
@@ -191,6 +341,36 @@
    640,
    828,
    1080
+  ]
+ },
+ "/images/team/1.png": {
+  "width": 996,
+  "height": 1000,
+  "widths": [
+   320,
+   480,
+   640,
+   828
+  ]
+ },
+ "/images/team/2.png": {
+  "width": 1000,
+  "height": 1000,
+  "widths": [
+   320,
+   480,
+   640,
+   828
+  ]
+ },
+ "/images/team/3.png": {
+  "width": 996,
+  "height": 1000,
+  "widths": [
+   320,
+   480,
+   640,
+   828
   ]
  },
  "/images/team/person-1.jpg": {

@@ -122,6 +122,9 @@ const STRINGS = {
     pickup: "Pickup",
     free: "Free",
     subtotal: "Products",
+    toCheckout: "Checkout",
+    keepBrowsing: "Continue browsing",
+    close: "Close",
   },
   lv: {
     preview: "Tikai priekšskatījums. Ziņas no redaktora netiek sūtītas.",
@@ -145,6 +148,9 @@ const STRINGS = {
     pickup: "Saņemšana uz vietas",
     free: "Bez maksas",
     subtotal: "Preces",
+    toCheckout: "Noformēt pasūtījumu",
+    keepBrowsing: "Turpināt iepirkties",
+    close: "Aizvērt",
   },
   ru: {
     preview: "Только предпросмотр. Из редактора сообщения не отправляются.",
@@ -168,6 +174,9 @@ const STRINGS = {
     pickup: "Самовывоз",
     free: "Бесплатно",
     subtotal: "Товары",
+    toCheckout: "Оформить заказ",
+    keepBrowsing: "Продолжить покупки",
+    close: "Закрыть",
   },
   de: {
     preview: "Nur Vorschau. Aus dem Editor werden keine Nachrichten gesendet.",
@@ -192,6 +201,9 @@ const STRINGS = {
     pickup: "Abholung",
     free: "Kostenlos",
     subtotal: "Waren",
+    toCheckout: "Zur Kasse",
+    keepBrowsing: "Weiter einkaufen",
+    close: "Schließen",
   },
 };
 export function uiText(locale: string | undefined) {

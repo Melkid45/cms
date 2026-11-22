@@ -2,13 +2,13 @@
 .heading { font-family: var(--font-heading, "Playfair Display"), Georgia, serif; font-weight: var(--font-heading-weight, 700); letter-spacing: -0.01em; line-height: 1.1; text-wrap: balance; font-variant-numeric: lining-nums; }
 // Large figures (prices, step numbers, stats) use Inter Bold: Playfair numerals vary in height.
 .pricing__amount, .hero__card-time, .pricing p.heading, .process span.heading, dt.heading { font-family: var(--font-body, Inter), sans-serif; font-weight: 700; letter-spacing: -0.03em; font-variant-numeric: lining-nums tabular-nums; }
-.heading--display { font-size: clamp(48px, 8.5vw, 128px); }
-.heading--xl { font-size: clamp(38px, 5vw, 96px); }
-.heading--lg { font-size: clamp(32px, 4vw, 60px); }
-.heading--md { font-size: clamp(26px, 2.6vw, 40px); }
-.heading--sm { font-size: clamp(22px, 2vw, 28px); }
+.heading--display { font-size: calc(clamp(48px, 8.5vw, 128px) * var(--heading-scale, 1)); }
+.heading--xl { font-size: calc(clamp(38px, 5vw, 96px) * var(--heading-scale, 1)); }
+.heading--lg { font-size: calc(clamp(32px, 4vw, 60px) * var(--heading-scale, 1)); }
+.heading--md { font-size: calc(clamp(26px, 2.6vw, 40px) * var(--heading-scale, 1)); }
+.heading--sm { font-size: calc(clamp(22px, 2vw, 28px) * var(--heading-scale, 1)); }
 .text { font-weight: 400; line-height: 1.6; }
-.text--lg { font-size: clamp(17px, 1.4vw, 24px); }
+.text--lg { font-size: calc(clamp(17px, 1.4vw, 24px) * var(--heading-scale, 1)); }
 .text--md { font-size: 16px; }
 .text--sm { font-size: 14px; }
 .text--xs { font-size: 12px; }

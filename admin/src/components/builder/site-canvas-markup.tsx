@@ -1,9 +1,11 @@
-import type { CSSProperties } from "react";
+import type { CSSProperties, ReactNode } from "react";
 import { SectionRenderer, mainHeadingIsEmpty } from "./section-renderer";
 import type { Project, Section } from "@/lib/builder/types";
 import { fontPairVars } from "@/lib/builder/font-pairs";
-import { styleVars } from "@/lib/builder/style-presets";
+import { buttonAttrs, styleVars } from "@/lib/builder/style-presets";
 import { localizedLayoutValues } from "@/lib/builder/i18n";
+import { connectedContent } from "@/lib/builder/inline-content";
+import { ContentDialogs } from "./content-dialogs";
 // Website markup without client code: rendered on the server for public pages
 // (SitePublicCanvas) and inside the editor's SiteCanvas. Behaviours: site-runtime.tsx.
 
@@ -35,6 +37,9 @@ export function canvasRootProps(project: Project, locale?: string) {
     "--color-border": `color-mix(in srgb, ${b.primary} 18%, ${b.secondary})`,
     "--color-interactive": b.primary,
     "--color-button-hover": `color-mix(in srgb, ${b.primary} 85%, white)`,
+    // Button looks (button-theme.scss, only with data-button-style): brand primary unless style.buttonColor.
+    "--color-button": b.primary,
+    "--color-button-text": readableOn(b.primary),
     ...fontPairVars(project.fonts),
     // Style preset values (radius, spacing, buttons, surface/muted); custom CSS still wins.
     ...styleVars(project.style, b.secondary),
@@ -47,8 +52,15 @@ export function canvasRootProps(project: Project, locale?: string) {
       ? project.style.preset || "custom"
       : undefined,
     lang: locale || project.languages?.default || undefined,
+    ...buttonAttrs(project.style),
     style,
   };
+}
+// Cart window look of the website (project.store), for the site runtime.
+export function cartLookOf(project: Project) {
+  return project.store?.cart
+    ? { variant: project.store.cart, button: project.store.button }
+    : undefined;
 }
 // Published checkout page (pricing-v24) for the shop cart, preferably in this language.
 export function checkoutTarget(project: Project, locale?: string) {
@@ -61,28 +73,50 @@ export function checkoutTarget(project: Project, locale?: string) {
   return pages.find((p) => p.locale === locale) || pages[0];
 }
 export function SiteCanvasMarkup({
-  project,
-  sections,
+  project: sourceProject,
+  sections: sourceSections,
   layout = true,
   pageId,
   siteKey,
+  siteId,
   locale,
   selectLabel,
   rootLinks,
+  children,
 }: {
   project: Project;
   sections: Section[];
   layout?: boolean;
   pageId?: string;
   siteKey?: string;
+  // Website id: enquiries of form-builder forms (SchemaForm) go to this website.
+  siteId?: string;
   locale?: string;
+  // Extra content after the sections (standalone service page).
+  children?: ReactNode;
   // Editor only: accessible label of a selectable section.
   selectLabel?: (section: Section) => string | undefined;
   // Public page on the website's own domain: links without /site/{key} (custom domains).
   rootLinks?: boolean;
 }) {
+  // Forms that live in sections and services opened from collection items become website
+  // forms/services; their buttons get actions (lib/builder/inline-content.ts).
+  const { project, sections } = connectedContent(sourceProject, sourceSections);
+  const forms = project.formDefinitions || [];
+  const services = (project.services || []).filter(
+    (s) => s.status === "Published",
+  );
   return (
     <>
+      {forms.length || services.length ? (
+        <ContentDialogs
+          forms={forms}
+          services={services}
+          pageId={pageId}
+          siteId={siteId}
+          locale={locale}
+        />
+      ) : null}
       {project.customCss ? (
         // Validated on save (no tags, imports or external URLs); written by the design team only.
         <style>{project.customCss}</style>
@@ -96,6 +130,7 @@ export function SiteCanvasMarkup({
             }}
             project={project}
             siteKey={siteKey}
+            siteId={siteId}
             pageId={pageId}
             locale={locale}
             rootLinks={rootLinks}
@@ -111,6 +146,7 @@ export function SiteCanvasMarkup({
               section={section}
               project={project}
               siteKey={siteKey}
+              siteId={siteId}
               pageId={pageId}
               locale={locale}
               rootLinks={rootLinks}
@@ -121,6 +157,7 @@ export function SiteCanvasMarkup({
               selectLabel={selectLabel?.(section)}
             />
           ))}
+        {children}
       </main>
       {layout && (
         <SectionRenderer
@@ -130,6 +167,7 @@ export function SiteCanvasMarkup({
           }}
           project={project}
           siteKey={siteKey}
+          siteId={siteId}
           pageId={pageId}
           locale={locale}
           rootLinks={rootLinks}

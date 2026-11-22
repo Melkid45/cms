@@ -55,10 +55,22 @@ const { SectionRenderer } = load(
 const { renderToStaticMarkup } = require("react-dom/server"),
   { createElement } = require("react");
 // Every template file on disk is imported (count follows the library as it grows).
-const templateFiles = require("fs").globSync("../frontend/src/components/{sections,layout}/*/*-v*.html", { cwd: root });
+// service-details/* are service dialog/page templates of the static frontend, not CMS blocks.
+const templateFiles = require("fs")
+  .globSync("../frontend/src/components/{sections,layout}/*/*-v*.html", { cwd: root })
+  .filter((f) => path.basename(path.dirname(f)) !== "service-details");
 assert.equal(definitions.length, templateFiles.length);
 assert.equal(new Set(definitions.map((d) => d.family)).size, new Set(templateFiles.map((f) => path.basename(path.dirname(f)))).size);
+assert.equal(definitions.filter(d=>d.family === "form").length,6);
+const quickForm=createSection("form-v6","quick-form-check");assert.deepEqual(quickForm.form.fields.map(f=>f.name),["name","phone"]);assert.equal(quickForm.form.fields[1].type,"tel");
+const switchedForm=switchSection(quickForm,"form-v4");assert.deepEqual(switchedForm.form.fields,quickForm.form.fields);
 const project = seedProject();
+const {clientProjectError}=load(path.join(root,"src/lib/builder/permissions.ts"));
+const ownerProject=structuredClone(project);ownerProject.pages[0].sections.push(createSection("form-v1","embedded-form-check"));
+let clientChange=structuredClone(ownerProject);clientChange.pages[0].sections.at(-1).form.title="Edited form heading";assert.equal(clientProjectError(clientChange,ownerProject),undefined);
+clientChange=structuredClone(ownerProject);clientChange.pages[0].sections.at(-1).form.columns=3;assert(clientProjectError(clientChange,ownerProject));
+clientChange=structuredClone(ownerProject);clientChange.pages[0].sections.at(-1).form.fields[0].type="email";assert(clientProjectError(clientChange,ownerProject));
+
 const { normalizeProject, preparePages, publicProject, hasDraftChanges } = load(
   path.join(root, "src/lib/builder/workflows.ts"),
 );
@@ -200,6 +212,8 @@ for (const entry of definitions) {
     html.includes("heading") || entry.family === "header",
     `Missing shared typography: ${entry.id}`,
   );
+  // The header cart button is added by the site runtime (cart-widgets.ts), never by the template.
+  if (entry.family === "header") assert(!html.includes("cart-link"), entry.id);
   assert(!html.includes("Legacy layout"));
   for (const field of entry.fields.filter(
     (f) => f.type === "image" && f.value.startsWith("/images/"),
@@ -233,5 +247,29 @@ assert.equal(safeUrl("/site/home"), "/site/home");
 assert.equal((html.match(/<h1\b/g) || []).length, 1);
 console.log(
   `${definitions.length} approved variants render as React, screenshots/assets exist, editable content is escaped, unsafe URLs are rejected, three demo pages are connected.`,
+);
+for (const entry of definitions) {
+  const stressed = createSection(entry.id);
+  for (const field of entry.fields) {
+    if (["heading", "text"].includes(field.type))
+      stressed.values[field.key] =
+        "LongUnbrokenClientContent".repeat(12) + " <script>alert(1)</script>";
+    if (field.type === "image") stressed.values[field.key] = "";
+  }
+  const markup = renderToStaticMarkup(
+    createElement(SectionRenderer, { section: stressed, project, first: true }),
+  );
+  assert(
+    markup.length > 0,
+    entry.id + " must render with missing images and long text",
+  );
+  assert(!markup.includes("<script>"), entry.id + " must escape content");
+  assert(
+    !markup.includes('src=""'),
+    entry.id + " must not request the current page as an image",
+  );
+}
+console.log(
+  `PASS: all ${definitions.length} variants render with long/unbroken client text, missing images and escaped markup. Layout overflow requires the browser audit.`,
 );
 export { seedProject };

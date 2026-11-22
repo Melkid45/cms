@@ -1,0 +1,7 @@
+// Page shell only. Section compositions remain in their original family SCSS.
+.demo-site { font-family: var(--site-body-font, Manrope, sans-serif); }
+.demo-site .site-sections { display: flex; flex-direction: column; gap: var(--section-space); padding-top: var(--header-height); }
+.demo-site > footer { margin-top: var(--section-space); }
+.demo-site .button { border-radius: var(--radius-button, 8px); }
+.demo-site .hero { scroll-margin-top: var(--header-height); }
+.demo-site .section { scroll-margin-top: calc(var(--header-height) + 24px); }

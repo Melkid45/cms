@@ -1,13 +1,15 @@
 "use client";
 /* eslint-disable @next/next/no-img-element */
-import { useEffect, useRef, useState, type CSSProperties, type ReactNode } from "react";
+import { useEffect, useRef, useState, type ReactNode } from "react";
 import { X } from "lucide-react";
 import Splide from "@splidejs/splide";
 import "@splidejs/splide/css/core";
 import { mountSiteWidgets } from "./site-widgets";
 import { mountShopWidgets } from "./shop-widgets";
 import { mountMapWidgets } from "./map-widgets";
-import { mountCartWidgets } from "./cart-widgets";
+import { mountCartWidgets, type CartLook } from "./cart-widgets";
+import { StoreCart } from "./store-cart";
+import type { canvasRootProps } from "./site-canvas-markup";
 import { mountAccountWidgets } from "./account-widgets";
 import { mountBookingWidgets } from "./booking-widgets";
 import { uiText } from "@/lib/builder/i18n";
@@ -22,16 +24,21 @@ export type SiteRuntimeOptions = {
   lang?: string;
   formsOff?: boolean;
   checkout?: { id: string; href: string };
+  // Cart window look (project.store): the header cart button opens it (store-cart.tsx).
+  cartLook?: CartLook;
 };
 export function useSiteRuntime(
   root: React.RefObject<HTMLDivElement | null>,
-  { siteId, pageId, locale, lang, formsOff, checkout }: SiteRuntimeOptions,
+  { siteId, pageId, locale, lang, formsOff, checkout, cartLook }: SiteRuntimeOptions,
   // Changes when the editor re-renders the markup, so behaviours re-mount on the new DOM.
   version?: unknown,
 ) {
   const text = uiText(lang);
   const checkoutId = checkout?.id,
     checkoutHref = checkout?.href;
+  // Primitive deps: the options object is new on every render.
+  const cartVariant = cartLook?.variant,
+    cartButton = cartLook?.button ? JSON.stringify(cartLook.button) : "";
   useEffect(() => {
     const checkout =
       checkoutId && checkoutHref ? { id: checkoutId, href: checkoutHref } : undefined;
@@ -122,7 +129,7 @@ export function useSiteRuntime(
       );
     }
     el.querySelectorAll<HTMLElement>(
-      "[data-services-slider],[data-testimonials-slider],[data-projects-slider],[data-process-slider]",
+      "[data-services-slider],[data-testimonials-slider],[data-projects-slider],[data-process-slider],[data-projects-spotlight]",
     ).forEach((element) => {
       element.tabIndex = 0;
       if (!element.getAttribute("aria-label"))
@@ -131,8 +138,10 @@ export function useSiteRuntime(
           `${element.closest("section")?.querySelector("h2,h1")?.textContent || "Content"} carousel`,
         );
       const variant = element.dataset.testimonialsSlider;
+      // data-projects-spotlight: one project at a time (projects-v10, origin/main).
+      const spotlight = element.hasAttribute("data-projects-spotlight");
       const perPage =
-        element.hasAttribute("data-process-slider") || variant === "single"
+        spotlight || element.hasAttribute("data-process-slider") || variant === "single"
           ? 1
           : ["split", "stories"].includes(variant || "")
             ? 2
@@ -152,18 +161,19 @@ export function useSiteRuntime(
       }).mount();
       sliders.push(slider);
       const parent =
+        (spotlight ? element.closest(".projects") : null) ||
         element.closest("[data-testimonials-controls],.process") ||
         element.parentElement;
       parent
         ?.querySelectorAll<HTMLElement>(
-          "[data-testimonials-prev],[data-process-prev]",
+          "[data-testimonials-prev],[data-process-prev],[data-spotlight-prev]",
         )
         .forEach((button) =>
           button.addEventListener("click", () => slider.go("<"), { signal }),
         );
       parent
         ?.querySelectorAll<HTMLElement>(
-          "[data-testimonials-next],[data-process-next]",
+          "[data-testimonials-next],[data-process-next],[data-spotlight-next]",
         )
         .forEach((button) =>
           button.addEventListener("click", () => slider.go(">"), { signal }),
@@ -392,6 +402,9 @@ export function useSiteRuntime(
       pageId,
       locale,
       checkout,
+      look: cartVariant
+        ? { variant: cartVariant, button: cartButton ? JSON.parse(cartButton) : undefined }
+        : undefined,
     });
     const unmountWidgets = mountSiteWidgets(
       el,
@@ -412,7 +425,8 @@ export function useSiteRuntime(
     };
     // Token for enquiry forms: fetched only when the page has a form.
     if (pageId && el.querySelector("form")) loadToken().catch(() => {});
-    el.querySelectorAll<HTMLFormElement>("form").forEach((form) => {
+    // Forms of the form builder (SchemaForm, data-schema-form) send themselves.
+    el.querySelectorAll<HTMLFormElement>("form:not([data-schema-form])").forEach((form) => {
       const trap = document.createElement("input");
       trap.name = "website";
       trap.tabIndex = -1;
@@ -511,7 +525,7 @@ export function useSiteRuntime(
       });
       document.documentElement.removeAttribute("data-site-menu-open");
     };
-  }, [root, version, pageId, siteId, text, locale, lang, formsOff, checkoutId, checkoutHref]);
+  }, [root, version, pageId, siteId, text, locale, lang, formsOff, checkoutId, checkoutHref, cartVariant, cartButton]);
 }
 type Photo = { url: string; alt: string; title: string; text: string };
 // Image lightbox for gallery photos and project cards ([data-gallery-photo], [data-project]).
@@ -576,12 +590,7 @@ export function SiteRuntime({
   children,
 }: {
   options: SiteRuntimeOptions;
-  rootProps: {
-    className: string;
-    "data-site-style"?: string;
-    lang?: string;
-    style: CSSProperties;
-  };
+  rootProps: ReturnType<typeof canvasRootProps>;
   children: ReactNode;
 }) {
   const root = useRef<HTMLDivElement>(null);
@@ -591,6 +600,19 @@ export function SiteRuntime({
     <div ref={root} {...rootProps} onClick={onClick}>
       {children}
       {dialog}
+      <RuntimeCart options={options} />
     </div>
+  );
+}
+// The cart window, when the website has a cart look and a checkout page.
+export function RuntimeCart({ options }: { options: SiteRuntimeOptions }) {
+  if (!options.cartLook || !options.checkout || !options.siteId) return null;
+  return (
+    <StoreCart
+      variant={options.cartLook.variant}
+      siteId={options.siteId}
+      locale={options.lang}
+      checkoutHref={options.checkout.href}
+    />
   );
 }

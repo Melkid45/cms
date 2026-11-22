@@ -411,6 +411,8 @@ try {
     const response = await put(next, client);
     assert.equal(response.status, 403, label);
   };
+  await reject("Form definitions", (p) => {p.formDefinitions=[{id:"forged-form",title:"Form",description:"",buttonLabel:"Send",layout:"compact",image:"",fields:[{id:"name",type:"text",name:"name",label:"Name",placeholder:"",required:true,width:"full",options:[]}]}];});
+  await reject("Service definitions", (p) => {p.services=[{id:"forged-service",title:"Service",slug:"service",summary:"",body:"",image:"",imageAlt:"",mode:"modal",status:"Draft",formId:""}];});
   await reject("Brand colours", (p) => {
     p.brand.primary = "#abcdef";
   });
@@ -597,6 +599,11 @@ try {
   await checkProductWorkflows({ base, owner, client, directory, cronSecret });
   await checkCompaniesAndSites({ owner, client, account });
   await checkCustomDomains({ owner, client });
+  // Admin pages are never indexed (merged from origin/main).
+  const dashboardHtml = await (
+    await fetch(base + "/dashboard", { headers: { Cookie: owner } })
+  ).text();
+  assert.match(dashboardHtml, /noindex/);
   r = await request(
     "/api/builder/accounts",
     "PATCH",

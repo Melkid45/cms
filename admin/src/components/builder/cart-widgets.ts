@@ -6,6 +6,23 @@
 //  - the checkout block (pricing-v24) lists the cart and sends a real order to /api/shop/orders.
 // Works only on public pages of a website that has a published checkout page.
 import { uiText } from "@/lib/builder/i18n";
+import { safeUrl } from "@/lib/builder/safe-url";
+import type { CartButton, CartVariant } from "@/lib/builder/types";
+
+// Cart window look (project.store, merged from origin/main): the header button opens the cart
+// window (store-cart.tsx) instead of going to the checkout page. Both share the same storage.
+export type CartLook = { variant: CartVariant; button?: CartButton };
+export const CART_OPEN = "cms:cart-open";
+export const CART_CHANGE = "cms:cart-change";
+export const cartKey = (siteId: string) => `harbstone-cart:${siteId}`;
+const ICONS: Record<CartButton["icon"], string> = {
+  bag: '<path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z"/><path d="M3 6h18"/><path d="M16 10a4 4 0 0 1-8 0"/>',
+  cart: '<circle cx="9" cy="20" r="1.4"/><circle cx="18" cy="20" r="1.4"/><path d="M2.5 3.5h2.6l2.4 11.2a1.6 1.6 0 0 0 1.6 1.3h8.3a1.6 1.6 0 0 0 1.6-1.2l1.6-6.8H6.2"/>',
+  basket: '<path d="m15 11-1 9"/><path d="m19 11-4-7"/><path d="M2 11h20"/><path d="m3.5 11 1.6 7.4a2 2 0 0 0 2 1.6h9.8a2 2 0 0 0 2-1.6l1.7-7.4"/><path d="M4.5 15.5h15"/><path d="m5 11 4-7"/><path d="m9 11 1 9"/>',
+};
+export function cartIconSvg(icon: CartButton["icon"] = "cart") {
+  return `<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${ICONS[icon] || ICONS.cart}</svg>`;
+}
 
 export interface CartLine {
   pageId: string;
@@ -36,14 +53,15 @@ export function mountCartWidgets(
     pageId?: string;
     locale?: string;
     checkout?: { id: string; href: string };
+    look?: CartLook;
   },
 ) {
-  const { siteId, pageId, checkout } = options;
+  const { siteId, pageId, checkout, look } = options;
   if (!siteId || !pageId || !checkout) return () => {};
   // Display currency switcher of the header "EUR €" pill (shops only; the cart and orders stay in EUR).
   const unmountCurrency = mountCurrency(el, signal, siteId, options.locale);
   const t = uiText(options.locale);
-  const key = `harbstone-cart:${siteId}`;
+  const key = cartKey(siteId);
   const added: Element[] = [];
   const undo: (() => void)[] = [];
   const read = (): CartLine[] => {
@@ -59,6 +77,7 @@ export function mountCartWidgets(
       localStorage.setItem(key, JSON.stringify(lines));
     } catch {}
     render();
+    window.dispatchEvent(new CustomEvent(CART_CHANGE));
   };
   const on = <K extends keyof HTMLElementEventMap>(
     target: EventTarget,
@@ -79,8 +98,27 @@ export function mountCartWidgets(
     const link = make("a", "cart-link");
     link.href = checkout.href;
     link.setAttribute("aria-label", t.cart);
-    link.innerHTML =
-      '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="9" cy="20" r="1.4"/><circle cx="18" cy="20" r="1.4"/><path d="M2.5 3.5h2.6l2.4 11.2a1.6 1.6 0 0 0 1.6 1.3h8.3a1.6 1.6 0 0 0 1.6-1.2l1.6-6.8H6.2"/></svg><span class="cart-link__count" hidden></span>';
+    // Without a cart look: the original cart icon, the link goes to the checkout page.
+    const image = look?.button?.image ? safeUrl(look.button.image, true) : "";
+    if (image) {
+      const img = make("img", "cart-link__image");
+      img.src = image;
+      img.alt = "";
+      img.width = 22;
+      img.height = 22;
+      link.append(img);
+    } else link.insertAdjacentHTML("beforeend", cartIconSvg(look?.button?.icon));
+    if (look?.button?.label) link.append(make("span", "cart-link__label text text--sm", look.button.label));
+    link.append(make("span", "cart-link__count"));
+    link.querySelector<HTMLElement>(".cart-link__count")!.hidden = true;
+    if (look) {
+      link.setAttribute("aria-haspopup", "dialog");
+      on(link, "click", (e) => {
+        if (e.metaKey || e.ctrlKey || e.shiftKey || e.button !== 0) return;
+        e.preventDefault();
+        window.dispatchEvent(new CustomEvent(CART_OPEN));
+      });
+    }
     actions.prepend(link);
     added.push(link);
     links.push(link);
@@ -97,6 +135,12 @@ export function mountCartWidgets(
     toast.replaceChildren(make("span", "", `${t.added}: ${name}`));
     const open = make("a", "cart-toast__link", t.openCart);
     open.href = checkout.href;
+    if (look)
+      open.onclick = (e) => {
+        e.preventDefault();
+        toast.hidden = true;
+        window.dispatchEvent(new CustomEvent(CART_OPEN));
+      };
     toast.append(open);
     toast.hidden = false;
     clearTimeout(toastTimer);
@@ -379,6 +423,8 @@ export function mountCartWidgets(
     if (submit) submit.disabled = !lines.length;
   }
   render();
+  // The cart window (store-cart.tsx) changed the cart.
+  window.addEventListener(CART_CHANGE, () => render(), { signal });
   // Another tab changed the cart.
   on(window, "storage" as keyof HTMLElementEventMap, (e) => {
     if ((e as unknown as StorageEvent).key === key) render();

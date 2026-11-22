@@ -1,0 +1,51 @@
+.form-section--centered .cms-form { max-width: 900px; margin-inline: auto; }
+.form-section--photo .cms-form { padding: clamp(24px,4vw,64px); background: var(--color-surface); border-radius: var(--radius); }
+.form-section--aside .cms-form__body { grid-template-columns: 1fr 1.2fr; column-gap: var(--layout-gap); }
+.form-section--aside .cms-form__intro { grid-column: 1; grid-row: 1 / 5; padding-right: 40px; }
+.form-section--aside .cms-form__body > :not(.cms-form__intro) { grid-column: 2; }
+@media(max-width:767px) { .form-section--aside .cms-form__body { grid-template-columns: 1fr; } .form-section--aside .cms-form__intro { grid-row: auto; padding-right: 0; } .form-section--aside .cms-form__body > :not(.cms-form__intro) { grid-column: 1; } }
+
+.form-section__dark-panel {
+  --form-dark: var(--color-ink);
+  --form-light: var(--color-bg);
+  background: var(--form-dark);
+  padding: clamp(28px, 5vw, 88px);
+  border-radius: var(--radius);
+}
+.form-section--dark .cms-form {
+  --color-ink: var(--form-light);
+  --color-bg: var(--form-dark);
+  --color-muted: color-mix(in srgb, var(--form-light) 65%, var(--form-dark));
+  --color-border: color-mix(in srgb, var(--form-light) 28%, var(--form-dark));
+  --color-button: var(--form-light);
+  --color-button-text: var(--form-dark);
+  --color-button-hover: color-mix(in srgb, var(--form-light) 85%, var(--form-dark));
+  max-width: 1160px;
+  margin-inline: auto;
+}
+.form-section--dark .cms-form__body { gap: 40px; }
+.form-section--dark .cms-form__intro { max-width: 720px; }
+.form-section--dark :is(input, textarea)::placeholder { color: var(--color-muted); opacity: 1; }
+.form-section--dark select option { color: var(--form-dark); background: var(--form-light); }
+.form-section__contact-layout { display: grid; grid-template-columns: 0.85fr 1.15fr; gap: clamp(32px, 5vw, 88px); align-items: start; }
+.form-section__contacts { display: flex; flex-direction: column; gap: 28px; padding: clamp(28px, 4vw, 64px); background: var(--color-surface); border-radius: var(--radius); }
+.form-section__contact-list { display: grid; gap: 28px; padding-block: 16px; }
+.form-section__contact-list > div { display: grid; gap: 8px; }
+.form-section__quick-panel { padding: clamp(28px, 4vw, 64px); background: var(--color-surface); border-radius: var(--radius); }
+.form-section--quick .cms-form__body { grid-template-columns: minmax(0, 1fr) auto; align-items: end; gap: 32px; }
+.form-section--quick .cms-form__intro { grid-column: 1 / -1; grid-template-columns: 1.3fr 1fr; gap: var(--layout-gap); align-items: end; }
+.form-section--quick .cms-form__intro > .text { max-width: 480px; justify-self: end; }
+.form-section--quick .cms-form__fields { grid-column: 1; }
+.form-section--quick .cms-form__body > .button { grid-column: 2; }
+.form-section--quick [role=status] { grid-column: 1 / -1; }
+@media(max-width: 1024px) {
+  .form-section__contact-layout { grid-template-columns: 1fr 1.2fr; gap: 32px; }
+  .form-section__contacts { padding: 28px; }
+}
+@media(max-width: 767px) {
+  .form-section--dark .cms-form__body { gap: 28px; }
+  .form-section__contact-layout, .form-section--quick .cms-form__body, .form-section--quick .cms-form__intro { grid-template-columns: 1fr; }
+  .form-section--quick .cms-form__intro { gap: 24px; }
+  .form-section--quick .cms-form__intro > .text { justify-self: start; }
+  .form-section--quick .cms-form__body > .button { grid-column: 1; width: 100%; }
+}

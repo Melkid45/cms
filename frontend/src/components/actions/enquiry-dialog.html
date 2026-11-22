@@ -1,0 +1,18 @@
+<dialog class="action-dialog enquiry-dialog" id="enquiry-dialog" aria-labelledby="enquiry-title" data-layout="compact">
+  <button class="action-dialog__close" type="button" data-close-dialog aria-label="Close enquiry form"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" aria-hidden="true"><path d="m18 6-12 12M6 6l12 12" /></svg></button>
+  <div class="action-dialog__body">
+    <figure class="action-dialog__photo"><img data-form-image alt="" width="900" height="1100" /></figure>
+    <div class="action-dialog__copy"><div class="section__support"><h2 class="heading heading--md" id="enquiry-title" data-form-title>Let’s start a conversation.</h2><p class="text text--md text--muted" data-form-description></p></div>
+      <form class="form" data-enquiry-form novalidate>
+        <input type="hidden" name="serviceId" />
+        <label class="form__field text text--sm">Interested in<input class="form__input" name="subject" readonly value="General enquiry" /></label>
+        <div class="form__row" data-identity-row><label class="form__field text text--sm">Your name<input class="form__input" name="name" autocomplete="name" maxlength="120" required /></label><label class="form__field text text--sm" data-email-field>Email address<input class="form__input" name="email" type="email" autocomplete="email" maxlength="254" required /></label></div>
+        <label class="form__field text text--sm" data-callback-phone hidden>Phone number<input class="form__input" type="tel" name="phone" autocomplete="tel" maxlength="40" disabled /></label>
+        <div class="form__row" data-booking-dates hidden><label class="form__field text text--sm">Arrival<input class="form__input" name="arrival" type="date" /></label><label class="form__field text text--sm">Departure<input class="form__input" name="departure" type="date" /></label></div>
+        <label class="form__field text text--sm" data-message-field>Your message<textarea class="form__input" name="message" maxlength="5000" required></textarea></label>
+        <div class="form__bottom"><button class="button text text--sm" type="submit" data-form-submit>Send enquiry</button></div>
+        <p class="form__status text text--sm text--muted" role="status" aria-live="polite"></p>
+      </form>
+    </div>
+  </div>
+</dialog>

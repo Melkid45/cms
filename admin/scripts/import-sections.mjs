@@ -22,6 +22,10 @@ const families = [
   "logos",
   "calculator",
   "team",
+  "form",
+  "project-details",
+  "partners",
+  "location",
   "header",
   "footer",
 ];
@@ -42,6 +46,10 @@ const titles = {
   logos: "Logos",
   calculator: "Calculator",
   team: "Team",
+  form: "Forms",
+  "project-details": "Project details",
+  partners: "Partners",
+  location: "Location & hours",
   header: "Header",
   footer: "Footer",
 };
