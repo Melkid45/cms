@@ -5,7 +5,10 @@
 //  - every header gets a cart link with the item count (to the checkout page);
 //  - the checkout block (pricing-v24) lists the cart and sends a real order to /api/shop/orders.
 // Works only on public pages of a website that has a published checkout page.
+// With the website setting "Instant checkout popup" (store.checkout = "popup") there is no cart:
+// order buttons open checkout-popup.ts for that one product and no header cart link is added.
 import { uiText } from "@/lib/builder/i18n";
+import { closeCheckoutPopup, openCheckoutPopup, popupItem } from "./checkout-popup";
 import { safeUrl } from "@/lib/builder/safe-url";
 import type { CartButton, CartVariant } from "@/lib/builder/types";
 
@@ -54,12 +57,15 @@ export function mountCartWidgets(
     locale?: string;
     checkout?: { id: string; href: string };
     look?: CartLook;
+    // Instant checkout popup instead of the cart (project.store.checkout = "popup").
+    popup?: boolean;
   },
 ) {
-  const { siteId, pageId, checkout, look } = options;
-  if (!siteId || !pageId || !checkout) return () => {};
+  const { siteId, pageId, checkout, look, popup } = options;
+  if (!siteId || !pageId || (!checkout && !popup)) return () => {};
   // Display currency switcher of the header "EUR €" pill (shops only; the cart and orders stay in EUR).
-  const unmountCurrency = mountCurrency(el, signal, siteId, options.locale);
+  const currency = mountCurrency(el, signal, siteId, options.locale);
+  const unmountCurrency = currency.unmount;
   const t = uiText(options.locale);
   const key = cartKey(siteId);
   const added: Element[] = [];
@@ -92,9 +98,9 @@ export function mountCartWidgets(
     return node;
   };
 
-  // ---- header cart link
+  // ---- header cart link (none with the instant checkout popup: there is no cart)
   const links: HTMLAnchorElement[] = [];
-  el.querySelectorAll<HTMLElement>("[data-site-header] .site-header__actions").forEach((actions) => {
+  if (checkout && !popup) el.querySelectorAll<HTMLElement>("[data-site-header] .site-header__actions").forEach((actions) => {
     const link = make("a", "cart-link");
     link.href = checkout.href;
     link.setAttribute("aria-label", t.cart);
@@ -134,7 +140,7 @@ export function mountCartWidgets(
   const announce = (name: string) => {
     toast.replaceChildren(make("span", "", `${t.added}: ${name}`));
     const open = make("a", "cart-toast__link", t.openCart);
-    open.href = checkout.href;
+    open.href = checkout?.href || "#";
     if (look)
       open.onclick = (e) => {
         e.preventDefault();
@@ -181,17 +187,36 @@ export function mountCartWidgets(
     }
     return null;
   };
+  const ORDER_BUTTONS = ".pricing__shop-foot .button, .pricing__pd-buy .button, .pricing__cfg-buy .button";
+  // Instant checkout popup: order buttons no longer link to the checkout page.
+  if (popup) undo.push(closeCheckoutPopup);
+  if (popup)
+    el.querySelectorAll<HTMLAnchorElement>(ORDER_BUTTONS).forEach((a) => {
+      const href = a.getAttribute("href");
+      if (href === null) return;
+      a.setAttribute("href", "#order");
+      undo.push(() => a.setAttribute("href", href));
+    });
   on(
     el,
     "click",
     (e) => {
-      const button = (e.target as Element).closest(
-        ".pricing__shop-foot .button, .pricing__pd-buy .button, .pricing__cfg-buy .button",
-      );
+      const button = (e.target as Element).closest(ORDER_BUTTONS);
       if (!button || !el.contains(button)) return;
       const line = lineFrom(button);
       if (!line || !line.name) return;
       e.preventDefault();
+      if (popup) {
+        openCheckoutPopup(popupItem(button, line), {
+          root: el,
+          siteId,
+          pageId,
+          locale: options.locale,
+          fx: currency.approx,
+        });
+        window.dispatchEvent(new CustomEvent("cms:track", { detail: { e: "cart" } }));
+        return;
+      }
       const lines = read();
       const same = lines.find(
         (l) => l.pageId === line.pageId && l.sectionId === line.sectionId && l.name === line.name && l.options.join("|") === line.options.join("|"),
@@ -203,7 +228,7 @@ export function mountCartWidgets(
       // An order button that links to the checkout page goes there right away (like a "buy now"), the
       // product is in the cart; other buttons stay on the page with the notice.
       const href = button.getAttribute("href");
-      if (href && new URL(href, location.href).pathname === new URL(checkout.href, location.href).pathname)
+      if (checkout && href && new URL(href, location.href).pathname === new URL(checkout.href, location.href).pathname)
         location.assign(checkout.href);
       // Analytics funnel step (site-analytics.tsx listens; no data about the product is sent).
       window.dispatchEvent(new CustomEvent("cms:track", { detail: { e: "cart" } }));
@@ -227,7 +252,7 @@ export function mountCartWidgets(
     return zone.price === null || (zone.from !== null && subtotal >= zone.from) ? 0 : zone.price;
   };
   const submit = box?.querySelector<HTMLButtonElement>(".pricing__co-submit") || null;
-  if (box && pageId === checkout.id) {
+  if (box && pageId === checkout?.id) {
     const aside = box.querySelector<HTMLElement>(".pricing__co-summary");
     if (aside) {
       aside.classList.add("is-cart");
@@ -474,7 +499,7 @@ function mountCurrency(el: HTMLElement, signal: AbortSignal, siteId: string, loc
   const pill = [...el.querySelectorAll<HTMLElement>("[data-site-header] .site-header__pill")].find((p) =>
     /^EUR\s*€$/.test((p.textContent || "").trim()),
   );
-  if (!pill) return () => {};
+  if (!pill) return { unmount: () => {}, approx: () => "" };
   const lang = (locale || "lv").slice(0, 2);
   const intl = ({ ru: "ru-RU", lv: "lv-LV", en: "en-GB" } as Record<string, string>)[lang] || "en-GB";
   const fmt = (n: number, d = 0) =>
@@ -619,13 +644,17 @@ function mountCurrency(el: HTMLElement, signal: AbortSignal, siteId: string, loc
       })
       .catch(() => {});
   }
-  return () => {
-    observer.disconnect();
-    cancelAnimationFrame(frame);
-    clearTimeout(resizeTimer);
-    [...marked].forEach(unmark);
-    dd.remove();
-    pill.hidden = false;
-    style.remove();
+  return {
+    // Converted amount for the checkout popup ("≈ $1,320"), "" while the display currency is EUR.
+    approx: (eur: number) => (active() !== "EUR" ? money(eur) : ""),
+    unmount: () => {
+      observer.disconnect();
+      cancelAnimationFrame(frame);
+      clearTimeout(resizeTimer);
+      [...marked].forEach(unmark);
+      dd.remove();
+      pill.hidden = false;
+      style.remove();
+    },
   };
 }

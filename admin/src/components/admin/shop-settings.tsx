@@ -26,7 +26,7 @@ const layouts: Record<CartVariant, { name: string; position: string }> = {
   wide: { name: "Wide dialog", position: "inset-x-[9%] inset-y-[24%]" },
   full: { name: "Full screen", position: "inset-0" },
 };
-type Draft = { cart?: CartVariant; button: CartButton };
+type Draft = { cart?: CartVariant; popup?: boolean; button: CartButton };
 
 export function ShopSettings() {
   const { project, error: loadError, save } = useProject();
@@ -38,6 +38,7 @@ export function ShopSettings() {
   const store = project.store;
   const settings: Draft = draft ?? {
     cart: store?.cart,
+    popup: store?.checkout === "popup",
     button: store?.button ?? { icon: "cart" },
   };
   const hasCheckout = project.pages.some(
@@ -50,18 +51,17 @@ export function ShopSettings() {
     setNotice("");
     try {
       // Other store fields (legacy origin/main ones included) are kept as they are.
-      const { cart, button } = draft;
+      const { cart, button, popup } = draft;
       const next: Project = { ...project };
-      if (cart) next.store = { ...project.store, cart, button };
-      else if (project.store) {
-        // Back to the plain checkout link: only the cart look is removed.
-        const rest = { ...project.store } as Partial<NonNullable<Project["store"]>>;
-        delete rest.cart;
-        delete rest.button;
-        next.store = Object.keys(rest).length
-          ? (rest as NonNullable<Project["store"]>)
-          : undefined;
-      }
+      const rest = { ...project.store } as NonNullable<Project["store"]>;
+      delete rest.cart;
+      delete rest.button;
+      delete rest.checkout;
+      // Instant checkout popup: no cart at all (the cart look is dropped).
+      if (popup) next.store = { ...rest, checkout: "popup" };
+      else if (cart) next.store = { ...rest, cart, button };
+      // Back to the plain checkout link: only the cart look is removed.
+      else next.store = Object.keys(rest).length ? rest : undefined;
       await save(next);
       setDraft(undefined);
       setNotice("Cart settings saved.");
@@ -98,9 +98,9 @@ export function ShopSettings() {
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-6">
             <button
               type="button"
-              aria-pressed={!settings.cart}
-              onClick={() => set({ cart: undefined })}
-              className={`overflow-hidden rounded-xl bg-white text-left transition-shadow hover:shadow-md ${!settings.cart ? "shadow-[0_0_0_2px_rgb(0_0_0/0.8)]" : ""}`}
+              aria-pressed={!settings.cart && !settings.popup}
+              onClick={() => set({ cart: undefined, popup: false })}
+              className={`overflow-hidden rounded-xl bg-white text-left transition-shadow hover:shadow-md ${!settings.cart && !settings.popup ? "shadow-[0_0_0_2px_rgb(0_0_0/0.8)]" : ""}`}
             >
               <span aria-hidden="true" className="relative block aspect-[16/10] bg-neutral-100">
                 <span className="absolute inset-x-4 top-4 h-2 rounded bg-neutral-300" />
@@ -108,17 +108,40 @@ export function ShopSettings() {
               </span>
               <span className="flex items-center justify-between gap-2 px-3 py-3 text-sm font-medium">
                 Checkout page
-                {!settings.cart && <Check className="size-4 shrink-0" />}
+                {!settings.cart && !settings.popup && <Check className="size-4 shrink-0" />}
+              </span>
+            </button>
+            <button
+              type="button"
+              aria-pressed={!!settings.popup}
+              onClick={() => set({ cart: undefined, popup: true })}
+              className={`overflow-hidden rounded-xl bg-white text-left transition-shadow hover:shadow-md ${settings.popup ? "shadow-[0_0_0_2px_rgb(0_0_0/0.8)]" : ""}`}
+            >
+              <span aria-hidden="true" className="relative block aspect-[16/10] overflow-hidden bg-neutral-200">
+                <span className="absolute inset-x-4 top-4 h-2 rounded bg-neutral-300" />
+                <span className="absolute inset-x-[16%] inset-y-[18%] flex overflow-hidden rounded bg-white shadow-sm">
+                  <span className="w-2/5 bg-neutral-100" />
+                  <span className="flex flex-1 flex-col gap-1.5 p-2">
+                    <span className="h-1.5 w-2/3 rounded bg-neutral-800" />
+                    <span className="h-2.5 rounded bg-neutral-100" />
+                    <span className="h-2.5 rounded bg-neutral-100" />
+                    <span className="mt-auto h-2.5 rounded bg-neutral-800" />
+                  </span>
+                </span>
+              </span>
+              <span className="flex items-center justify-between gap-2 px-3 py-3 text-sm font-medium">
+                Instant checkout popup (no cart)
+                {settings.popup && <Check className="size-4 shrink-0" />}
               </span>
             </button>
             {cartVariants.map((cart) => {
-              const selected = settings.cart === cart;
+              const selected = settings.cart === cart && !settings.popup;
               return (
                 <button
                   key={cart}
                   type="button"
                   aria-pressed={selected}
-                  onClick={() => set({ cart })}
+                  onClick={() => set({ cart, popup: false })}
                   className={`overflow-hidden rounded-xl bg-white text-left transition-shadow hover:shadow-md ${selected ? "shadow-[0_0_0_2px_rgb(0_0_0/0.8)]" : ""}`}
                 >
                   <span aria-hidden="true" className="relative block aspect-[16/10] overflow-hidden bg-neutral-200">
@@ -137,7 +160,14 @@ export function ShopSettings() {
               );
             })}
           </div>
-          {settings.cart && (
+          {settings.popup && (
+            <p className="max-w-2xl text-sm leading-6 text-neutral-600">
+              No cart and no header cart button: every Order button opens a checkout
+              window for that one product (delivery by address, company lookup, customer
+              account) and shows the order number there. The checkout page is not linked.
+            </p>
+          )}
+          {settings.cart && !settings.popup && (
             <a
               className="inline-flex items-center gap-1.5 text-sm underline"
               href={`/cart-preview?layout=${settings.cart}`}
@@ -148,7 +178,7 @@ export function ShopSettings() {
             </a>
           )}
         </section>
-        <section className={`${subPanel} grid gap-5 p-5 lg:grid-cols-2`}>
+        <section className={`${subPanel} grid gap-5 p-5 lg:grid-cols-2`} hidden={settings.popup}>
           <div className="space-y-4">
             <h2 className="text-sm font-semibold">Header button</h2>
             <div className="flex flex-wrap gap-2" aria-label="Built-in icons" role="group">

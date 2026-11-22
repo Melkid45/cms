@@ -12,6 +12,7 @@ import {
   canvasRootProps,
   cartLookOf,
   checkoutTarget,
+  checkoutPopupOf,
 } from "@/components/builder/site-canvas-markup";
 import { SiteRuntime } from "@/components/builder/site-runtime";
 import { SiteAnalytics } from "@/components/builder/site-analytics";
@@ -266,6 +267,7 @@ export async function PublicPageView({
             href: link(pageHref(project, site.key, checkout)),
           },
           cartLook: cartLookOf(project),
+          checkoutPopup: checkoutPopupOf(project),
         }}
       >
         <SiteCanvasMarkup

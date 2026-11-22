@@ -26,10 +26,12 @@ export type SiteRuntimeOptions = {
   checkout?: { id: string; href: string };
   // Cart window look (project.store): the header cart button opens it (store-cart.tsx).
   cartLook?: CartLook;
+  // Instant checkout popup instead of a cart (project.store.checkout = "popup", checkout-popup.ts).
+  checkoutPopup?: boolean;
 };
 export function useSiteRuntime(
   root: React.RefObject<HTMLDivElement | null>,
-  { siteId, pageId, locale, lang, formsOff, checkout, cartLook }: SiteRuntimeOptions,
+  { siteId, pageId, locale, lang, formsOff, checkout, cartLook, checkoutPopup }: SiteRuntimeOptions,
   // Changes when the editor re-renders the markup, so behaviours re-mount on the new DOM.
   version?: unknown,
 ) {
@@ -402,6 +404,7 @@ export function useSiteRuntime(
       pageId,
       locale,
       checkout,
+      popup: !!checkoutPopup,
       look: cartVariant
         ? { variant: cartVariant, button: cartButton ? JSON.parse(cartButton) : undefined }
         : undefined,
@@ -525,7 +528,7 @@ export function useSiteRuntime(
       });
       document.documentElement.removeAttribute("data-site-menu-open");
     };
-  }, [root, version, pageId, siteId, text, locale, lang, formsOff, checkoutId, checkoutHref, cartVariant, cartButton]);
+  }, [root, version, pageId, siteId, text, locale, lang, formsOff, checkoutId, checkoutHref, cartVariant, cartButton, checkoutPopup]);
 }
 type Photo = { url: string; alt: string; title: string; text: string };
 // Image lightbox for gallery photos and project cards ([data-gallery-photo], [data-project]).
@@ -606,7 +609,7 @@ export function SiteRuntime({
 }
 // The cart window, when the website has a cart look and a checkout page.
 export function RuntimeCart({ options }: { options: SiteRuntimeOptions }) {
-  if (!options.cartLook || !options.checkout || !options.siteId) return null;
+  if (!options.cartLook || !options.checkout || !options.siteId || options.checkoutPopup) return null;
   return (
     <StoreCart
       variant={options.cartLook.variant}

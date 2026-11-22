@@ -261,13 +261,18 @@ export function mountAccountWidgets(
     });
     undo.push(() => { view.innerHTML = ""; view.hidden = true; if (signedOut) signedOut.hidden = false; });
   }
-  if (headerLink || cabinet)
+  const refresh = () =>
     api().then((res) => {
       if (signal.aborted) return;
       state = { customer: res.customer || null, orders: res.orders };
       renderHeader();
       renderCabinet();
     }).catch(() => {});
+  if (headerLink || cabinet) {
+    void refresh();
+    // The instant checkout popup created an account or placed an order (checkout-popup.ts).
+    on(window, "cms:account-change", () => void refresh());
+  }
 
   // ------------------------------------------------------------- search pop-up
   el.querySelectorAll<HTMLElement>("[data-search]").forEach((root) => {

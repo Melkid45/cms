@@ -180,9 +180,22 @@ export default function ShopOrders() {
             <dl className="grid gap-3 text-sm sm:grid-cols-3">
               <div>
                 <dt className="text-xs text-neutral-500">
-                  {order.customer.type === "company" ? "Company" : "Customer"}
+                  {order.customer.company ? "Company" : order.customer.type === "company" ? "Company" : "Customer"}
                 </dt>
-                <dd>{order.customer.name}</dd>
+                {order.customer.company ? (
+                  <dd>
+                    {order.customer.company.name || "Not checked in the register"}
+                    <br />
+                    <span className="text-xs text-neutral-500">
+                      Reg. No. {order.customer.company.reg}
+                      {order.customer.company.address && ` · ${order.customer.company.address}`}
+                    </span>
+                    <br />
+                    Contact: {order.customer.name}
+                  </dd>
+                ) : (
+                  <dd>{order.customer.name}</dd>
+                )}
               </div>
               <div>
                 <dt className="text-xs text-neutral-500">Contacts</dt>
@@ -194,6 +207,14 @@ export default function ShopOrders() {
                       <a href={`mailto:${order.customer.email}`}>{order.customer.email}</a>
                     </>
                   )}
+                  {order.notify && (
+                    <>
+                      <br />
+                      <span className="text-xs text-neutral-500">
+                        Status messages: {order.notify === "whatsapp" ? "WhatsApp" : "Telegram"}
+                      </span>
+                    </>
+                  )}
                 </dd>
               </div>
               <div>
@@ -201,7 +222,23 @@ export default function ShopOrders() {
                 <dd>
                   {order.delivery.method === "pickup"
                     ? "Pickup"
-                    : `Delivery${order.delivery.zone ? ` · ${order.delivery.zone}` : ""} · ${order.delivery.price ? money(order.delivery.price, order.currency) : "free"}: ${order.delivery.address}`}
+                    : `Delivery${order.delivery.zone ? ` · ${order.delivery.zone}` : ""} · ${order.delivery.price ? money(order.delivery.price, order.currency) : "free"}: ${order.delivery.address}${order.delivery.flat ? `, ${order.delivery.flat}` : ""}`}
+                  {order.delivery.point && (
+                    <>
+                      {" · "}
+                      <a
+                        className="underline"
+                        href={`https://www.google.com/maps?q=${order.delivery.point.lat},${order.delivery.point.lon}`}
+                        target="_blank"
+                        rel="noreferrer"
+                      >
+                        map
+                      </a>
+                    </>
+                  )}
+                  {order.via === "popup" && (
+                    <span className="block text-xs text-neutral-500">Placed in the checkout popup</span>
+                  )}
                 </dd>
               </div>
               {order.comment && (

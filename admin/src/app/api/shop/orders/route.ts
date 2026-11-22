@@ -20,6 +20,8 @@ import {
   updateShopOrder,
   zonePrice,
 } from "@/lib/builder/shop";
+import { zoneForAddress } from "@/lib/builder/shop-zones";
+import { lookupCompany } from "@/lib/builder/lv-register";
 import { formMessage, uiText } from "@/lib/builder/i18n";
 export const runtime = "nodejs";
 
@@ -51,14 +53,23 @@ const schema = z.object({
     name: text(160).min(1),
     phone: z.string().trim().regex(/^\+?[\d\s().-]{6,40}$/),
     email: z.union([z.literal(""), z.email().max(254)]),
+    // Instant checkout popup: the company's registration number (11 digits, Latvia).
+    reg: z.string().trim().regex(/^\d{11}$/).optional(),
   }),
   delivery: z.object({
     method: z.enum(["pickup", "delivery"]),
     address: text(500).default(""),
     zone: text(200).default(""),
+    flat: text(200).default(""),
+    point: z
+      .object({ lat: z.number().min(-90).max(90), lon: z.number().min(-180).max(180) })
+      .nullish(),
   }),
   comment: text(2000).default(""),
-  consents: z.array(text(300)).max(5).default([]),
+  consents: z.array(text(400)).max(5).default([]),
+  notify: z.enum(["whatsapp", "telegram"]).optional(),
+  // Sent by the instant checkout popup (no cart): the order is placed from the page the buyer is on.
+  via: z.literal("popup").optional(),
 });
 async function publishedSite(siteId: string) {
   const site = (await readRegistry()).sites.find((s) => s.id === siteId);
@@ -83,6 +94,10 @@ export async function GET(request: Request) {
           term: z.term,
         })),
         freeText: found?.freeText || "",
+        // For the instant checkout popup: towns per zone, the pickup point, the shop's name.
+        places: found?.places || [],
+        pickup: found?.pickup || null,
+        shop: project.brand.name,
       },
       { headers: { "Cache-Control": "no-store" } },
     );
@@ -106,16 +121,24 @@ export async function POST(request: Request) {
     if (input.delivery.method === "delivery" && !input.delivery.address)
       throw new StoreError("Please fill in all required fields.");
     const project = await publishedSite(input.site);
-    // The order is placed from a published checkout page (pricing-v24) of this website.
+    // The order is placed from a published checkout page (pricing-v24) of this website, or — on a
+    // website with the instant checkout popup — from the published page the order button is on.
+    const popup = input.via === "popup";
+    if (popup && project.store?.checkout !== "popup")
+      throw new StoreError("Form unavailable.", 404);
     const checkout = project.pages.find(
       (p) =>
         p.id === input.pageId &&
         !p.deletedAt &&
-        p.published?.sections.some((s) => s.variant === "pricing-v24" && !s.hidden),
+        !!p.published &&
+        (popup ||
+          p.published.sections.some((s) => s.variant === "pricing-v24" && !s.hidden)),
     );
     if (!checkout || project.forms?.enabled === false)
       throw new StoreError("Form unavailable.", 404);
     locale = checkout.published!.locale;
+    if (popup && input.customer.type === "company" && !input.customer.reg)
+      throw new StoreError("Please fill in all required fields.");
     await limitShopOrders(clientIp(request));
     const priced = input.items.map((line) => priceLine(project, line));
     const currency = priced[0].currency;
@@ -124,15 +147,38 @@ export async function POST(request: Request) {
       Math.round(items.reduce((sum, i) => sum + i.total, 0) * 100) / 100;
     // Delivery price: the chosen zone of the delivery block, with its free-from threshold
     // applied to this order's products total (the same rule as the calculator on the page).
+    // The popup does not choose a zone: it follows from the address (shop-zones.ts), decided here.
     let zone = "",
       price = 0;
     if (input.delivery.method === "delivery") {
-      const zones = deliveryZones(project, locale)?.zones || [];
+      const found = deliveryZones(project, locale);
+      const zones = found?.zones || [];
       if (zones.length) {
-        const chosen = zones.find((z) => z.name === input.delivery.zone);
+        const chosen = popup
+          ? zones[
+              zoneForAddress(
+                input.delivery.address,
+                found!.places,
+                zones.length,
+                input.delivery.point,
+                found!.pickup.point,
+              ).zone
+            ]
+          : zones.find((z) => z.name === input.delivery.zone);
         if (!chosen) throw new StoreError("Please fill in all required fields.");
         zone = chosen.name;
         price = zonePrice(chosen, subtotal);
+      }
+    }
+    // Company of the popup: name and address from the register of enterprises when it answers.
+    let company: { reg: string; name: string; address: string } | undefined;
+    if (popup && input.customer.type === "company" && input.customer.reg) {
+      company = { reg: input.customer.reg, name: "", address: "" };
+      const found = await lookupCompany(input.customer.reg).catch(() => null);
+      if (found && !found.found) throw new StoreError("Check the registration number.");
+      if (found?.found) {
+        if (!found.active) throw new StoreError("Check the registration number.");
+        company = { reg: found.reg, name: found.name, address: found.address };
       }
     }
     const total = Math.round((subtotal + price) * 100) / 100;
@@ -143,13 +189,28 @@ export async function POST(request: Request) {
       items,
       subtotal,
       total,
-      customer: input.customer,
+      customer: {
+        type: input.customer.type,
+        name: input.customer.name,
+        phone: input.customer.phone,
+        email: input.customer.email,
+        ...(company ? { company } : {}),
+      },
       delivery:
         input.delivery.method === "delivery"
-          ? { method: "delivery", address: input.delivery.address, zone, price }
+          ? {
+              method: "delivery",
+              address: input.delivery.address,
+              ...(input.delivery.flat ? { flat: input.delivery.flat } : {}),
+              ...(input.delivery.point ? { point: input.delivery.point } : {}),
+              zone,
+              price,
+            }
           : { method: "pickup", address: "" },
       comment: input.comment,
       consents: input.consents,
+      ...(input.notify ? { notify: input.notify } : {}),
+      ...(popup ? { via: "popup" as const } : {}),
     });
     // CRM: contact, in-app and Telegram notification, after the response.
     after(() => onShopOrder(input.site, order));
@@ -174,6 +235,7 @@ export async function POST(request: Request) {
       number: order.number,
       subtotal,
       delivery: price,
+      zone,
       total,
       currency,
       message: uiText(locale).orderSent.replace("{n}", String(order.number)),

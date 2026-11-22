@@ -219,9 +219,12 @@ export interface Project {
   services?: CmsService[];
   // Shop cart look (cart.tsx): layout of the cart window and the header cart button. The cart
   // itself is ours (cart-widgets.ts, real orders). enabled/catalog: legacy origin/main fields.
+  // checkout "popup": no cart at all — every order button opens the instant checkout popup for
+  // that one product (checkout-popup.ts, like the Zcena prototype); cart/button are then unused.
   store?: {
     enabled?: boolean;
-    cart: CartVariant;
+    cart?: CartVariant;
+    checkout?: "popup";
     button?: CartButton;
     catalog?: CatalogSettings;
   };

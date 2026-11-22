@@ -8,6 +8,7 @@ import {
   canvasRootProps,
   cartLookOf,
   checkoutTarget,
+  checkoutPopupOf,
 } from "./site-canvas-markup";
 import { RuntimeCart, useLightbox, useSiteRuntime, type SiteRuntimeOptions } from "./site-runtime";
 import { siteFontVariables } from "./site-fonts";
@@ -53,6 +54,7 @@ export function SiteCanvas({
         href: pageHref(project, siteKey, checkoutPage),
       },
       cartLook: cartLookOf(project),
+      checkoutPopup: checkoutPopupOf(project),
   };
   useSiteRuntime(root, options, version);
   const { onClick, dialog } = useLightbox();

@@ -7,6 +7,7 @@ import { mailConnection } from "./smtp";
 import { StoreError } from "./server";
 import { uiText } from "./i18n";
 import { catalogProductNamed, catalogProductOf } from "./products/apply";
+import { parsePlaces } from "./shop-zones";
 import type { Project, Section, TemplateNode } from "./types";
 
 // Shop orders without online payment (Zcena): the visitor's cart is priced again here from
@@ -49,14 +50,25 @@ export interface ShopOrder {
     name: string;
     phone: string;
     email: string;
+    // Company buyer (instant checkout popup): registration number, and the name and address
+    // found in the register of enterprises (empty when the register could not be asked).
+    company?: { reg: string; name: string; address: string };
   };
   delivery: {
     method: "pickup" | "delivery";
     address: string;
+    // Flat / entrance / note for the courier (instant checkout popup).
+    flat?: string;
+    // Coordinates of the address (address register suggestion or the buyer's location).
+    point?: { lat: number; lon: number };
     // Zone of the website's delivery block (contact-v20) and its price for this order.
     zone?: string;
     price?: number;
   };
+  // Order status messages: the buyer asked for WhatsApp or Telegram (consent text in consents).
+  notify?: "whatsapp" | "telegram";
+  // Placed through the instant checkout popup (no cart) rather than the checkout page.
+  via?: "popup";
   // subtotal (products) + delivery price.
   total?: number;
   // Confirmation e-mail to the buyer.
@@ -136,6 +148,9 @@ const first = (nodes: PlainNode[], test: (n: PlainNode) => boolean) =>
   all(nodes, test)[0];
 const byClass = (name: string) => (n: PlainNode) => n.cls.includes(` ${name} `);
 const byAttr = (name: string) => (n: PlainNode) => name in n.attrs;
+// Text with line breaks kept (multi-line fields: places list, opening hours).
+const rawText = (n?: PlainNode): string =>
+  n ? n.text + n.children.map(rawText).join("") : "";
 const text = (n?: PlainNode): string =>
   n ? (n.text + n.children.map(text).join("")).replace(/\s+/g, " ").trim() : "";
 // Same reading of prices as the site script: "€1,250", "1 499 €", "+150 €", "Included" (= NaN).
@@ -307,8 +322,26 @@ export function deliveryZones(project: Project, locale: string) {
           };
         })
         .filter((z) => z.name);
-      if (zones.length)
-        return { zones, freeText: text(first(root.children, byClass("contact__calc-free"))) };
+      if (!zones.length) continue;
+      // Pickup point of the same block: address, opening hours (one line each), note, map links.
+      const body = first(tree, byClass("contact__pickup-body"));
+      const paras = body ? all(body.children, (n) => n.tag === "p") : [];
+      const links = body ? all(body.children, (n) => n.tag === "a" && !!n.attrs.href) : [];
+      const google = links.find((a) => /google\./.test(a.attrs.href))?.attrs.href || "";
+      const at = google.match(/destination=(-?\d+(?:\.\d+)?),(-?\d+(?:\.\d+)?)/);
+      return {
+        zones,
+        freeText: text(first(root.children, byClass("contact__calc-free"))),
+        places: parsePlaces(rawText(first(root.children, byAttr("data-dlv-places"))), zones.length),
+        pickup: {
+          address: text(paras[0]),
+          hours: rawText(paras[1]).split("\n").map((l) => l.trim()).filter(Boolean),
+          note: text(paras[2]),
+          google,
+          waze: links.find((a) => /waze\./.test(a.attrs.href))?.attrs.href || "",
+          point: at ? { lat: Number(at[1]), lon: Number(at[2]) } : null,
+        },
+      };
     }
   return null;
 }
@@ -392,12 +425,16 @@ export function orderText(order: ShopOrder) {
     ),
     "",
     `Products: ${money(order.subtotal, order.currency)}`,
-    `Delivery: ${order.delivery.method === "pickup" ? "pickup" : `${order.delivery.zone ? `${order.delivery.zone}, ` : ""}${money(order.delivery.price ?? 0, order.currency)} — ${order.delivery.address}`}`,
+    `Delivery: ${order.delivery.method === "pickup" ? "pickup" : `${order.delivery.zone ? `${order.delivery.zone}, ` : ""}${money(order.delivery.price ?? 0, order.currency)} — ${order.delivery.address}${order.delivery.flat ? `, ${order.delivery.flat}` : ""}`}`,
     `Total: ${money(order.total ?? order.subtotal, order.currency)} (payment on delivery or pickup)`,
     "",
-    `${order.customer.type === "company" ? "Company" : "Customer"}: ${order.customer.name}`,
+    order.customer.company
+      ? `Company: ${order.customer.company.name || "(not checked in the register)"}, reg. No. ${order.customer.company.reg}${order.customer.company.address ? `, ${order.customer.company.address}` : ""}`
+      : "",
+    `${order.customer.company ? "Contact person" : order.customer.type === "company" ? "Company" : "Customer"}: ${order.customer.name}`,
     `Phone: ${order.customer.phone}`,
     order.customer.email ? `E-mail: ${order.customer.email}` : "",
+    order.notify ? `Status messages: ${order.notify === "whatsapp" ? "WhatsApp" : "Telegram"}` : "",
     order.comment ? `\nComment: ${order.comment}` : "",
   ]
     .filter((line, i, a) => line !== "" || a[i - 1] !== "")
@@ -447,7 +484,7 @@ export async function confirmToBuyer(
     const delivery =
       order.delivery.method === "pickup"
         ? t.pickup
-        : `${t.delivery}${order.delivery.zone ? ` (${order.delivery.zone})` : ""}: ${order.delivery.price ? money(order.delivery.price, order.currency) : t.free} — ${order.delivery.address}`;
+        : `${t.delivery}${order.delivery.zone ? ` (${order.delivery.zone})` : ""}: ${order.delivery.price ? money(order.delivery.price, order.currency) : t.free} — ${order.delivery.address}${order.delivery.flat ? `, ${order.delivery.flat}` : ""}`;
     await connection.transport.sendMail({
       from: connection.from,
       to: order.customer.email,

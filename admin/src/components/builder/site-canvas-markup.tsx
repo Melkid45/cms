@@ -58,10 +58,13 @@ export function canvasRootProps(project: Project, locale?: string) {
 }
 // Cart window look of the website (project.store), for the site runtime.
 export function cartLookOf(project: Project) {
-  return project.store?.cart
+  return project.store?.cart && project.store.checkout !== "popup"
     ? { variant: project.store.cart, button: project.store.button }
     : undefined;
 }
+// Website setting "Instant checkout popup (no cart)": order buttons open checkout-popup.ts.
+export const checkoutPopupOf = (project: Project) =>
+  project.store?.checkout === "popup";
 // Published checkout page (pricing-v24) for the shop cart, preferably in this language.
 export function checkoutTarget(project: Project, locale?: string) {
   const pages = project.pages.filter(

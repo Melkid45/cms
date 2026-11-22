@@ -294,7 +294,8 @@ const schema = z.object({
           label: z.string().trim().max(24).optional(),
         })
         .optional(),
-      cart: z.enum(["drawer", "modal", "sheet", "wide", "full"]),
+      cart: z.enum(["drawer", "modal", "sheet", "wide", "full"]).optional(),
+      checkout: z.literal("popup").optional(),
     })
     .optional(),
   forms: z

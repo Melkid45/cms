@@ -273,6 +273,12 @@ const FORM_MESSAGES: Record<string, Partial<Record<Locale, string>>> = {
     ru: "Не удалось отправить. Попробуйте ещё раз.",
     de: "Senden fehlgeschlagen. Bitte erneut versuchen.",
   },
+  // Instant checkout popup (company buyer), same words as the Zcena prototype.
+  "Check the registration number.": {
+    lv: "Pārbaudiet reģistrācijas numuru",
+    ru: "Проверьте регистрационный номер",
+    de: "Bitte prüfen Sie die Registernummer.",
+  },
 };
 export function formMessage(locale: string | undefined, message: string) {
   return (locale && isLocale(locale) && FORM_MESSAGES[message]?.[locale]) || message;
