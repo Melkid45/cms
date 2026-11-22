@@ -354,10 +354,13 @@ export function SectionEditor({
                 const fields = visible.filter(
                   (f) =>
                     keys.includes(f.key) &&
+                    // Services items: without service settings the button keeps its own link;
+                    // a service preview replaces the link; "Hide the button" hides both.
                     !(
                       entry.family === "services" &&
+                      item.detail &&
                       (f.type === "url" ||
-                        ((item.detail?.mode || "none") === "none" &&
+                        (item.detail.mode === "none" &&
                           f.role === "Button / link label"))
                     ),
                 );
@@ -388,11 +391,17 @@ export function SectionEditor({
                         <div className="space-y-3 rounded-lg bg-neutral-50 p-3">
                           <Label>Service preview</Label>
                           <Select
-                            value={item.detail?.mode || "none"}
+                            value={item.detail?.mode || "link"}
                             onValueChange={(mode) =>
                               update(
                                 items.map((i) =>
-                                  i.id === item.id
+                                  i.id === item.id && mode === "link"
+                                    ? (() => {
+                                        const rest = { ...i };
+                                        delete rest.detail;
+                                        return rest;
+                                      })()
+                                    : i.id === item.id
                                     ? {
                                         ...i,
                                         detail: {
@@ -408,7 +417,8 @@ export function SectionEditor({
                               )
                             }
                           >
-                            <SelectOption value="none">Don’t open</SelectOption>
+                            <SelectOption value="link">Use the button link</SelectOption>
+                            <SelectOption value="none">Hide the button</SelectOption>
                             <SelectOption value="modal">
                               Centered modal
                             </SelectOption>

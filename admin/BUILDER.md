@@ -411,3 +411,41 @@ A client connects a domain they bought (zcena.com) to their website without the 
 - **One screen pattern (Vova, 2026-11-22):** no visible page title (sidebar shows where you are; `PageHeader` now renders only an sr-only h1 + right-aligned actions as a fallback); content = optional KPI tiles + ONE white container (`AdminPanel` in `components/admin/admin-panel.tsx`) whose first line is the toolbar (`PanelTabs`, `chip()` filters, search, sort, actions; 40 px; wraps on phones); records inside are rows with a very soft divider (`rowLine` / `.admin-soft-lines`, `#efefef`, none after the last), grouping = `subPanel` (`#f5f5f5`). Converted: every dashboard screen (Clients, Orders + Change requests, order detail, Onboarding, Billing with invoice filters in the toolbar, Team, Pages, Inbox, Shop orders, Catalog, CRM contacts/deals/tasks/settings, Bookings, Media, Website overview, Settings + all subpages, Profile, SEO, SEO assistant, Analytics, Social posts/accounts, Approvals, Layout, Section library) - most by a codemod that turned `<div><PageHeader title action/>…</div>` into `<AdminPanel title toolbar>`. Inside `.admin-panel`, older white cards become grey sub-panels `#f5f5f5` (globals.css), and every field in the admin is white with a `#e2e2e2` border. Still on the PageHeader fallback: product form, page editor, client page editor (editor screens). Known gap: on screens whose filters live inside the component (Inbox, Catalog, Shop orders, CRM lists, SEO, Analytics...) the actions sit on the toolbar line and the filters on the next line, not yet merged into one line.
 - Screenshots: `../../.run/clients-section/` (`shot.mjs <owner|client> <name> <path> [w] [h] [full] [collapsed]`, env `SITE=<key>` opens a website, `CLICK=<text>` expands a row).
 
+
+## Merged from origin/main (Ilya, 2026-11-22)
+
+Our multi-site snapshot is the base; Ilya's commits 680229a..4062011 are merged on top by feature.
+
+- **New blocks:** families `team` (v1-v5 next to our team-v50, which is scoped to `.team--v50`),
+  `partners`, `location`, `project-details`, `form` (form-v1..v6) and the exploration variants
+  (hero-v11/12, about-v8/9, advantages-v8/9, services-v9/10, projects-v10, testimonials-v11/12).
+  His colliding ids were renumbered: his hero-v9 → **hero-v13**, hero-v10 → **hero-v14**,
+  projects-v9 → **projects-v11** (ours are used on live pages). `<family>-explorations.scss` is a
+  separate site-css part loaded with its family (`lib/builder/site-css.ts`).
+- **Forms of the form builder:** a form lives in its section (`section.form`, edited with
+  `inline-form-editor.tsx`; form-v1..v6 create one). `SchemaForm` posts to `/api/forms` with
+  `formId`, `site` and `locale`: the same route keeps template forms (contact, calculator estimate),
+  the signed token per website, the honeypot, per-language success messages, the Inbox and the CRM
+  event. Website forms and services are derived by `lib/builder/inline-content.ts`
+  (`connectedContent`), also on save (unique ids, actions must point to existing targets).
+- **Button actions and services:** a link field can open a form or a service (`action-picker.tsx`);
+  a services collection item can open its details as modal/drawer (`content-dialogs.tsx`) or as a
+  page `/site/{site}/services/{slug}` (handled by `[slug]/[page]` when the first segment is
+  `services`, `public-service.tsx`; pageId `service:{id}` for its enquiry form).
+- **Cart look:** Website settings → **Shop cart** (`/dashboard/settings/cart`): five cart window
+  layouts with Ilya's animation (`store-cart.tsx`, `cart.scss`) and the header button icon,
+  picture and label. It is only the look: lines, checkout page and real orders stay ours
+  (`cart-widgets.ts`, `/api/shop/orders`). Without a layout the header button goes to the
+  checkout page as before. Try the layouts at `/cart-preview`.
+- **Design:** `project.style` got `buttonColor`, `buttonStyle`/`buttonMotion`,
+  `secondaryButtonStyle`/`secondaryButtonMotion` (`button-theme.scss`, active only when a value is
+  chosen), `headingScale` (`--heading-scale`) and `containerWidth` (Website style screen →
+  "Buttons, headings and width"). Fonts stay self-hosted pairs (`project.fonts`).
+- **Schema (data safety):** both sides' fields are in `server.ts`. Ilya's `brand.*` design fields,
+  `media.thumbnailUrl` and `store.enabled/catalog` are kept as **legacy** (validated and stored,
+  not used) so a save never drops them.
+- **Not taken:** his separate shop (`lib/shop`, `/dashboard/shop`, `/api/shop/products`,
+  `/api/shop/cart`), `/site/catalog` pages (our catalogue is blocks on pages), `sitemap.ts`/`seo.ts`
+  (ours per website), media thumbnails (ours: image-variants), Google Fonts loader, Shop menu item,
+  his changes to the floating header and contact photo panel (they changed live pages).
+- Tests: `test:content` and `test:inline` (his) need an isolated server; see the merge log.
