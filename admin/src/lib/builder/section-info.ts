@@ -16,7 +16,9 @@ export function fieldEditable(section: Section, field: Field) {
   const access = section.clientAccess || defaultSectionAccess;
   return (
     !access.lockedFields.includes(field.key) &&
-    (field.type === "image" || field.label === "Image description"
+    (field.type === "image" ||
+    field.type === "video" ||
+    field.label === "Image description"
       ? access.images
       : access.text)
   );

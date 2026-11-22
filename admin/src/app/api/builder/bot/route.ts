@@ -9,6 +9,13 @@ import {
 import { storeMedia } from "@/lib/builder/media";
 import { listAccounts, saveAccount } from "@/lib/builder/accounts";
 import {
+  findSite,
+  knownScope,
+  newAccountScope,
+  primarySite,
+  readRegistry,
+} from "@/lib/builder/sites";
+import {
   newClientAccount,
   clientAccountChange,
 } from "@/lib/builder/account-input";
@@ -87,17 +94,45 @@ async function handle(request: Request) {
           throw new StoreError(
             "Choose a client account and a valid password or access status.",
           );
-        return Response.json(await saveAccount(update.data));
+        return Response.json(await saveAccount(await knownScope(update.data)));
       }
       const parsed = newClientAccount.safeParse(input);
       if (!parsed.success)
         throw new StoreError(
           "Enter a name, valid email and a password of 12–256 characters.",
         );
-      return Response.json(await saveAccount(parsed.data), { status: 201 });
+      return Response.json(
+        await saveAccount(await newAccountScope(parsed.data)),
+        { status: 201 },
+      );
+    }
+    // ?site=<id or key> selects a website; unscoped requests use the first one.
+    // Only the super admin may reach other websites: the client actor has no per-account
+    // scope here, so it stays on the first website.
+    const registry = await readRegistry();
+    const owner = url.searchParams.get("actor") === "super-admin";
+    const primary = primarySite(registry);
+    const requested = url.searchParams.get("site");
+    const site = requested ? findSite(registry, requested) : primary;
+    if (!site) throw new StoreError("Website not found.", 404);
+    if (!owner && site !== primary)
+      throw new StoreError("You do not have access to this website.", 403);
+    if (url.searchParams.get("resource") === "sites") {
+      if (request.method !== "GET") return new Response(null, { status: 405 });
+      return Response.json(
+        (owner ? registry.sites : [site]).map(
+          ({ id, key, name, companyId }) => ({
+            id,
+            key,
+            name,
+            company: registry.companies.find((c) => c.id === companyId)?.name,
+          }),
+        ),
+        { headers: { "Cache-Control": "no-store" } },
+      );
     }
     if (request.method === "GET")
-      return Response.json(await readProject(), {
+      return Response.json(await readProject(site.id), {
         headers: { "Cache-Control": "no-store" },
       });
     if (request.method === "PUT") {
@@ -111,9 +146,8 @@ async function handle(request: Request) {
         await writeProject(
           input,
           url.searchParams.get("publish") || undefined,
-          url.searchParams.get("actor") === "super-admin"
-            ? "super-admin"
-            : "client",
+          owner ? "super-admin" : "client",
+          { siteId: site.id },
         ),
       );
     }
@@ -124,6 +158,7 @@ async function handle(request: Request) {
         headers: { "content-type": request.headers.get("content-type") || "" },
         body: new Uint8Array(bytes).buffer,
       }),
+      site.id,
     );
   } catch (error) {
     return errorResponse(error);

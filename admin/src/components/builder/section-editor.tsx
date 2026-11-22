@@ -33,18 +33,19 @@ function Fields({
         <div
           key={field.key}
           className={
-            ["image", "heading", "textarea"].includes(field.type)
+            ["image", "video", "heading", "textarea"].includes(field.type)
               ? "space-y-2 sm:col-span-2"
               : "space-y-2"
           }
         >
           <Label htmlFor={`${id}-${field.key}`}>{field.label}</Label>
-          {field.type === "image" ? (
+          {field.type === "image" || field.type === "video" ? (
             <MediaPicker
+              kind={field.type}
               value={values[field.key] ?? field.value}
               onChange={(value) => onChange({ ...values, [field.key]: value })}
             />
-          ) : ["heading", "textarea"].includes(field.type) ? (
+          ) :["heading", "textarea"].includes(field.type) ? (
             <Textarea
               id={`${id}-${field.key}`}
               value={values[field.key] ?? field.value}
@@ -72,7 +73,7 @@ function Fields({
 function category(field: Field) {
   if (field.type === "url" || field.role === "Button / link label")
     return "Buttons & links";
-  if (field.type === "image" || field.label === "Image description")
+  if (field.type === "image" || field.type === "video" || field.label === "Image description")
     return "Images";
   if (
     ["Main heading", "Display text", "Eyebrow", "Description"].includes(
@@ -118,6 +119,26 @@ export function SectionEditor({
           These fields are managed by your administrator.
         </p>
       )}
+      {!contentOnly && (
+        <label className="flex items-center justify-between gap-4 rounded-xl bg-white p-4 text-sm">
+          <span className="font-medium">Background</span>
+          <select
+            value={section.tone || ""}
+            onChange={(e) =>
+              onChange({
+                ...section,
+                tone: (e.target.value || undefined) as Section["tone"],
+              })
+            }
+            className="h-9 rounded-lg bg-neutral-50 px-3 text-sm outline-none focus-visible:ring-2 focus-visible:ring-neutral-900"
+          >
+            <option value="">Page background</option>
+            <option value="tint">Tinted</option>
+            <option value="dark">Dark</option>
+            <option value="accent">Accent colour</option>
+          </select>
+        </label>
+      )}
       {categories.map((name, index) => (
         <EditorDisclosure key={name} defaultOpen={index === 0} title={name}>
           <Fields
@@ -130,6 +151,7 @@ export function SectionEditor({
       ))}
       {repeaters.map((group) => {
         const items = collectionItems(section, entry, group);
+        const limit = group.max ?? 30;
         const canManage =
           !contentOnly || collectionEditable(section, entry, group);
         const allEditable = group.items.every((item) =>
@@ -157,7 +179,7 @@ export function SectionEditor({
                   type="button"
                   variant="outline"
                   size="sm"
-                  disabled={items.length >= 30}
+                  disabled={items.length >= limit}
                   onClick={() =>
                     update([...items, newCollectionItem(entry, group)])
                   }
@@ -257,7 +279,7 @@ export function SectionEditor({
                           variant="ghost"
                           size="icon-sm"
                           aria-label={`Duplicate item ${index + 1}`}
-                          disabled={items.length >= 30}
+                          disabled={items.length >= limit}
                           onClick={() =>
                             update([
                               ...items.slice(0, index + 1),
@@ -303,8 +325,8 @@ export function SectionEditor({
             })}
             {canManage && (
               <p className="text-xs text-neutral-400">
-                1–30 items. Remove, duplicate or reorder without changing the
-                layout.
+                1–{limit} items. Remove, duplicate or reorder without changing
+                the layout.
               </p>
             )}
           </div>

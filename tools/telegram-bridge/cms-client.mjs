@@ -24,14 +24,15 @@ export async function createCmsSession({privateKey,fetchImpl=fetch,site=ADMIN_SI
     const auth=request.headers.authorization||'';const expected='Bearer '+token;
     if(auth.length!==expected.length||!timingSafeEqual(Buffer.from(auth),Buffer.from(expected))){response.writeHead(401);response.end();return;}
     const url=new URL(request.url,'http://localhost');const method=request.method;
-    if(!(['GET','PUT'].includes(method)&&url.pathname==='/project')&&!(method==='POST'&&url.pathname==='/media')){response.writeHead(404);response.end();return;}
-    if([...url.searchParams.keys()].some(key=>key!=='publish')){response.writeHead(400);response.end();return;}
+    if(!(['GET','PUT'].includes(method)&&url.pathname==='/project')&&!(method==='POST'&&url.pathname==='/media')&&!(method==='GET'&&url.pathname==='/sites')){response.writeHead(404);response.end();return;}
+    // Optional ?site=<site-key> selects a website; without it the CMS uses the first website.
+    if([...url.searchParams.keys()].some(key=>key!=='publish'&&key!=='site')||(url.searchParams.has('site')&&!/^[a-z0-9-]{1,60}$/.test(url.searchParams.get('site')))){response.writeHead(400);response.end();return;}
     try{
       const chunks=[];let size=0;for await(const part of request){size+=part.length;if(size>12*1024*1024)throw Error('Request too large');chunks.push(part);}
-      const query=new URLSearchParams(url.searchParams);query.set('actor',role==='super-admin'?'super-admin':'client');
+      const query=new URLSearchParams(url.searchParams);query.set('actor',role==='super-admin'?'super-admin':'client');if(url.pathname==='/sites')query.set('resource','sites');
       const remote=await cmsRequest(method,{privateKey:key,site,fetchImpl,body:Buffer.concat(chunks),contentType:request.headers['content-type']||'application/json',query:'?'+query.toString()});
       const data=await remote.json();
-      if(remote.ok&&method==='PUT'){activity.saved=true;const id=url.searchParams.get('publish');const page=data.pages?.find(p=>p.id===id);if(page?.published)activity.published.push(`${site}/site/${page.published.slug}`);}
+      if(remote.ok&&method==='PUT'){activity.saved=true;const id=url.searchParams.get('publish');const page=data.pages?.find(p=>p.id===id);if(page?.published)activity.published.push(url.searchParams.get('site')?`${site}/site/${url.searchParams.get('site')}/${page.published.slug}`:`${site}/site/${page.published.slug}`);}
       if(remote.ok&&method==='POST')activity.uploads++;
       response.writeHead(remote.status,{'Content-Type':'application/json','Cache-Control':'no-store'});response.end(JSON.stringify(data));
     }catch{response.writeHead(502,{'Content-Type':'application/json'});response.end(JSON.stringify({error:'CMS operation failed. Read the latest project before retrying a save; an interrupted request may have completed.'}));}

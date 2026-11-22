@@ -1,4 +1,5 @@
 "use client";
+import { useSiteKey } from "@/components/admin/site-context";
 import { useEffect, useRef } from "react";
 import type { Project, Section } from "@/lib/builder/types";
 export function SiteFrame({
@@ -7,6 +8,7 @@ export function SiteFrame({
   layout = true,
   className = "",
   width = "100%",
+  locale,
   onSelectSection,
 }: {
   project: Project;
@@ -14,20 +16,29 @@ export function SiteFrame({
   layout?: boolean;
   className?: string;
   width?: string;
+  locale?: string;
   onSelectSection?: (id: string) => void;
 }) {
   const ref = useRef<HTMLIFrameElement>(null);
   const editing = !!onSelectSection;
-  const latest = useRef({ project, sections, layout, editing });
+  const siteKey = useSiteKey();
+  const latest = useRef({
+    project,
+    sections,
+    layout,
+    editing,
+    siteKey,
+    locale,
+  });
   const send = () =>
     ref.current?.contentWindow?.postMessage(
       { type: "harbstone-preview", payload: latest.current },
       location.origin,
     );
   useEffect(() => {
-    latest.current = { project, sections, layout, editing };
+    latest.current = { project, sections, layout, editing, siteKey, locale };
     send();
-  }, [project, sections, layout, editing]);
+  }, [project, sections, layout, editing, siteKey, locale]);
   useEffect(() => {
     const select = (event: MessageEvent) => {
       if (

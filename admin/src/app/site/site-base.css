@@ -1,0 +1,69 @@
+/* Base styles of public website pages (root layout app/site/layout.tsx).
+   The same base the pages had under the admin's globals.css (Tailwind preflight, the admin
+   base rules, :root tokens, html/body classes), without the admin's Tailwind utilities,
+   shadcn and animation CSS. Library styles: components/builder/site.scss. */
+@layer theme, base, components, utilities;
+@import "tailwindcss/theme.css" layer(theme);
+@import "tailwindcss/preflight.css" layer(base);
+
+@theme inline {
+  --font-sans: var(--font-inter), Arial, Helvetica, sans-serif;
+  --font-heading: var(--font-playfair), Georgia, serif;
+}
+
+:root {
+  --background: oklch(1 0 0);
+  --foreground: oklch(0.145 0 0);
+  --border: oklch(0.922 0 0);
+  --ring: oklch(0.708 0 0);
+  --radius: 0.5rem;
+}
+
+@layer base {
+  * {
+    border-color: var(--border);
+    outline-color: color-mix(in oklab, var(--ring) 50%, transparent);
+  }
+  body {
+    background-color: var(--background);
+    color: var(--foreground);
+    font-feature-settings: "ss01" on, "cv01" on;
+  }
+  h1, h2, h3 {
+    font-family: var(--font-heading);
+  }
+  button:not(:disabled), [role="button"]:not(:disabled) {
+    cursor: pointer;
+  }
+  html {
+    font-family: var(--font-inter), Arial, Helvetica, sans-serif;
+  }
+}
+
+/* Formerly the utility classes on <html> / <body> of the shared root layout, and Tailwind's
+   .container utility (templates use the class "container"; the library resets its max-width). */
+@layer utilities {
+  .container {
+    width: 100%;
+  }
+  @media (min-width: 40rem) { .container { max-width: 40rem; } }
+  @media (min-width: 48rem) { .container { max-width: 48rem; } }
+  @media (min-width: 64rem) { .container { max-width: 64rem; } }
+  @media (min-width: 80rem) { .container { max-width: 80rem; } }
+  @media (min-width: 96rem) { .container { max-width: 96rem; } }
+  html {
+    height: 100%;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+  body {
+    min-height: 100%;
+    background-color: #f6f6f6;
+    color: #111;
+  }
+}
+
+::selection {
+  background: #111111;
+  color: #ffffff;
+}

@@ -96,3 +96,15 @@
     &--story .about__media { min-height: 320px; }
   }
 }
+
+// about-v40 Image + Notes (anselat agent): rounded photo beside two or more short notes.
+.about--notes {
+  container-type: inline-size;
+  .about__notes { display: grid; grid-template-columns: 1fr 1fr; gap: 60px; align-items: start; }
+  .about__notes-media { margin: 0; }
+  .about__notes-image { width: 100%; height: auto; object-fit: cover; border-radius: calc(var(--radius) * 2); }
+  .about__notes-list { display: flex; flex-direction: column; justify-content: space-evenly; gap: 60px; }
+  .about__note { display: flex; flex-direction: column; gap: clamp(24px, 3vw, 46px); }
+  .about__note .section__description { max-width: none; font-weight: 300; line-height: 1.4; }
+  @container (max-width: 1000px) { .about__notes { grid-template-columns: minmax(0, 1fr); gap: 50px; } }
+}

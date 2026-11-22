@@ -1,7 +1,11 @@
 "use client";
 /* eslint-disable @next/next/no-img-element */
+import { useSiteKey } from "@/components/admin/site-context";
+import { pageHref } from "@/lib/builder/i18n";
+import { PageTranslations } from "./page-translations";
+import { SeoPanel } from "./seo-panel";
 import Link from "next/link";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import {
   ArrowLeft,
@@ -31,10 +35,8 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectOption } from "@/components/ui/select";
 import { SectionEditor } from "./section-editor";
-import { MediaPicker } from "./media-picker";
 import { PreviewDialog } from "./preview-dialog";
 import { usePreviewSelection } from "./use-preview-selection";
 import {
@@ -98,7 +100,7 @@ export function slugify(value: string) {
 }
 export function PageEditor({ slug }: { slug?: string }) {
   const { project, error } = useProject();
-  const { isOwner } = useAccess();
+  const { canDesign } = useAccess();
   if (!project) return <p role="status">{error || "Loading your project…"}</p>;
   const page = project.pages.find((p) => p.slug === slug && !p.deletedAt);
   if (slug && !page)
@@ -108,7 +110,7 @@ export function PageEditor({ slug }: { slug?: string }) {
         <Link href="/dashboard/pages">Back to pages</Link>
       </div>
     );
-  if (!isOwner)
+  if (!canDesign)
     return page ? (
       <ClientPageEditor key={page.id} initial={page} />
     ) : (
@@ -118,6 +120,7 @@ export function PageEditor({ slug }: { slug?: string }) {
 }
 function Editor({ initial, project }: { initial?: CmsPage; project: Project }) {
   const router = useRouter();
+  const siteKey = useSiteKey();
   const [page, setPage] = useState<CmsPage>(
     initial
       ? structuredClone(initial)
@@ -125,7 +128,7 @@ function Editor({ initial, project }: { initial?: CmsPage; project: Project }) {
           id: crypto.randomUUID(),
           title: "",
           slug: "",
-          locale: "en",
+          locale: project.languages?.default || "en",
           status: "Draft",
           sections: [],
           seo: {
@@ -140,7 +143,16 @@ function Editor({ initial, project }: { initial?: CmsPage; project: Project }) {
   );
   const [family, setFamily] = useState(""),
     [query, setQuery] = useState(""),
-    [editing, setEditing] = useState("");
+    // A fix link from the SEO check (#section-{id}) opens that section's editor.
+    [editing, setEditing] = useState(() =>
+      typeof window !== "undefined" && window.location.hash.startsWith("#section-")
+        ? window.location.hash.slice("#section-".length)
+        : "",
+    );
+  useEffect(() => {
+    if (window.location.hash.startsWith("#section-"))
+      document.getElementById(window.location.hash.slice(1))?.scrollIntoView({ block: "start" });
+  }, []);
   const { selectSection: selectFromPreview, clearSelection } =
     usePreviewSelection(setEditing);
   const draft = usePageDraft(page, setPage, project, initial);
@@ -182,11 +194,11 @@ function Editor({ initial, project }: { initial?: CmsPage; project: Project }) {
       </Link>
       <PageHeader
         title={initial ? `Edit ${initial.title}` : "Create a page"}
-        description="Approved sections. Your content. One consistent design system."
         action={
           <PreviewDialog
             project={project}
             sections={page.sections}
+            locale={page.locale}
             onSelectSection={selectFromPreview}
           />
         }
@@ -238,7 +250,10 @@ function Editor({ initial, project }: { initial?: CmsPage; project: Project }) {
                   </Button>
                 </div>
                 <p className="text-xs text-neutral-400">
-                  /site/{page.slug || "your-page"}
+                  {pageHref(project, siteKey, {
+                    slug: page.slug || "your-page",
+                    locale: page.locale,
+                  })}
                 </p>
               </div>
             </CardContent>
@@ -371,7 +386,10 @@ function Editor({ initial, project }: { initial?: CmsPage; project: Project }) {
                         </Button>
                       </div>
                       {editing === section.id && (
-                        <div className="space-y-4 border-t bg-neutral-50/60 p-4">
+                        <div
+                          id={`section-${section.id}`}
+                          className="space-y-4 border-t bg-neutral-50/60 p-4"
+                        >
                           <div className="grid gap-2">
                             <Label>Variation</Label>
                             <Select
@@ -534,60 +552,12 @@ function Editor({ initial, project }: { initial?: CmsPage; project: Project }) {
               </div>
             </CardContent>
           </Card>
-          <Card>
-            <CardHeader>
-              <CardTitle>Search & sharing</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-5">
-              <div className="space-y-2">
-                <Label htmlFor="seo-title">SEO title</Label>
-                <Input
-                  id="seo-title"
-                  value={page.seo.title}
-                  onChange={(e) =>
-                    patch({ seo: { ...page.seo, title: e.target.value } })
-                  }
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="seo-description">Description</Label>
-                <Textarea
-                  id="seo-description"
-                  value={page.seo.description}
-                  onChange={(e) =>
-                    patch({ seo: { ...page.seo, description: e.target.value } })
-                  }
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="seo-keywords">Keywords</Label>
-                <Input
-                  id="seo-keywords"
-                  value={page.seo.keywords}
-                  onChange={(e) =>
-                    patch({ seo: { ...page.seo, keywords: e.target.value } })
-                  }
-                />
-              </div>
-              <div className="space-y-2">
-                <Label>Social sharing image</Label>
-                <MediaPicker
-                  value={page.seo.image}
-                  onChange={(image) => patch({ seo: { ...page.seo, image } })}
-                />
-              </div>
-              <label className="flex items-center gap-2 text-sm">
-                <input
-                  type="checkbox"
-                  checked={page.seo.noindex}
-                  onChange={(e) =>
-                    patch({ seo: { ...page.seo, noindex: e.target.checked } })
-                  }
-                />
-                Hide from search engines
-              </label>
-            </CardContent>
-          </Card>
+          <SeoPanel
+            page={page}
+            project={project}
+            siteKey={siteKey}
+            onChange={(seo) => patch({ seo })}
+          />
         </div>
         <aside className="space-y-5 xl:sticky xl:top-24">
           <Card>
@@ -631,7 +601,7 @@ function Editor({ initial, project }: { initial?: CmsPage; project: Project }) {
               </Button>
               {initial?.status === "Published" && (
                 <a
-                  href={`/site/${page.published?.slug || initial.slug}`}
+                  href={pageHref(project, siteKey, page.published || initial)}
                   target="_blank"
                   rel="noreferrer"
                   className="flex items-center gap-2 text-sm"
@@ -667,21 +637,16 @@ function Editor({ initial, project }: { initial?: CmsPage; project: Project }) {
             </CardContent>
           </Card>
           <PageClientAccess page={page} onChange={patch} />
-          <Card>
-            <CardHeader>
-              <CardTitle>Page language</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <Select
-                value={page.locale}
-                onValueChange={(locale) => patch({ locale })}
-              >
-                <SelectOption value="en">English</SelectOption>
-                <SelectOption value="ru">Russian</SelectOption>
-                <SelectOption value="de">German</SelectOption>
-              </Select>
-            </CardContent>
-          </Card>
+          <div id="page-translations" />
+          <PageTranslations
+            page={page}
+            project={project}
+            saved={!!initial && !dirty && page.slug === initial.slug}
+            onLocale={(locale) => patch({ locale })}
+            onGroup={(translationGroup) =>
+              setPage((p) => ({ ...p, translationGroup }))
+            }
+          />
         </aside>
       </form>
     </div>

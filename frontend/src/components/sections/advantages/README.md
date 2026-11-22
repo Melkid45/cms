@@ -9,3 +9,10 @@ Interactive panels share a grid cell so the largest content reserves the height.
 All typography, colors, radius and container come from src/styles/template. No local font sizes. section-stack owns the 150px gap between sections. Photos are the same local Northline stock assets used by hero/about/services; all claims and statistics are demonstration content.
 
 Inline decorative SVGs use the installed Lucide v1.47.0 Handshake, ScanEye, Layers and Leaf paths (ISC license; see node_modules/lucide/LICENSE). Fixed 36px icons do not shrink in flex rows.
+
+- advantages-v40 Figures (anselat agent): a row of big numbers with a small muted label, spread across the width; centred column on phones.
+- advantages-v41 Columns (anselat agent): three (repeatable) heading + text columns, no icons or boxes.
+
+advantages-v20 (terms): a framed card of titled terms (repeatable, line breaks kept) + four figure tiles on the side (figure + label, empty tiles hidden).
+advantages-v21 (strip): dark band of 2–6 large figures with labels, thin column lines.
+advantages-v22 (tiles): heading + soft tiles with an icon square, title and text. Six card templates = six icons (check, pin, truck, shield, clock, heart).

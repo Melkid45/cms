@@ -54,8 +54,10 @@ const { SectionRenderer } = load(
 );
 const { renderToStaticMarkup } = require("react-dom/server"),
   { createElement } = require("react");
-assert.equal(definitions.length, 105);
-assert.equal(new Set(definitions.map((d) => d.family)).size, 14);
+// Every template file on disk is imported (count follows the library as it grows).
+const templateFiles = require("fs").globSync("../frontend/src/components/{sections,layout}/*/*-v*.html", { cwd: root });
+assert.equal(definitions.length, templateFiles.length);
+assert.equal(new Set(definitions.map((d) => d.family)).size, new Set(templateFiles.map((f) => path.basename(path.dirname(f)))).size);
 const project = seedProject();
 const { normalizeProject, preparePages, publicProject, hasDraftChanges } = load(
   path.join(root, "src/lib/builder/workflows.ts"),
@@ -105,6 +107,15 @@ assert.equal(
 );
 const repeated = definitions.find((d) => d.id === "services-v6");
 assert(repeated.repeaters.length);
+const showcase = definitions.find((d) => d.id === "hero-v9");
+assert.equal(showcase.repeaters.length, 1, "hero-v9 slides must repeat");
+assert.equal(showcase.repeaters[0].max, 5);
+assert(
+  definitions
+    .filter((d) => d.family === "hero" && d.id !== "hero-v9")
+    .every((d) => !d.repeaters.length),
+  "Other hero compositions stay fixed",
+);
 const { collectionItems, newCollectionItem } = load(
   path.join(root, "src/lib/builder/collections.ts"),
 );
@@ -221,6 +232,6 @@ assert.equal(safeUrl("data:text/html,x"), "");
 assert.equal(safeUrl("/site/home"), "/site/home");
 assert.equal((html.match(/<h1\b/g) || []).length, 1);
 console.log(
-  "105 approved variants render as React, screenshots/assets exist, editable content is escaped, unsafe URLs are rejected, three demo pages are connected.",
+  `${definitions.length} approved variants render as React, screenshots/assets exist, editable content is escaped, unsafe URLs are rejected, three demo pages are connected.`,
 );
 export { seedProject };

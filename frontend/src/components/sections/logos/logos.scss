@@ -1,0 +1,20 @@
+// logos-v40 Marquee (anselat agent): small centred heading and an endless row of partner logos.
+.logos--marquee {
+  container-type: inline-size;
+  overflow: hidden;
+  .container { display: flex; flex-direction: column; align-items: center; gap: clamp(32px, 4.5vw, 80px); }
+  .logos__title { text-align: center; }
+  .logos__viewport { position: relative; width: 100%; overflow: hidden; }
+  .logos__viewport::before, .logos__viewport::after { content: ""; position: absolute; top: 0; bottom: 0; z-index: 1; width: clamp(48px, 11vw, 200px); pointer-events: none; }
+  .logos__viewport::before { left: 0; background: linear-gradient(90deg, var(--color-bg) 30%, transparent); }
+  .logos__viewport::after { right: 0; background: linear-gradient(270deg, var(--color-bg) 30%, transparent); }
+  .logos__track { display: flex; flex-wrap: wrap; justify-content: center; align-items: center; gap: clamp(40px, 4.2vw, 80px); }
+  .logos__item { flex-shrink: 0; display: flex; align-items: center; }
+  .logos__image { width: auto; max-width: clamp(110px, 12vw, 220px); max-height: clamp(40px, 4.2vw, 70px); object-fit: contain; filter: grayscale(100%); opacity: 0.7; }
+  // Running state is switched on by the site script after it has cloned the row once.
+  .logos__viewport.is-running .logos__track { flex-wrap: nowrap; justify-content: flex-start; width: max-content; padding-right: clamp(40px, 4.2vw, 80px); animation: logos-marquee var(--logos-duration, 30s) linear infinite; }
+  .logos__viewport.is-running:hover .logos__track { animation-play-state: paused; }
+  @container (max-width: 600px) { .logos__image { max-height: 40px; } }
+}
+@keyframes logos-marquee { to { transform: translateX(-50%); } }
+@media (prefers-reduced-motion: reduce) { .logos__viewport.is-running .logos__track { animation: none; flex-wrap: wrap; width: auto; justify-content: center; } }

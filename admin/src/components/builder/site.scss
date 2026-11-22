@@ -1,4 +1,4 @@
-// Next bundles its own installed Manrope dependency through globals.css.
+// Fonts come from next/font in the root layouts app/site/layout.tsx and app/(admin)/layout.tsx (--font-inter, --font-playfair).
 // Shared frontend files must not depend on frontend/node_modules being installed.
 @use "../../../../frontend/src/styles/template/foundation" with (
   $include-fonts: false
@@ -18,11 +18,18 @@
 @use "../../../../frontend/src/components/sections/testimonials/testimonials";
 @use "../../../../frontend/src/components/sections/faq/faq";
 @use "../../../../frontend/src/components/sections/contact/contact";
+@use "../../../../frontend/src/components/sections/logos/logos";
+@use "../../../../frontend/src/components/sections/calculator/calculator";
+@use "../../../../frontend/src/components/sections/team/team";
+// Library-wide refresh rules must load after every section style.
+@use "../../../../frontend/src/styles/template/refresh";
 .site-canvas {
   min-height: 100vh;
   background: var(--color-bg);
   color: var(--color-ink);
-  font-family: "Manrope Variable", Manrope, sans-serif;
+  --font-body: var(--font-inter), Inter, sans-serif;
+  --font-heading: var(--font-playfair), "Playfair Display", Georgia, serif;
+  font-family: var(--font-body);
 }
 .builder-logo {
   width: auto;
@@ -110,4 +117,227 @@
     outline: 3px solid var(--color-ink);
     outline-offset: -3px;
   }
+}
+// Section tones (section.tone): a coloured band edge to edge, the page keeps its rhythm.
+// --brand-* hold the site's final palette (after custom CSS), so tones can swap the colour variables.
+.site-canvas {
+  --brand-ink: var(--color-ink);
+  --brand-bg: var(--color-bg);
+  --brand-accent: var(--color-accent);
+}
+.site-canvas [data-tone] {
+  background: var(--color-bg);
+  color: var(--color-ink);
+  padding-block: var(--section-space);
+}
+.site-canvas .section-stack > [data-tone] {
+  margin-block: calc(var(--section-space) * -1);
+  padding-block: var(--section-space);
+}
+.site-canvas .section-stack > [data-tone]:first-child { margin-top: 0; }
+.site-canvas .section-stack > [data-tone]:last-child { margin-bottom: 0; }
+.site-canvas [data-tone="tint"] {
+  --color-bg: color-mix(in srgb, var(--brand-bg) 93%, var(--brand-ink));
+  --color-surface: var(--brand-bg);
+}
+.site-canvas [data-tone="dark"] {
+  --color-ink: var(--brand-bg);
+  --color-bg: var(--brand-ink);
+  --color-surface: color-mix(in srgb, var(--brand-ink) 88%, var(--brand-bg));
+  --color-muted: color-mix(in srgb, var(--brand-bg) 70%, var(--brand-ink));
+  --color-border: color-mix(in srgb, var(--brand-bg) 20%, var(--brand-ink));
+  --color-interactive: var(--brand-bg);
+  --color-button-hover: color-mix(in srgb, var(--brand-bg) 85%, var(--brand-ink));
+}
+.site-canvas [data-tone="accent"] {
+  --color-ink: var(--brand-on-accent);
+  --color-bg: var(--brand-accent);
+  --color-surface: color-mix(in srgb, var(--brand-accent) 88%, var(--brand-on-accent));
+  --color-muted: color-mix(in srgb, var(--brand-on-accent) 75%, var(--brand-accent));
+  --color-border: color-mix(in srgb, var(--brand-on-accent) 22%, var(--brand-accent));
+  --color-interactive: var(--brand-on-accent);
+  --color-button-hover: color-mix(in srgb, var(--brand-on-accent) 85%, var(--brand-accent));
+}
+.site-canvas [data-tone="dark"] .button:not(.button--outline):not(.button--light),
+.site-canvas [data-tone="accent"] .button:not(.button--outline):not(.button--light) {
+  color: var(--color-bg);
+}
+// Multilingual websites: language switcher (rendered into [data-lang-switcher]
+// of header templates, only when two or more languages are enabled).
+.lang-switcher {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 15px;
+  line-height: 1;
+}
+.lang-switcher__link {
+  padding: 8px 8px;
+  border-radius: 999px;
+  color: var(--color-muted);
+  text-decoration: none;
+  font-weight: 500;
+}
+.lang-switcher__link:hover {
+  color: var(--color-ink);
+}
+.lang-switcher__link[aria-current] {
+  color: var(--color-ink);
+  font-weight: 700;
+}
+// Menus rendered as columns (nav[data-menu-expanded]): parent link + its children.
+.builder-menu-column {
+  display: grid;
+  align-content: start;
+  gap: 12px;
+}
+.builder-menu-column__links {
+  display: grid;
+  gap: 10px;
+}
+// Shop cart (components/builder/cart-widgets.ts): header link, toast, checkout list.
+.cart-link {
+  position: relative;
+  display: inline-grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  border-radius: 999px;
+  color: inherit;
+}
+.cart-link:hover {
+  background: var(--color-surface);
+}
+.cart-link__count {
+  position: absolute;
+  top: 2px;
+  right: 0;
+  min-width: 18px;
+  height: 18px;
+  padding: 0 5px;
+  border-radius: 999px;
+  background: var(--color-accent);
+  color: var(--brand-on-accent, #fff);
+  font: 600 11px/18px var(--font-body);
+  text-align: center;
+}
+.cart-link__count[hidden] {
+  display: none;
+}
+.cart-toast {
+  position: fixed;
+  z-index: 200;
+  left: 50%;
+  bottom: 24px;
+  transform: translateX(-50%);
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 16px;
+  max-width: calc(100vw - 32px);
+  padding: 14px 20px;
+  border-radius: 12px;
+  background: #111;
+  color: #fff;
+  font: 500 15px/1.4 var(--font-body, sans-serif);
+  box-shadow: 0 12px 32px rgb(0 0 0 / 25%);
+}
+.cart-toast[hidden] {
+  display: none;
+}
+.cart-toast__link {
+  color: inherit;
+  font-weight: 700;
+  text-decoration: underline;
+}
+.pricing__co-summary.is-cart > :not(.cart-lines, .cart-total, .pricing__co-foot) {
+  display: none;
+}
+.cart-lines {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+.cart-line {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto auto;
+  align-items: center;
+  gap: 4px 12px;
+}
+.cart-line__name {
+  font-weight: 600;
+}
+.cart-line__options {
+  color: var(--color-muted);
+}
+.cart-line__qty {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.cart-line__step {
+  width: 32px;
+  height: 32px;
+  border: 0;
+  border-radius: 999px;
+  background: var(--color-surface);
+  color: inherit;
+  cursor: pointer;
+}
+.cart-line__price {
+  font-weight: 600;
+  white-space: nowrap;
+}
+.cart-line__remove {
+  grid-column: 1 / -1;
+  justify-self: start;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--color-muted);
+  text-decoration: underline;
+  cursor: pointer;
+}
+.cart-total {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 16px;
+  margin: 8px 0 0;
+}
+.pricing__co-form.is-live .pricing__co-note {
+  display: none;
+}
+.cart-address[hidden],
+.pricing__co-pickup[hidden] {
+  display: none;
+}
+.cart-status:empty {
+  display: none;
+}
+.cart-total {
+  flex-wrap: wrap;
+}
+.cart-total__delivery {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  width: 100%;
+  color: var(--color-muted);
+}
+.cart-zone[hidden] {
+  display: none;
+}
+
+// library agent (2026-11-19): a toned band keeps the normal page gap to its neighbours,
+// so the content above/below no longer sits flush on the band edge (cards touching the band).
+// Only on websites that use a style preset (data-site-style): existing sites keep their spacing exactly.
+.site-canvas[data-site-style] .section-stack > [data-tone] {
+  margin-block: 0;
+  padding-block: calc(var(--section-space) * 0.8);
+}
+// perf/a11y (2026-11-19): websites with a style preset keep secondary text readable (4.5:1)
+// on accent-toned sections; the other websites (pixel-matched clones) are unchanged.
+.site-canvas[data-site-style] [data-tone="accent"] {
+  --color-muted: color-mix(in srgb, var(--brand-on-accent) 88%, var(--brand-accent));
 }

@@ -117,6 +117,7 @@ export function publicProject(project: Project): Project {
       .map((p) => ({
         id: p.id,
         ...p.published!,
+        translationGroup: p.translationGroup,
         sections: p.published!.sections.map(publicSection),
         status: "Published" as const,
       })),

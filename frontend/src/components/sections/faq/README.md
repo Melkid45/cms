@@ -5,3 +5,5 @@ Import faq.js once on the host page: each FAQ section always keeps at least one 
 Height transitions run for 280ms, with automatic height restored afterward; quick reversals start at the current rendered height. Reduced-motion preferences disable animation. Lucide Plus rotates into a close icon.
 Shared heading/text classes and container, 150px collection spacing. Demo text must be adapted to the actual service.
 
+
+faq-v20 (aside): questions as soft cards (+ turns into ×; class "faq" keeps the canvas accordion), optional heading above and a text link below, optional help card on the side (heading, text, three buttons). Without the help card the questions run in two columns.

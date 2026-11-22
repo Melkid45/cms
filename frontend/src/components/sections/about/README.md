@@ -7,3 +7,5 @@ Seven standalone partials share one `about.scss`: quote, editorial, paired, pane
 All variants use the same Northline content theme and local stock assets as the approved hero collection. The first variant takes compositional inspiration from the user-provided Alture reference; no template source code or assets are copied. Quotes and statistics are fictional demonstration content.
 
 Shared content: eyebrow, title, description, media, action. Optional content: quote + author, secondary image, facts, additional story paragraph. On narrow screens the layout stacks without fixed section heights.
+
+- about-v40 Notes (anselat agent): rounded photo on the left, two or more short heading + text notes on the right.

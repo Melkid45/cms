@@ -5,3 +5,8 @@ Preview: /content-collection.html. Five partials share content.scss, with no Jav
 Add content--image-right to content--image to place its image on the right on desktop. On mobile media comes first. Shared foundations come from src/styles/template: typography, container, color, radius and buttons. section-stack owns the 150px gap. No preview navigation, labels, footer, inline styles or local font sizes.
 
 Disclosure icons use Lucide Plus paths (ISC). Topics are independent native details, keyboard operable without a script. Content and photos match the Northline theme in the other section families.
+
+- content-v40 Split Statement (anselat agent): very large heading on the left, short paragraph on the right aligned to its bottom.
+- content-v41 Share (anselat agent): centred heading and round Facebook / WhatsApp / copy-link buttons; the site script points them at the current page.
+
+content-v20 (card-aside): a text card (heading, lead, two paragraphs, up to six bullet lines, button) next to an optional contact card (heading, status, four channel tiles, opening hours, address). Every empty part is hidden; with all card extras empty it is plain paragraphs.

@@ -22,6 +22,24 @@ export function localAccess() {
     process.env.NODE_ENV === "development" && !process.env.CMS_ADMIN_PASSWORD
   );
 }
+// Passwordless local access is for the developer's own machine only: a request that
+// arrives through a tunnel or under another host name has to sign in.
+export function localRequest(headers: Headers) {
+  const host = (headers.get("host") || "").replace(/:\d+$/, "");
+  return (
+    localAccess() &&
+    ["127.0.0.1", "localhost", "[::1]"].includes(host) &&
+    !headers.get("cf-ray") &&
+    !headers.get("cf-connecting-ip")
+  );
+}
+// Session cookie; Secure whenever the visitor reached the server over HTTPS.
+export function sessionCookie(request: Request, value: string, maxAge: number) {
+  const secure =
+    process.env.NODE_ENV === "production" ||
+    request.headers.get("x-forwarded-proto")?.split(",")[0].trim() === "https";
+  return `cms_session=${value}; HttpOnly; SameSite=Strict; Path=/; Max-Age=${maxAge}${secure ? "; Secure" : ""}`;
+}
 const developmentKey = randomBytes(32).toString("hex");
 function key() {
   return (
@@ -36,9 +54,15 @@ export function createSession(
   identity: Identity = ownerIdentity(),
 ) {
   if (!key()) throw new Error("Authentication is not configured.");
+  // Access scopes are always read fresh from account storage, never from the cookie.
+  const { id, email, name, role, version } = identity;
   const payload = Buffer.from(
     JSON.stringify({
-      ...identity,
+      id,
+      email,
+      name,
+      role,
+      version,
       exp: Math.floor(now / 1000) + sessionLifetime,
     }),
   ).toString("base64url");
@@ -78,7 +102,7 @@ export function sessionIdentity(
     )
       return ownerIdentity();
     if (
-      value.role === "client" &&
+      (value.role === "client" || value.role === "designer") &&
       typeof value.id === "string" &&
       typeof value.email === "string" &&
       typeof value.name === "string" &&

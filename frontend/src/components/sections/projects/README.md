@@ -9,3 +9,8 @@ New local stock images:
 - common.jpg: https://images.unsplash.com/photo-1497366412874-3415097a27e7
 
 Other images reuse the approved Northline stock assets from hero. No new font-size rules or decorative icons.
+
+projects-v9 (live sites): six cards, each a real link to an example website (image and "View website"). Hover is a soft shadow only. Made for the Harbstone landing, works for any portfolio of live sites.
+
+- projects-v40 Overlay Cards (anselat agent): heading + accent button, then square photo tiles with title and two-line text over a dark gradient; more than two tiles scroll sideways (scroll-snap). Whole tile is a link.
+- projects-v41 Category Cards (anselat agent): large heading with a description beside it, then 4:3 photo tiles in two columns (same tile as v40). Use one per category for a works listing; tiles without a link work as plain cards (materials).

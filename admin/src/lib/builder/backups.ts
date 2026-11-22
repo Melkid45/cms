@@ -14,10 +14,14 @@ import { put, del } from "@vercel/blob";
 import {
   database,
   dataDirectory,
+  legacySiteId,
+  localMediaUrl,
   readProject,
+  siteDirectory,
   writeProject,
   StoreError,
 } from "./server";
+import type postgres from "postgres";
 import { safeSvg } from "./svg";
 import type { Project, Media } from "./types";
 import { definition } from "./catalog";
@@ -39,10 +43,22 @@ type Archive = {
   assets: Asset[];
   checksum: string;
 };
-const directory = path.join(dataDirectory, "backups");
+// Backups are kept per website. The first website keeps the legacy keys/folder.
+const backupDirectory = (siteId: string) =>
+  path.join(siteDirectory(siteId), "backups");
+const backupKey = (siteId: string, id: string) =>
+  siteId === legacySiteId ? `backup:${id}` : `backup:${siteId}:${id}`;
+const siteBackups = (
+  sql: postgres.Sql | postgres.TransactionSql,
+  siteId: string,
+) =>
+  siteId === legacySiteId
+    ? sql`id LIKE 'backup:%' AND id NOT LIKE 'backup:%:%'`
+    : sql`id LIKE ${`backup:${siteId}:%`}`;
 const maxBytes = 32 * 1024 * 1024;
 const retentionMs = 7 * 24 * 60 * 60 * 1000;
-export async function pruneExpiredBackups() {
+// Without a website id, prunes every website (daily cron).
+export async function pruneExpiredBackups(siteId?: string) {
   const cutoff = new Date(Date.now() - retentionMs).toISOString();
   const sql = await database();
   if (sql) {
@@ -52,6 +68,24 @@ export async function pruneExpiredBackups() {
   }
   if (process.env.VERCEL)
     throw new StoreError("Backup storage is not configured.", 503);
+  let siteIds = [siteId ?? legacySiteId];
+  if (!siteId)
+    try {
+      siteIds.push(
+        ...(await readdir(path.join(dataDirectory, "sites"))).filter((id) =>
+          /^[a-z0-9]{1,40}$/.test(id),
+        ),
+      );
+    } catch (e) {
+      if ((e as NodeJS.ErrnoException).code !== "ENOENT") throw e;
+    }
+  siteIds = [...new Set(siteIds)];
+  let removed = 0;
+  for (const id of siteIds)
+    removed += await pruneDirectory(backupDirectory(id), cutoff);
+  return removed;
+}
+async function pruneDirectory(directory: string, cutoff: string) {
   let files: string[];
   try {
     files = await readdir(directory);
@@ -99,7 +133,9 @@ function urls(project: Project) {
     if (
       typeof value === "string" &&
       (/^\/(images|brand)\//.test(value) ||
-        /^\/api\/builder\/media\/[a-f0-9-]{36}$/.test(value) ||
+        /^\/api\/builder\/media\/(?:[a-z0-9]{1,40}\/)?[a-f0-9-]{36}$/.test(
+          value,
+        ) ||
         /^https:\/\/[^/]+\.public\.blob\.vercel-storage\.com\/cms-media\//.test(
           value,
         ))
@@ -110,13 +146,23 @@ function urls(project: Project) {
       Object.values(value).forEach(walk);
   }
   walk(project);
-  return [...found];
+  // Background videos (hero-v52) are not archived yet: backups hold images only.
+  const videos = new Set(
+    project.media.filter((m) => m.mime?.startsWith("video/")).map((m) => m.url),
+  );
+  return [...found].filter(
+    (url) => !videos.has(url) && !/\.(mp4|webm)$/i.test(url),
+  );
 }
 async function bytesAt(url: string): Promise<Buffer> {
   if (url.startsWith("/api/builder/media/")) {
-    const id = url.split("/").at(-1)!;
-    if (!/^[a-f0-9-]{36}$/.test(id)) throw Error("Invalid media");
-    return readFile(path.join(dataDirectory, "media", id + ".webp"));
+    // Legacy /api/builder/media/{id} or per-website /api/builder/media/{site}/{id}.
+    const parts = url.slice("/api/builder/media/".length).split("/");
+    const id = parts.at(-1)!,
+      siteId = parts.length === 2 ? parts[0] : legacySiteId;
+    if (!/^[a-f0-9-]{36}$/.test(id) || parts.length > 2)
+      throw Error("Invalid media");
+    return readFile(path.join(siteDirectory(siteId), "media", id + ".webp"));
   }
   if (/^\/(images|brand)\//.test(url)) {
     const root = path.join(process.cwd(), "public"),
@@ -156,25 +202,26 @@ async function bytesAt(url: string): Promise<Buffer> {
   }
   return Buffer.concat(chunks);
 }
-async function store(archive: Archive) {
+async function store(siteId: string, archive: Archive) {
   const sql = await database();
   if (sql) {
     await sql.begin(async (tx) => {
       await tx`SELECT pg_advisory_xact_lock(731920042)`;
       if (archive.kind === "Full") {
         const [row] =
-          await tx`SELECT count(*)::int AS count FROM harbstone_project WHERE id LIKE 'backup:%' AND document->>'kind'='Full'`;
+          await tx`SELECT count(*)::int AS count FROM harbstone_project WHERE ${siteBackups(tx, siteId)} AND document->>'kind'='Full'`;
         if (row.count >= 5)
           throw new StoreError(
             "Five full backups are already stored. Download and remove an older copy first.",
           );
       }
-      await tx`INSERT INTO harbstone_project(id,document) VALUES (${"backup:" + archive.id},${tx.json(archive as never)}) ON CONFLICT(id) DO UPDATE SET document=EXCLUDED.document`;
+      await tx`INSERT INTO harbstone_project(id,document) VALUES (${backupKey(siteId, archive.id)},${tx.json(archive as never)}) ON CONFLICT(id) DO UPDATE SET document=EXCLUDED.document`;
     });
     return;
   }
   if (process.env.VERCEL)
     throw new StoreError("Backup storage is not configured.", 503);
+  const directory = backupDirectory(siteId);
   await mkdir(directory, { recursive: true, mode: 0o700 });
   const file = path.join(directory, archive.id + ".json");
   await writeFile(file + ".tmp", JSON.stringify(archive), { mode: 0o600 });
@@ -194,12 +241,13 @@ function metadata(archive: Archive) {
     checksum: archive.checksum,
   };
 }
-export async function listBackups() {
-  await pruneExpiredBackups();
+export async function listBackups(siteId: string) {
+  await pruneExpiredBackups(siteId);
+  const directory = backupDirectory(siteId);
   const sql = await database();
   if (sql) {
     const rows =
-      await sql`SELECT document->>'id' AS id,document->>'createdAt' AS "createdAt",document->>'kind' AS kind,jsonb_array_length(document->'project'->'pages') AS pages,jsonb_array_length(document->'assets') AS media FROM harbstone_project WHERE id LIKE 'backup:%' ORDER BY document->>'createdAt' DESC`;
+      await sql`SELECT document->>'id' AS id,document->>'createdAt' AS "createdAt",document->>'kind' AS kind,jsonb_array_length(document->'project'->'pages') AS pages,jsonb_array_length(document->'assets') AS media FROM harbstone_project WHERE ${siteBackups(sql, siteId)} ORDER BY document->>'createdAt' DESC`;
     return rows;
   }
   try {
@@ -220,20 +268,20 @@ export async function listBackups() {
     return [];
   }
 }
-export async function readBackup(id: string): Promise<Archive> {
+export async function readBackup(siteId: string, id: string): Promise<Archive> {
   if (id !== "safety" && !/^[a-f0-9-]{36}$/.test(id))
     throw new StoreError("Invalid backup.", 400);
-  await pruneExpiredBackups();
+  await pruneExpiredBackups(siteId);
   const sql = await database();
   if (sql) {
     const [row] =
-      await sql`SELECT document FROM harbstone_project WHERE id=${"backup:" + id}`;
+      await sql`SELECT document FROM harbstone_project WHERE id=${backupKey(siteId, id)}`;
     if (!row) throw new StoreError("Backup not found.", 404);
     return row.document;
   }
   try {
     return JSON.parse(
-      await readFile(path.join(directory, id + ".json"), "utf8"),
+      await readFile(path.join(backupDirectory(siteId), id + ".json"), "utf8"),
     );
   } catch (e) {
     if ((e as NodeJS.ErrnoException).code === "ENOENT")
@@ -271,13 +319,13 @@ export function verifyArchive(archive: Archive) {
     message: "Backup verified. Content and media checksums match.",
   };
 }
-export async function createBackup() {
-  const backups = await listBackups();
+export async function createBackup(siteId: string) {
+  const backups = await listBackups(siteId);
   if (backups.filter((backup) => backup.kind === "Full").length >= 5)
     throw new StoreError(
       "Five full backups are already stored. Download and remove an older copy first.",
     );
-  const project = await readProject(),
+  const project = await readProject(siteId),
     assets: Asset[] = [];
   const mediaUrls = urls(project);
   const blocks = [
@@ -302,7 +350,12 @@ export async function createBackup() {
     ]);
   });
   if (
-    [...project.media.map((asset) => asset.url), ...imageValues].some(
+    [
+      ...project.media
+        .filter((asset) => !asset.mime?.startsWith("video/"))
+        .map((asset) => asset.url),
+      ...imageValues,
+    ].some(
       (url) => url && !mediaUrls.includes(url),
     )
   )
@@ -360,11 +413,11 @@ export async function createBackup() {
   };
   const archive = { ...payload, checksum: digest(payload) };
   verifyArchive(archive);
-  await store(archive);
+  await store(siteId, archive);
   return metadata(archive);
 }
-export async function verifyBackup(id: string) {
-  return verifyArchive(await readBackup(id));
+export async function verifyBackup(siteId: string, id: string) {
+  return verifyArchive(await readBackup(siteId, id));
 }
 function replaceUrls<T>(value: T, map: Map<string, string>): T {
   if (typeof value === "string") return (map.get(value) || value) as T;
@@ -376,10 +429,14 @@ function replaceUrls<T>(value: T, map: Map<string, string>): T {
     ) as T;
   return value;
 }
-export async function restoreBackup(id: string, revision: number) {
-  const archive = await readBackup(id);
+export async function restoreBackup(
+  siteId: string,
+  id: string,
+  revision: number,
+) {
+  const archive = await readBackup(siteId, id);
   verifyArchive(archive);
-  const current = await readProject();
+  const current = await readProject(siteId);
   if (current.revision !== revision)
     throw new StoreError("The project changed. Refresh before restoring.", 409);
   const map = new Map<string, string>(),
@@ -392,7 +449,7 @@ export async function restoreBackup(id: string, revision: number) {
       let url: string;
       if (process.env.BLOB_READ_WRITE_TOKEN) {
         const blob = await put(
-          `cms-media/${mediaId}.${asset.mime.split("/")[1].replace("svg+xml", "svg")}`,
+          `cms-media/${siteId}/${mediaId}.${asset.mime.split("/")[1].replace("svg+xml", "svg")}`,
           data,
           { access: "public", contentType: asset.mime, addRandomSuffix: false },
         );
@@ -401,13 +458,17 @@ export async function restoreBackup(id: string, revision: number) {
       } else {
         if (process.env.VERCEL)
           throw new StoreError("Connect media storage before restoring.", 503);
-        await mkdir(path.join(dataDirectory, "media"), {
+        await mkdir(path.join(siteDirectory(siteId), "media"), {
           recursive: true,
           mode: 0o700,
         });
-        const file = path.join(dataDirectory, "media", mediaId + ".webp");
+        const file = path.join(
+          siteDirectory(siteId),
+          "media",
+          mediaId + ".webp",
+        );
         await writeFile(file, data, { mode: 0o600 });
-        url = `/api/builder/media/${mediaId}`;
+        url = localMediaUrl(siteId, mediaId);
         created.push({ url, file });
       }
       map.set(asset.url, url);
@@ -437,7 +498,7 @@ export async function restoreBackup(id: string, revision: number) {
       project: current,
       assets: [] as Asset[],
     };
-    await store({ ...safety, checksum: digest(safety) });
+    await store(siteId, { ...safety, checksum: digest(safety) });
     const next = replaceUrls(archive.project, map);
     next.revision = revision;
     next.media = archive.project.media.map((media) => {
@@ -456,6 +517,7 @@ export async function restoreBackup(id: string, revision: number) {
     next.media.push(...extra);
     return await writeProject(next, undefined, "super-admin", {
       restore: true,
+      siteId,
     });
   } catch (e) {
     await Promise.allSettled(
@@ -466,14 +528,15 @@ export async function restoreBackup(id: string, revision: number) {
     throw e;
   }
 }
-export async function removeBackup(id: string) {
-  await readBackup(id);
+export async function removeBackup(siteId: string, id: string) {
+  await readBackup(siteId, id);
   const sql = await database();
-  if (sql) await sql`DELETE FROM harbstone_project WHERE id=${"backup:" + id}`;
-  else await unlink(path.join(directory, id + ".json"));
+  if (sql)
+    await sql`DELETE FROM harbstone_project WHERE id=${backupKey(siteId, id)}`;
+  else await unlink(path.join(backupDirectory(siteId), id + ".json"));
 }
-export async function downloadBackup(id: string) {
-  const archive = await readBackup(id);
+export async function downloadBackup(siteId: string, id: string) {
+  const archive = await readBackup(siteId, id);
   verifyArchive(archive);
   const bytes = new TextEncoder().encode(JSON.stringify(archive));
   let position = 0;

@@ -10,7 +10,7 @@ import { mkdir, readFile, writeFile, rename } from "node:fs/promises";
 import path from "node:path";
 import nodemailer from "nodemailer";
 import { z } from "zod";
-import { database, dataDirectory, StoreError } from "./server";
+import { database, siteDirectory, siteDocumentId, StoreError } from "./server";
 const fields = {
   source: z.enum(["hosting", "custom", "disabled"]),
   host: z
@@ -50,19 +50,22 @@ const initial: Stored = {
 const globalSmtp = globalThis as typeof globalThis & {
   smtpQueue?: Promise<unknown>;
 };
+// SMTP settings are stored per website.
 async function storage<T>(
+  siteId: string,
   fn: (data: Stored) => T | Promise<T>,
   write = false,
 ): Promise<T> {
+  const documentId = siteDocumentId(siteId, "smtp");
   const sql = await database();
   if (sql)
     return (await sql.begin(async (tx) => {
-      await tx`INSERT INTO harbstone_project(id,document) VALUES ('smtp',${tx.json(initial)}) ON CONFLICT DO NOTHING`;
+      await tx`INSERT INTO harbstone_project(id,document) VALUES (${documentId},${tx.json(initial)}) ON CONFLICT DO NOTHING`;
       const [row] =
-        await tx`SELECT document FROM harbstone_project WHERE id='smtp' FOR UPDATE`;
+        await tx`SELECT document FROM harbstone_project WHERE id=${documentId} FOR UPDATE`;
       const result = await fn(row.document);
       if (write)
-        await tx`UPDATE harbstone_project SET document=${tx.json(row.document)} WHERE id='smtp'`;
+        await tx`UPDATE harbstone_project SET document=${tx.json(row.document)} WHERE id=${documentId}`;
       return result;
     })) as T;
   if (process.env.VERCEL)
@@ -70,7 +73,8 @@ async function storage<T>(
   const operation = (globalSmtp.smtpQueue ?? Promise.resolve())
     .catch(() => {})
     .then(async () => {
-      const file = path.join(dataDirectory, "smtp.json");
+      const directory = siteDirectory(siteId);
+      const file = path.join(directory, "smtp.json");
       let data: Stored;
       try {
         data = JSON.parse(await readFile(file, "utf8"));
@@ -80,7 +84,7 @@ async function storage<T>(
       }
       const result = await fn(data);
       if (write) {
-        await mkdir(dataDirectory, { recursive: true, mode: 0o700 });
+        await mkdir(directory, { recursive: true, mode: 0o700 });
         await writeFile(file + ".tmp", JSON.stringify(data), { mode: 0o600 });
         await rename(file + ".tmp", file);
       }
@@ -141,40 +145,47 @@ function publicSettings(data: Stored) {
           ),
   };
 }
-export const readSmtpSettings = () => storage(publicSettings);
-export async function saveSmtpSettings(value: unknown) {
+export const readSmtpSettings = (siteId: string) =>
+  storage(siteId, publicSettings);
+export async function saveSmtpSettings(siteId: string, value: unknown) {
   const parsed = smtpInput.safeParse(value);
   if (!parsed.success)
     throw new StoreError(
       "Check the SMTP settings. Use port 465 (TLS) or 587 (STARTTLS).",
     );
   const { password, ...settings } = parsed.data;
-  return storage((data) => {
-    if (data.revision !== settings.revision)
-      throw new StoreError(
-        "Email settings have changed. Reload before saving.",
-        409,
-      );
-    if (settings.source === "custom") {
-      if (!settings.host || !settings.fromEmail)
-        throw new StoreError("Enter the SMTP host and sender email.");
-      if (
-        settings.username &&
-        !password &&
-        (!data.encryptedPassword ||
-          data.host !== settings.host ||
-          data.username !== settings.username)
-      )
+  return storage(
+    siteId,
+    (data) => {
+      if (data.revision !== settings.revision)
         throw new StoreError(
-          "Enter the password for this SMTP host and username.",
+          "Email settings have changed. Reload before saving.",
+          409,
         );
-    }
-    Object.assign(data, settings, {
-      revision: data.revision + 1,
-      encryptedPassword: password ? encrypt(password) : data.encryptedPassword,
-    });
-    return publicSettings(data);
-  }, true);
+      if (settings.source === "custom") {
+        if (!settings.host || !settings.fromEmail)
+          throw new StoreError("Enter the SMTP host and sender email.");
+        if (
+          settings.username &&
+          !password &&
+          (!data.encryptedPassword ||
+            data.host !== settings.host ||
+            data.username !== settings.username)
+        )
+          throw new StoreError(
+            "Enter the password for this SMTP host and username.",
+          );
+      }
+      Object.assign(data, settings, {
+        revision: data.revision + 1,
+        encryptedPassword: password
+          ? encrypt(password)
+          : data.encryptedPassword,
+      });
+      return publicSettings(data);
+    },
+    true,
+  );
 }
 async function publicAddress(host: string) {
   const records = await lookup(host, { family: 4, all: true });
@@ -198,8 +209,8 @@ async function publicAddress(host: string) {
   }
   return records[0].address;
 }
-export async function mailConnection() {
-  const config = await storage((data) => ({ ...data }));
+export async function mailConnection(siteId: string) {
+  const config = await storage(siteId, (data) => ({ ...data }));
   if (config.source === "disabled") return null;
   if (config.source === "hosting") {
     if (!hostingReady()) return null;
@@ -248,9 +259,9 @@ export async function mailConnection() {
     replyTo: config.replyTo,
   };
 }
-export async function verifySmtp() {
+export async function verifySmtp(siteId: string) {
   try {
-    const connection = await mailConnection();
+    const connection = await mailConnection(siteId);
     if (!connection)
       throw new StoreError("Email delivery is disabled or not configured.");
     try {

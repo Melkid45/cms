@@ -1,0 +1,232 @@
+{
+ "/images/alder-chair.jpg": {
+  "width": 1400,
+  "height": 2103,
+  "widths": [
+   320,
+   480,
+   640,
+   828,
+   1080
+  ]
+ },
+ "/images/alder-room.jpg": {
+  "width": 1800,
+  "height": 1200,
+  "widths": [
+   320,
+   480,
+   640,
+   828,
+   1080,
+   1440
+  ]
+ },
+ "/images/alder-seating.jpg": {
+  "width": 1800,
+  "height": 1200,
+  "widths": [
+   320,
+   480,
+   640,
+   828,
+   1080,
+   1440
+  ]
+ },
+ "/images/alder-shelves.jpg": {
+  "width": 1800,
+  "height": 1205,
+  "widths": [
+   320,
+   480,
+   640,
+   828,
+   1080,
+   1440
+  ]
+ },
+ "/images/alder-table.jpg": {
+  "width": 1800,
+  "height": 1202,
+  "widths": [
+   320,
+   480,
+   640,
+   828,
+   1080,
+   1440
+  ]
+ },
+ "/images/bakery-bread.jpg": {
+  "width": 2000,
+  "height": 1331,
+  "widths": [
+   320,
+   480,
+   640,
+   828,
+   1080,
+   1440
+  ]
+ },
+ "/images/bakery-coffee.jpg": {
+  "width": 1600,
+  "height": 1067,
+  "widths": [
+   320,
+   480,
+   640,
+   828,
+   1080
+  ]
+ },
+ "/images/bakery-pastries.jpg": {
+  "width": 1800,
+  "height": 1440,
+  "widths": [
+   320,
+   480,
+   640,
+   828,
+   1080,
+   1440
+  ]
+ },
+ "/images/hero/details.jpg": {
+  "width": 1200,
+  "height": 800,
+  "widths": [
+   320,
+   480,
+   640,
+   828
+  ]
+ },
+ "/images/hero/natural-detail.jpg": {
+  "width": 960,
+  "height": 540,
+  "widths": [
+   320,
+   480,
+   640,
+   828
+  ]
+ },
+ "/images/hero/studio.jpg": {
+  "width": 1600,
+  "height": 1068,
+  "widths": [
+   320,
+   480,
+   640,
+   828,
+   1080
+  ]
+ },
+ "/images/hero/workspace.jpg": {
+  "width": 2000,
+  "height": 1335,
+  "widths": [
+   320,
+   480,
+   640,
+   828,
+   1080,
+   1440
+  ]
+ },
+ "/images/projects/atelier.jpg": {
+  "width": 1800,
+  "height": 1202,
+  "widths": [
+   320,
+   480,
+   640,
+   828,
+   1080,
+   1440
+  ]
+ },
+ "/images/projects/common.jpg": {
+  "width": 1800,
+  "height": 1202,
+  "widths": [
+   320,
+   480,
+   640,
+   828,
+   1080,
+   1440
+  ]
+ },
+ "/images/showcase/northline-home.jpg": {
+  "width": 1600,
+  "height": 1000,
+  "widths": [
+   320,
+   480,
+   640,
+   828,
+   1080
+  ]
+ },
+ "/images/showcase/northline-services.jpg": {
+  "width": 1600,
+  "height": 1000,
+  "widths": [
+   320,
+   480,
+   640,
+   828,
+   1080
+  ]
+ },
+ "/images/showcase/northline-studio.jpg": {
+  "width": 1600,
+  "height": 1000,
+  "widths": [
+   320,
+   480,
+   640,
+   828,
+   1080
+  ]
+ },
+ "/images/team/person-1.jpg": {
+  "width": 800,
+  "height": 1000,
+  "widths": [
+   320,
+   480,
+   640
+  ]
+ },
+ "/images/team/person-2.jpg": {
+  "width": 800,
+  "height": 1000,
+  "widths": [
+   320,
+   480,
+   640
+  ]
+ },
+ "/images/team/person-3.jpg": {
+  "width": 800,
+  "height": 1000,
+  "widths": [
+   320,
+   480,
+   640
+  ]
+ },
+ "/images/team/person-4.jpg": {
+  "width": 800,
+  "height": 1000,
+  "widths": [
+   320,
+   480,
+   640
+  ]
+ }
+}

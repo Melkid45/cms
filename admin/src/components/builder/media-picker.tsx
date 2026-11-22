@@ -9,12 +9,17 @@ import { Input } from "@/components/ui/input";
 export function MediaPicker({
   value,
   onChange,
-  label = "Choose image",
+  label,
+  kind = "image",
 }: {
   value: string;
   onChange: (url: string) => void;
   label?: string;
+  // "video": background video field (hero-v52) — lists and uploads MP4/WebM files only.
+  kind?: "image" | "video";
 }) {
+  const video = kind === "video";
+  const isVideo = (mime?: string) => !!mime?.startsWith("video/");
   const { project } = useProject();
   const [open, setOpen] = useState(false),
     [query, setQuery] = useState(""),
@@ -24,23 +29,31 @@ export function MediaPicker({
   return (
     <div className="space-y-2">
       <div className="flex items-center gap-3">
-        {value && (
-          <img
-            src={value}
-            alt="Selected image"
-            className="h-16 w-24 rounded-md border bg-neutral-100 object-contain"
-          />
-        )}
+        {value &&
+          (video ? (
+            <video
+              src={value}
+              muted
+              preload="metadata"
+              className="h-16 w-24 rounded-md border bg-neutral-100 object-cover"
+            />
+          ) : (
+            <img
+              src={value}
+              alt="Selected image"
+              className="h-16 w-24 rounded-md border bg-neutral-100 object-contain"
+            />
+          ))}
         <Button type="button" variant="outline" onClick={() => setOpen(true)}>
           <ImagePlus />
-          {label}
+          {label || (video ? "Choose video" : "Choose image")}
         </Button>
         {value && (
           <Button
             type="button"
             variant="ghost"
             size="icon-sm"
-            aria-label="Remove image"
+            aria-label={video ? "Remove video" : "Remove image"}
             onClick={() => onChange("")}
           >
             <X />
@@ -57,7 +70,9 @@ export function MediaPicker({
                   Media library
                 </Dialog.Title>
                 <Dialog.Description className="mt-1 text-xs text-neutral-500">
-                  Select a saved image or upload a new one.
+                  {video
+                    ? "Select a saved video or upload an MP4 / WebM file (up to 30 MB, muted loop)."
+                    : "Select a saved image or upload a new one."}
                 </Dialog.Description>
               </div>
               <div className="flex gap-2">
@@ -65,7 +80,11 @@ export function MediaPicker({
                   ref={input}
                   type="file"
                   className="hidden"
-                  accept="image/png,image/jpeg,image/webp,image/avif,image/gif,image/svg+xml"
+                  accept={
+                    video
+                      ? "video/mp4,video/webm"
+                      : "image/png,image/jpeg,image/webp,image/avif,image/gif,image/svg+xml"
+                  }
                   onChange={async (e) => {
                     const file = e.target.files?.[0];
                     if (!file) return;
@@ -93,7 +112,7 @@ export function MediaPicker({
                   onClick={() => input.current?.click()}
                 >
                   <Upload />
-                  {busy ? "Uploading…" : "Upload image"}
+                  {busy ? "Uploading…" : video ? "Upload video" : "Upload image"}
                 </Button>
                 <Dialog.Close
                   render={<Button type="button" size="icon" variant="ghost" />}
@@ -108,7 +127,7 @@ export function MediaPicker({
                 <Search className="absolute left-3 top-3 size-4 text-neutral-400" />
                 <Input
                   className="pl-9"
-                  placeholder="Search images"
+                  placeholder={video ? "Search videos" : "Search images"}
                   value={query}
                   onChange={(e) => setQuery(e.target.value)}
                 />
@@ -121,8 +140,10 @@ export function MediaPicker({
             </div>
             <div className="grid flex-1 grid-cols-2 content-start gap-4 overflow-auto p-5 md:grid-cols-4">
               {project?.media
-                .filter((m) =>
-                  m.name.toLowerCase().includes(query.toLowerCase()),
+                .filter(
+                  (m) =>
+                    isVideo(m.mime) === video &&
+                    m.name.toLowerCase().includes(query.toLowerCase()),
                 )
                 .map((asset) => (
                   <button
@@ -134,11 +155,20 @@ export function MediaPicker({
                     }}
                     className={`relative overflow-hidden rounded-lg border text-left ${asset.url === value ? "border-black ring-1 ring-black" : ""}`}
                   >
-                    <img
-                      src={asset.url}
-                      alt={asset.alt}
-                      className="aspect-[4/3] w-full bg-neutral-100 object-cover"
-                    />
+                    {video ? (
+                      <video
+                        src={asset.url}
+                        muted
+                        preload="metadata"
+                        className="aspect-[4/3] w-full bg-neutral-100 object-cover"
+                      />
+                    ) : (
+                      <img
+                        src={asset.url}
+                        alt={asset.alt}
+                        className="aspect-[4/3] w-full bg-neutral-100 object-cover"
+                      />
+                    )}
                     <span className="block truncate p-2.5 text-xs">
                       {asset.name}
                     </span>

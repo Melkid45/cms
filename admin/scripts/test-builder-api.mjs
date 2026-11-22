@@ -1,5 +1,8 @@
 import assert from "node:assert/strict";
 const base = process.env.CMS_TEST_URL || "http://127.0.0.1:3000";
+const { current: site } = await (
+  await fetch(base + "/api/builder/sites")
+).json();
 const original = await (await fetch(base + "/api/builder")).json();
 assert(
   Array.isArray(original.pages),
@@ -49,7 +52,7 @@ try {
   draft.pages.push(p);
   assert.equal((await put(draft)).status, 200);
   assert.equal(
-    (await fetch(base + "/site/api-draft-check")).status,
+    (await fetch(`${base}/site/${site.key}/api-draft-check`)).status,
     404,
     "Drafts must not become public",
   );

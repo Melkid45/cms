@@ -48,7 +48,15 @@ export function clientProjectError(
   void _footer;
   void _oldLogo;
   void _oldFooter;
-  if (!same(brand, oldBrand) || next.pages.length !== current.pages.length)
+  if (
+    !same(brand, oldBrand) ||
+    next.pages.length !== current.pages.length ||
+    (next.customCss || "") !== (current.customCss || "") ||
+    (next.fonts || "") !== (current.fonts || "") ||
+    !same(next.style, current.style) ||
+    !same(next.languages, current.languages) ||
+    !same(next.seo, current.seo)
+  )
     return denied;
   for (const page of next.pages) {
     const before = current.pages.find((p) => p.id === page.id);
@@ -89,7 +97,12 @@ export function clientProjectError(
 }
 function allowedSection(next: Section, old: Section) {
   if (!same(next.clientAccess, old.clientAccess)) return false;
-  if (next.variant !== old.variant || next.hidden !== old.hidden) return false;
+  if (
+    next.variant !== old.variant ||
+    next.hidden !== old.hidden ||
+    next.tone !== old.tone
+  )
+    return false;
   const entry = definition(old.variant);
   const valid = new Set(
     entry?.fields.filter((f) => fieldEditable(old, f)).map((f) => f.key),

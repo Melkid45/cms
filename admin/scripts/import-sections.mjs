@@ -19,6 +19,9 @@ const families = [
   "testimonials",
   "faq",
   "contact",
+  "logos",
+  "calculator",
+  "team",
   "header",
   "footer",
 ];
@@ -36,6 +39,9 @@ const titles = {
   testimonials: "Testimonials",
   faq: "FAQ",
   contact: "Contact",
+  logos: "Logos",
+  calculator: "Calculator",
+  team: "Team",
   header: "Header",
   footer: "Footer",
 };
@@ -121,6 +127,9 @@ for (const family of families) {
         bindings.src = add("image", "Image", attrs.src || "", group);
         bindings.alt = add("text", "Image description", attrs.alt || "", group);
       }
+      // Background video (hero-v52): the file is a video field, uploaded to the website's media.
+      if (node.tagName === "video" && attrs.src)
+        bindings.src = add("video", "Video file (MP4 or WebM)", attrs.src, group);
       if (attrs["data-image"])
         bindings["data-image"] = add(
           "image",
@@ -247,3 +256,7 @@ await cp(
 console.log(
   `Imported ${definitions.length} approved variants across ${families.length} families.`,
 );
+// Responsive WebP copies of the library pictures (srcset on public pages).
+await import("./image-variants.mjs");
+// Library CSS split per family for public pages (lib/builder/site-css.json).
+await import("./build-site-css.mjs");

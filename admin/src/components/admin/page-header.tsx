@@ -1,17 +1,16 @@
 type PageHeaderProps = {
   title: string;
-  description: string;
   action?: React.ReactNode;
 };
 
-export function PageHeader({ title, description, action }: PageHeaderProps) {
+// No visible page title in the admin: the sidebar shows where you are (Vova, 2026-11-22).
+// The title stays for screen readers; actions sit on the right. Screens moved to
+// AdminPanel (admin-panel.tsx) put their actions into the container toolbar instead.
+export function PageHeader({ title, action }: PageHeaderProps) {
   return (
-    <div className="mb-7 flex flex-col justify-between gap-4 sm:flex-row sm:items-end">
-      <div>
-        <h1 className="text-2xl font-semibold tracking-[-0.03em] sm:text-[1.75rem]">{title}</h1>
-        <p className="mt-1.5 text-sm text-neutral-500">{description}</p>
-      </div>
-      {action}
-    </div>
+    <>
+      <h1 className="sr-only">{title}</h1>
+      {action && <div className="mb-5 flex flex-wrap justify-end gap-2.5">{action}</div>}
+    </>
   );
 }

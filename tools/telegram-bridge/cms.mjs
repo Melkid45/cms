@@ -5,15 +5,20 @@ import {createRequire} from 'node:module';
 import {initializeCmsKey} from './cms-client.mjs';
 const repo=resolve(dirname(fileURLToPath(import.meta.url)),'../..');
 async function workspacePath(value,writing=false){const path=resolve(value||'');const actual=await realpath(writing?dirname(path):path);if(actual!==repo&&!actual.startsWith(repo+'/'))throw Error('Use a file inside this project.');return path;}
+// --site=<site-key> selects a website (see `sites`); without it the first website is used.
+const siteArg=process.argv.find(a=>a.startsWith('--site='))?.slice(7);
+const withSite=(path)=>siteArg?path+(path.includes('?')?'&':'?')+'site='+encodeURIComponent(siteArg):path;
 async function request(path,options={}){
+  path=withSite(path);
   const base=process.env.HARBSTONE_CMS_PROXY,token=process.env.HARBSTONE_CMS_SESSION;
   if(!base||!token)throw Error('CMS commands are available only during an authorized bot task.');
   const url=new URL(base);if(url.hostname!=='127.0.0.1'||url.protocol!=='http:')throw Error('Invalid local CMS session.');
   const response=await fetch(base+path,{...options,headers:{...options.headers,Authorization:'Bearer '+token},signal:AbortSignal.timeout(50000)});const data=await response.json();if(!response.ok)throw Error(data.error||'CMS request failed');return data;
 }
 try{
-  const [command,arg]=process.argv.slice(2);
+  const [command,arg]=process.argv.slice(2).filter(a=>!a.startsWith('--site='));
   if(command==='--init'){console.log(await initializeCmsKey());}
+  else if(command==='sites'){console.log(JSON.stringify(await request('/sites')));}
   else if(command==='status'){const p=await request('/project');console.log(JSON.stringify({revision:p.revision,pages:p.pages.map(({id,title,slug,status,deletedAt})=>({id,title,slug,status,deletedAt})),media:p.media.length}));}
   else if(command==='pull'){const p=await request('/project');await writeFile(await workspacePath(arg,true),JSON.stringify(p,null,2),{mode:0o600});console.log('Project downloaded. Revision '+p.revision);}
   else if(command==='save'){const p=JSON.parse(await readFile(await workspacePath(arg),'utf8'));const saved=await request('/project',{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify(p)});await writeFile(arg,JSON.stringify(saved,null,2),{mode:0o600});console.log('Draft/settings saved. Revision '+saved.revision);}
@@ -25,5 +30,5 @@ try{
     if(bytes.length>3.5*1024*1024)throw Error('Image is too large for upload. Use a smaller image.');
     const form=new FormData();form.append('file',new Blob([bytes],{type:mime}),name);const saved=await request('/media',{method:'POST',body:form});console.log(JSON.stringify(saved.asset));
   }
-  else throw Error('Commands: status | pull <project.json> | save <project.json> | publish <page-id> | upload <image-file>');
+  else throw Error('Commands: sites | status | pull <project.json> | save <project.json> | publish <page-id> | upload <image-file>; add --site=<site-key> to work on a website other than the first one');
 }catch(error){console.error(error.message);process.exitCode=1;}
