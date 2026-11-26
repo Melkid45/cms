@@ -64,13 +64,13 @@ export async function onShopOrder(siteId: string, order: ShopOrder) {
   try {
     const contact = await ingestNewOrder(siteId, order);
     const total = money(order.total ?? order.subtotal, order.currency);
-    const href = contact ? `/dashboard/crm/${contact.id}` : "/dashboard/shop-orders";
+    const href = contact ? `/dashboard/crm/${contact.id}` : "/dashboard/shop/orders";
     await notifySite({
       siteId,
       kind: "crm-order",
       title: `New order #${order.number} · ${total}`,
       text: clip(`${order.customer.name} · ${order.items.map((i) => `${i.qty} × ${i.name}`).join(", ")}`, 300),
-      href: "/dashboard/shop-orders",
+      href: "/dashboard/shop/orders",
     });
     const link = adminLink(href);
     await sendTelegram(

@@ -139,8 +139,11 @@ export function StoreCart({
                   (o, n) => o && !(n === 0 && o === line.name),
                 );
                 return (
-                  <li key={`${line.sectionId}-${line.name}-${line.options.join("|")}`}>
-                    <ShoppingBag size={32} strokeWidth={1.25} aria-hidden="true" />
+                  <li key={`${line.sectionId}-${line.variantId||""}-${line.name}-${line.options.join("|")}`}>
+                    {line.image && safeUrl(line.image, true) ? (
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img className="store-cart__photo" src={safeUrl(line.image, true)} alt="" width={88} height={110} />
+                    ) : <ShoppingBag size={32} strokeWidth={1.25} aria-hidden="true" />}
                     <div>
                       <h3 className="heading heading--sm">{line.name}</h3>
                       {shown.length > 0 && (

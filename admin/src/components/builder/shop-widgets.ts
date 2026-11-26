@@ -101,7 +101,7 @@ export function mountShopWidgets(el: HTMLElement, signal: AbortSignal) {
     });
     const empty = root.querySelector<HTMLElement>("[data-catalog-empty]");
     const prices = info.map((x) => x.price).filter((p) => !Number.isNaN(p));
-    const lo = prices.length ? Math.round(Math.min(...prices) / 100) * 100 : 0;
+    const lo = prices.length ? Math.min(...prices) : 0;
     const hi = prices.length ? Math.ceil(Math.max(...prices) / 100) * 100 : 0;
     const sign = cards[0]?.querySelector(".pricing__shop-price .heading")?.textContent || "0 €";
     if (range) {
@@ -121,6 +121,7 @@ export function mountShopWidgets(el: HTMLElement, signal: AbortSignal) {
           (c) => (c.textContent || "").trim().toLowerCase(),
         ),
       );
+      groups.forEach(g => g.querySelectorAll<HTMLElement>(".pricing__chip").forEach(chip => chip.setAttribute("aria-pressed", String(chip.classList.contains("is-active")))));
       let shown = 0;
       for (const x of info) {
         const ok =
@@ -173,8 +174,8 @@ export function mountShopWidgets(el: HTMLElement, signal: AbortSignal) {
             c.classList.toggle("is-active", c.hasAttribute("data-catalog-all")),
           ),
         );
-        if (range) range.value = range.max;
-        if (sort) sort.selectedIndex = 0;
+        if (range) { range.value = range.max; range.dispatchEvent(new Event("input")); }
+        if (sort) { sort.selectedIndex = 0; sort.dispatchEvent(new Event("change")); }
         apply();
       });
     apply();
@@ -197,6 +198,7 @@ export function mountShopWidgets(el: HTMLElement, signal: AbortSignal) {
     const price = root.querySelector<HTMLElement>("[data-product-price]");
     const base = price ? original(price) : "";
     const recalc = () => {
+      if (root.querySelector("[data-product-variation-picker][data-has-variants]")) return;
       if (!price) return;
       let total = num(base);
       if (Number.isNaN(total)) return;

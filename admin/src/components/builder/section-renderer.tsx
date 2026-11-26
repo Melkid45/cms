@@ -19,6 +19,15 @@ import type {
   Project,
   MenuItem,
 } from "@/lib/builder/types";
+import {
+  catalogProductOf,
+  catalogFilterCount,
+  catalogProductNamed,
+  catalogProductByHref,
+  catalogPriceFormat,
+} from "@/lib/builder/products/apply";
+import { availableQty } from "@/lib/builder/products/shared";
+import { ProductVariations } from "./product-variations";
 import { SchemaForm } from "./schema-form";
 const camel = (key: string) =>
   key.replace(/-([a-z])/g, (_, letter) => letter.toUpperCase());
@@ -50,13 +59,20 @@ export function mainHeadingIsEmpty(section: Section): boolean {
   const heading = entry && firstHeading(entry.nodes);
   if (!entry || !heading) return true;
   const text = (node: TemplateNode): string =>
-    (node.field ? (section.values[node.field] ?? entry.fields.find((f) => f.key === node.field)?.value ?? "") : "") +
-    (node.children || []).map(text).join("");
+    (node.field
+      ? (section.values[node.field] ??
+        entry.fields.find((f) => f.key === node.field)?.value ??
+        "")
+      : "") + (node.children || []).map(text).join("");
   return !text(heading).trim();
 }
 // Blocks whose scripts swap one picture's src for another (product thumbnails, configurator
 // options, services accordion) keep plain src images: a srcset would override the swap.
-const SWAPPING = ["data-product", "data-configurator", "data-services-accordion"];
+const SWAPPING = [
+  "data-product",
+  "data-configurator",
+  "data-services-accordion",
+];
 // Blocks whose picture boxes follow the picture's own size: team (side photo with height 100% on
 // phones) and gallery-v40 (justified rows sized from each picture's ratio). A srcset makes that
 // size depend on the copy the browser picks (rounding of the resized copy), so rows move by a
@@ -142,14 +158,13 @@ export function SectionRenderer({
   // Menus written for one language appear only on that language's pages.
   const menuVisible = (menuLocale?: string) =>
     !menuLocale || !languages || menuLocale === currentLocale;
-  const menuItems = (
-    items: MenuItem[],
-    expanded = false,
-  ): React.ReactNode =>
+  const menuItems = (items: MenuItem[], expanded = false): React.ReactNode[] =>
     items.map((item) => {
       const page = project.pages.find((p) => p.id === item.pageId);
       if (item.pageId && (!page || page.deletedAt)) return null;
-      const href = link(page ? pageHref(project, siteKey, page) : safeUrl(item.url));
+      const href = link(
+        page ? pageHref(project, siteKey, page) : safeUrl(item.url),
+      );
       if (expanded)
         return (
           <div key={item.id} className="builder-menu-column">
@@ -184,13 +199,29 @@ export function SectionRenderer({
         <span key={item.id}>{item.label}</span>
       );
     });
+  let filterIndex = 0;
   function render(
     node: TemplateNode,
     index: number,
     values = section.values,
     instance = "",
-    actions: Record<string,ContentAction> = section.actions || {},
+    actions: Record<string, ContentAction> = section.actions || {},
   ): React.ReactNode {
+    if (
+      section.variant === "pricing-v21" &&
+      node.attrs &&
+      "data-catalog-group" in node.attrs
+    ) {
+      const count = catalogFilterCount(project);
+      if (count !== undefined && filterIndex++ >= count) return null;
+    }
+    // Shop header has a real language switcher; decorative EN/currency badges
+    // from the static demo are not website controls.
+    if (
+      section.variant === "header-v20" &&
+      node.attrs?.class?.split(" ").includes("site-header__pill")
+    )
+      return null;
     const rewriteId = (value: string) => `${suffix}${instance}-${value}`;
     if (node.repeat) {
       const group = entry!.repeaters?.find((r) => r.id === node.repeat);
@@ -254,6 +285,15 @@ export function SectionRenderer({
         );
       props["data-cms-form"] = section.id;
     }
+    if (
+      node.attrs?.class?.split(" ").includes("pricing__pd-group") &&
+      node.children?.some((n) =>
+        n.attrs?.class?.split(" ").includes("pricing__pd-pick"),
+      ) &&
+      pageId &&
+      catalogProductOf(project, pageId)?.variants?.length
+    )
+      return null;
     const attrs = { ...node.attrs };
     for (const [name, key] of Object.entries(node.bindings || {}))
       attrs[name] =
@@ -325,7 +365,9 @@ export function SectionRenderer({
       props[name] = value;
     }
     // Button actions (action-picker.tsx): open a form or a service (dialog, drawer or page).
-    const action = node.bindings?.href ? actions[node.bindings.href] : undefined;
+    const action = node.bindings?.href
+      ? actions[node.bindings.href]
+      : undefined;
     if (action?.type === "none" && node.tag === "a") return null;
     if (action && action.type !== "none") {
       const form =
@@ -388,7 +430,10 @@ export function SectionRenderer({
           : null;
       if (responsive) {
         const ratio = responsive.width / responsive.height;
-        if (Math.abs(Number(props.width) / Number(props.height) / ratio - 1) >= 0.001)
+        if (
+          Math.abs(Number(props.width) / Number(props.height) / ratio - 1) >=
+          0.001
+        )
           props.height = Math.round((Number(props.width) / ratio) * 100) / 100;
         props.srcSet = responsive.srcSet;
         props.sizes = eager ? "100vw" : "auto, 100vw";
@@ -474,12 +519,13 @@ export function SectionRenderer({
         props,
         ...ids.map((id) => {
           const menu = project.menus.find((m) => m.id === id);
-          return menu && menuVisible(menu.locale) ? (
+          const items = menu ? menuItems(menu.items, expanded).filter(Boolean) : [];
+          return menu && items.length && menuVisible(menu.locale) ? (
             <div className="builder-menu-group" key={id}>
               {entry!.family === "footer" && ids.length > 1 && (
                 <p className="text text--sm text--muted">{menu.title}</p>
               )}
-              {menuItems(menu.items, expanded)}
+              {items}
             </div>
           ) : null;
         }),
@@ -525,6 +571,114 @@ export function SectionRenderer({
       ].includes(tag)
     )
       return createElement(tag, props);
+    if (node.attrs?.class?.split(" ").includes("pricing__pd-info") && pageId) {
+      const product = catalogProductOf(project, pageId);
+      if (product) {
+        const at =
+          node.children?.findIndex((n) =>
+            n.attrs?.class?.split(" ").includes("pricing__pd-buy"),
+          ) ?? -1;
+        const picker = (
+          <ProductVariations
+            key={`variations-${product.id}`}
+            productId={product.id}
+            hasVariants={!!product.variants?.length}
+            variants={(product.variants || [])
+              .filter((v) => !v.hidden)
+              .map((v) => ({
+                ...v,
+                qty: availableQty(v),
+                reserved: undefined,
+              }))}
+            price={product.price}
+            images={
+              product.images.length
+                ? product.images
+                : product.variants?.find((v) => v.images.length)?.images || []
+            }
+            qty={availableQty(product)}
+            stock={product.stock}
+            sku={product.sku}
+            format={catalogPriceFormat(project)}
+            locale={locale}
+          />
+        );
+        children = children || [];
+        children.splice(at < 0 ? children.length : at, 0, picker);
+      }
+    }
+    // Variant products must be configured on their product page, never silently added as a base SKU.
+    if (
+      tag === "article" &&
+      node.attrs?.class?.split(" ").includes("pricing__shop-card")
+    ) {
+      const findTitle = (n: TemplateNode): TemplateNode | undefined =>
+        n.attrs?.class?.split(" ").includes("pricing__shop-title")
+          ? n
+          : n.children?.map(findTitle).find(Boolean);
+      const titleNode = findTitle(node);
+      const titleField =
+        titleNode?.field || titleNode?.children?.find((n) => n.field)?.field;
+      const findLink = (n: TemplateNode): TemplateNode | undefined =>
+        n.tag === "a" ? n : n.children?.map(findLink).find(Boolean);
+      const anchor = titleNode && findLink(titleNode);
+      const href = anchor?.bindings?.href
+        ? values[anchor.bindings.href] || ""
+        : anchor?.attrs?.href || "";
+      const product =
+        catalogProductByHref(project, href, locale || "en") ||
+        (titleField
+          ? catalogProductNamed(
+              project,
+              locale || "en",
+              values[titleField] || "",
+            )
+          : undefined);
+      if (product) {
+        props["data-catalog-product-id"] = product.id;
+        if (
+          !product.variants?.length &&
+          (product.stock === "out_of_stock" ||
+            (product.stock !== "to_order" && availableQty(product) === 0))
+        )
+          props["data-unavailable"] = "true";
+      }
+      if (product?.variants?.length) props["data-requires-variant"] = "true";
+    }
+    if (
+      section.variant === "pricing-v21" &&
+      node.attrs?.class === "container" &&
+      currentPage?.sections.find((s) => !s.hidden)?.id === section.id
+    ) {
+      children = [
+        <h1
+          key="catalog-heading"
+          className="pricing__catalog-heading heading heading--lg"
+        >
+          {currentPage.title}
+        </h1>,
+        ...(children || []),
+      ];
+    }
+    if (
+      section.variant === "pricing-v22" &&
+      node.attrs?.class === "container"
+    ) {
+      const product = pageId ? catalogProductOf(project, pageId) : undefined;
+      const detail =
+        product?.text[(locale || "en") as keyof typeof product.text]
+          ?.description;
+      if (detail)
+        children = [
+          ...(children || []),
+          <p
+            key="product-description"
+            className="pricing__pd-description text text--md"
+          >
+            {detail}
+          </p>,
+        ];
+    }
     return createElement(tag, props, ...(children || []));
   }
   return <>{entry.nodes.map((node, index) => render(node, index))}</>;

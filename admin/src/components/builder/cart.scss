@@ -280,3 +280,6 @@ html:has(.store-cart[open]) {
 .store-cart__currency {
   display: block;
 }
+
+.store-cart__photo { width: 88px; height: 110px; object-fit: cover; border-radius: calc(var(--radius) / 2); }
+.store-cart__items h3.heading { font-family: var(--font-body); font-size: 16px; font-weight: 500; letter-spacing: 0; line-height: 1.5; }

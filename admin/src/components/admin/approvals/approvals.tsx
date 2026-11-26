@@ -1,4 +1,5 @@
 "use client";
+import { Select, SelectOption } from "@/components/ui/select";
 import Link from "next/link";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { Check, Pencil, SkipForward } from "lucide-react";
@@ -103,19 +104,19 @@ export function Approvals() {
                 </button>
               ))}
             </nav>
-            <select
+            <Select
               aria-label="Type"
-              value={type}
-              onChange={(e) => setType(e.target.value)}
-              className="h-9 rounded-lg bg-white px-3 text-sm text-neutral-700 shadow-[0_0_0_1px_rgb(0_0_0/0.06)] outline-none"
+              value={String(type)}
+              onValueChange={(selectedValue) => setType(selectedValue)}
+              className="h-9 "
             >
-              <option value="">All types</option>
+              <SelectOption value="">All types</SelectOption>
               {Object.entries(APPROVAL_TYPES).map(([id, label]) => (
-                <option key={id} value={id}>
+                <SelectOption key={id} value={String(id)}>
                   {label}
-                </option>
+                </SelectOption>
               ))}
-            </select>
+            </Select>
           </div>
           {!data && !error && <p className="text-sm text-neutral-500">Loading…</p>}
           {data && !items.length && (
@@ -264,7 +265,6 @@ function SettingsPanel({ data, onChange }: { data: ApprovalsOverview; onChange: 
   }
   const t = data.telegram;
   const row = "flex items-center justify-between gap-4 py-2.5";
-  const select = "h-8 rounded-lg bg-neutral-100 px-2 text-sm outline-none";
   return (
     <aside className="space-y-5">
       <section className={`${card} p-5`}>
@@ -291,19 +291,19 @@ function SettingsPanel({ data, onChange }: { data: ApprovalsOverview; onChange: 
           </label>
           <div className={row}>
             <span className="text-sm">Delivery</span>
-            <select className={select} value={s.delivery} onChange={(e) => void save({ delivery: e.target.value as ApprovalSettings["delivery"] })}>
-              <option value="instant">Each item at once</option>
-              <option value="daily">Once a day</option>
-            </select>
+            <Select className="h-9" value={String(s.delivery)} onValueChange={(selectedValue) => void save({ delivery: selectedValue as ApprovalSettings["delivery"] })}>
+              <SelectOption value="instant">Each item at once</SelectOption>
+              <SelectOption value="daily">Once a day</SelectOption>
+            </Select>
           </div>
           {s.delivery === "daily" && (
             <div className={row}>
               <span className="text-sm">Daily at</span>
-              <select className={select} value={s.digestHour} onChange={(e) => void save({ digestHour: Number(e.target.value) })}>
+              <Select className="h-9" value={String(s.digestHour)} onValueChange={(selectedValue) => void save({ digestHour: Number(selectedValue) })}>
                 {hours.map((h) => (
-                  <option key={h} value={h}>{`${String(h).padStart(2, "0")}:00`}</option>
+                  <SelectOption key={h} value={String(h)}>{`${String(h).padStart(2, "0")}:00`}</SelectOption>
                 ))}
-              </select>
+              </Select>
             </div>
           )}
           <label className={row}>
@@ -314,17 +314,17 @@ function SettingsPanel({ data, onChange }: { data: ApprovalsOverview; onChange: 
             <div className={row}>
               <span className="text-sm text-neutral-600">Nothing from</span>
               <span className="flex items-center gap-1.5 text-sm">
-                <select aria-label="Quiet from" className={select} value={s.quietFrom} onChange={(e) => void save({ quietFrom: Number(e.target.value) })}>
+                <Select aria-label="Quiet from" className="h-9" value={String(s.quietFrom)} onValueChange={(selectedValue) => void save({ quietFrom: Number(selectedValue) })}>
                   {hours.map((h) => (
-                    <option key={h} value={h}>{`${String(h).padStart(2, "0")}:00`}</option>
+                    <SelectOption key={h} value={String(h)}>{`${String(h).padStart(2, "0")}:00`}</SelectOption>
                   ))}
-                </select>
+                </Select>
                 to
-                <select aria-label="Quiet to" className={select} value={s.quietTo} onChange={(e) => void save({ quietTo: Number(e.target.value) })}>
+                <Select aria-label="Quiet to" className="h-9" value={String(s.quietTo)} onValueChange={(selectedValue) => void save({ quietTo: Number(selectedValue) })}>
                   {hours.map((h) => (
-                    <option key={h} value={h}>{`${String(h).padStart(2, "0")}:00`}</option>
+                    <SelectOption key={h} value={String(h)}>{`${String(h).padStart(2, "0")}:00`}</SelectOption>
                   ))}
-                </select>
+                </Select>
               </span>
             </div>
           )}

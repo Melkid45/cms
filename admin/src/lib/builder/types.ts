@@ -215,6 +215,8 @@ export interface CatalogSettings {
 }
 
 export interface Project {
+  // Public projection of operational settings, not editable through the project API.
+  commerce?:import("./commerce-settings").CommerceSettings;
   formDefinitions?: CmsForm[];
   services?: CmsService[];
   // Shop cart look (cart.tsx): layout of the cart window and the header cart button. The cart

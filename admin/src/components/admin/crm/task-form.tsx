@@ -1,4 +1,5 @@
 "use client";
+import { Select, SelectOption } from "@/components/ui/select";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import type { CrmData, Task } from "@/lib/builder/crm/shared";
@@ -74,36 +75,36 @@ export function TaskForm({
         </div>
         <div>
           <label className={label} htmlFor="task-assignee">Assignee</label>
-          <select id="task-assignee" className={field} value={value.assigneeId} onChange={set("assigneeId")}>
-            <option value="">Nobody</option>
+          <Select id="task-assignee" className="h-9 " value={String(value.assigneeId)} onValueChange={(selectedValue) => setValue(current => ({ ...current, ["assigneeId"]: selectedValue }))}>
+            <SelectOption value="">Nobody</SelectOption>
             {data.team.map((m) => (
-              <option key={m.id} value={m.id}>
+              <SelectOption key={m.id} value={String(m.id)}>
                 {m.name}
-              </option>
+              </SelectOption>
             ))}
-          </select>
+          </Select>
         </div>
         <div>
           <label className={label} htmlFor="task-contact">Contact</label>
-          <select id="task-contact" className={field} value={value.contactId} onChange={set("contactId")} disabled={!!contactId && !task}>
-            <option value="">—</option>
+          <Select id="task-contact" className="h-9 " value={String(value.contactId)} onValueChange={(selectedValue) => setValue(current => ({ ...current, ["contactId"]: selectedValue }))} disabled={!!contactId && !task}>
+            <SelectOption value="">—</SelectOption>
             {data.contacts.map((c) => (
-              <option key={c.id} value={c.id}>
+              <SelectOption key={c.id} value={String(c.id)}>
                 {c.name || c.email || c.phone}
-              </option>
+              </SelectOption>
             ))}
-          </select>
+          </Select>
         </div>
         <div>
           <label className={label} htmlFor="task-deal">Deal</label>
-          <select id="task-deal" className={field} value={value.dealId} onChange={set("dealId")}>
-            <option value="">—</option>
+          <Select id="task-deal" className="h-9 " value={String(value.dealId)} onValueChange={(selectedValue) => setValue(current => ({ ...current, ["dealId"]: selectedValue }))}>
+            <SelectOption value="">—</SelectOption>
             {deals.map((d) => (
-              <option key={d.id} value={d.id}>
+              <SelectOption key={d.id} value={String(d.id)}>
                 {d.title}
-              </option>
+              </SelectOption>
             ))}
-          </select>
+          </Select>
         </div>
         <div className="mt-2 flex items-center gap-2 sm:col-span-2">
           {onDelete && (

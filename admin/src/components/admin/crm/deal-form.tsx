@@ -1,4 +1,5 @@
 "use client";
+import { Select, SelectOption } from "@/components/ui/select";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import type { CrmData, Deal } from "@/lib/builder/crm/shared";
@@ -61,36 +62,36 @@ export function DealForm({
         </div>
         <div className="sm:col-span-2">
           <label className={label} htmlFor="deal-contact">Contact</label>
-          <select id="deal-contact" className={field} value={value.contactId} onChange={set("contactId")} required disabled={!!contactId && !deal}>
-            <option value="">Choose a contact</option>
+          <Select id="deal-contact" className="h-9 " value={String(value.contactId)} onValueChange={(selectedValue) => setValue(current => ({ ...current, ["contactId"]: selectedValue }))} required disabled={!!contactId && !deal}>
+            <SelectOption value="">Choose a contact</SelectOption>
             {contacts.map((c) => (
-              <option key={c.id} value={c.id}>
+              <SelectOption key={c.id} value={String(c.id)}>
                 {c.name || c.email || c.phone}
                 {c.company ? ` · ${c.company}` : ""}
-              </option>
+              </SelectOption>
             ))}
-          </select>
+          </Select>
         </div>
         <div>
           <label className={label} htmlFor="deal-stage">Stage</label>
-          <select id="deal-stage" className={field} value={value.stageId} onChange={set("stageId")}>
+          <Select id="deal-stage" className="h-9 " value={String(value.stageId)} onValueChange={(selectedValue) => setValue(current => ({ ...current, ["stageId"]: selectedValue }))}>
             {data.stages.map((s) => (
-              <option key={s.id} value={s.id}>
+              <SelectOption key={s.id} value={String(s.id)}>
                 {s.name}
-              </option>
+              </SelectOption>
             ))}
-          </select>
+          </Select>
         </div>
         <div>
           <label className={label} htmlFor="deal-owner">Owner</label>
-          <select id="deal-owner" className={field} value={value.ownerId} onChange={set("ownerId")}>
-            <option value="">Nobody</option>
+          <Select id="deal-owner" className="h-9 " value={String(value.ownerId)} onValueChange={(selectedValue) => setValue(current => ({ ...current, ["ownerId"]: selectedValue }))}>
+            <SelectOption value="">Nobody</SelectOption>
             {data.team.map((m) => (
-              <option key={m.id} value={m.id}>
+              <SelectOption key={m.id} value={String(m.id)}>
                 {m.name}
-              </option>
+              </SelectOption>
             ))}
-          </select>
+          </Select>
         </div>
         <div className="grid grid-cols-[1fr_80px] gap-2">
           <div>

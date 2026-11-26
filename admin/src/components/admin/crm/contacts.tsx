@@ -1,4 +1,5 @@
 "use client";
+import { Select, SelectOption } from "@/components/ui/select";
 import Link from "next/link";
 import { useMemo, useRef, useState } from "react";
 import { Download, Merge, Plus, Search, Trash2, Upload } from "lucide-react";
@@ -161,35 +162,35 @@ export function Contacts() {
           <Search className="pointer-events-none absolute left-3 top-2.5 size-4 text-neutral-400" />
           <input className={`${field} pl-9`} placeholder="Search name, e-mail, phone, company, tag" value={query} onChange={(e) => setQuery(e.target.value)} />
         </label>
-        <select aria-label="Status" className={field} value={status} onChange={(e) => setStatus(e.target.value)}>
-          <option value="">Any status</option>
+        <Select aria-label="Status" className="h-9 " value={String(status)} onValueChange={(selectedValue) => setStatus(selectedValue)}>
+          <SelectOption value="">Any status</SelectOption>
           {CONTACT_STATUSES.map((s) => (
-            <option key={s} value={s}>
+            <SelectOption key={s} value={String(s)}>
               {STATUS_LABELS[s]}
-            </option>
+            </SelectOption>
           ))}
-        </select>
-        <select aria-label="Tag" className={field} value={tag} onChange={(e) => setTag(e.target.value)}>
-          <option value="">Any tag</option>
+        </Select>
+        <Select aria-label="Tag" className="h-9 " value={String(tag)} onValueChange={(selectedValue) => setTag(selectedValue)}>
+          <SelectOption value="">Any tag</SelectOption>
           {tags.map((t) => (
-            <option key={t} value={t}>
+            <SelectOption key={t} value={String(t)}>
               {t}
-            </option>
+            </SelectOption>
           ))}
-        </select>
-        <select aria-label="Source" className={field} value={source} onChange={(e) => setSource(e.target.value)}>
-          <option value="">Any source</option>
+        </Select>
+        <Select aria-label="Source" className="h-9 " value={String(source)} onValueChange={(selectedValue) => setSource(selectedValue)}>
+          <SelectOption value="">Any source</SelectOption>
           {SOURCE_KINDS.map((s) => (
-            <option key={s} value={s}>
+            <SelectOption key={s} value={String(s)}>
               {SOURCE_LABELS[s]}
-            </option>
+            </SelectOption>
           ))}
-        </select>
-        <select aria-label="Orders" className={field} value={orders} onChange={(e) => setOrders(e.target.value)}>
-          <option value="">Orders: any</option>
-          <option value="yes">Has orders</option>
-          <option value="no">No orders</option>
-        </select>
+        </Select>
+        <Select aria-label="Orders" className="h-9 " value={String(orders)} onValueChange={(selectedValue) => setOrders(selectedValue)}>
+          <SelectOption value="">Orders: any</SelectOption>
+          <SelectOption value="yes">Has orders</SelectOption>
+          <SelectOption value="no">No orders</SelectOption>
+        </Select>
       </div>
       {selected.length > 0 && (
         <div className={`${card} mb-4 flex flex-wrap items-center gap-2 px-4 py-2.5 text-sm`}>

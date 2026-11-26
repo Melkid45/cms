@@ -2,9 +2,15 @@
 import { useState } from "react";
 import { Building2, ImageIcon, Inbox } from "lucide-react";
 import { useProject } from "@/lib/builder/client";
-import type { WebsiteSettings, FormSettings } from "@/lib/builder/types";
+import type {
+  WebsiteSettings,
+  FormSettings,
+  Project,
+} from "@/lib/builder/types";
 import { MediaPicker } from "@/components/builder/media-picker";
+import { useWorkspace } from "@/components/admin/site-context";
 import { AdminPanel } from "@/components/admin/admin-panel";
+import { HostingReadiness } from "@/components/admin/hosting-readiness";
 import { SmtpSettings } from "@/components/admin/smtp-settings";
 import { PasswordSettings } from "@/components/admin/password-settings";
 import { FormMessageFields } from "@/components/admin/form-messages";
@@ -23,13 +29,24 @@ type Draft = {
   forms: FormSettings;
 };
 export default function ClientSettings() {
+  const { project, error } = useProject();
+  const workspace = useWorkspace();
+  return project ? (
+    <WebsiteSettingsEditor
+      key={workspace?.site?.id || "default"}
+      project={project}
+    />
+  ) : (
+    <p>{error || "Loading settings…"}</p>
+  );
+}
+function WebsiteSettingsEditor({ project }: { project: Project }) {
   const { isOwner } = useAccess();
-  const { project, save, error } = useProject();
+  const { save } = useProject();
   const [draft, setDraft] = useState<Draft | null>(null),
     [notice, setNotice] = useState(""),
     [busy, setBusy] = useState(false);
-  if (!project) return <p>{error || "Loading settings…"}</p>;
-  const value = draft || {
+  const defaults = (project: Project): Draft => ({
     name: project.brand.name,
     logo: project.brand.logo,
     footerLogo: project.brand.footerLogo,
@@ -45,18 +62,16 @@ export default function ClientSettings() {
       recipient: "",
       successMessage: "Thank you. Your message has been received.",
     },
-  };
+  });
+  const value = draft || defaults(project);
   const patch = (data: Partial<Draft>) => {
-    setDraft({ ...value, ...data });
+    setDraft((current) => ({ ...(current || defaults(project)), ...data }));
     setNotice("");
   };
   const website = (data: Partial<WebsiteSettings>) =>
     patch({ website: { ...value.website, ...data } });
   return (
-    <AdminPanel
-      title="Website settings"
-      className="space-y-6"
-    >
+    <AdminPanel title="Website settings" className="space-y-6">
       <form
         className="space-y-6"
         onSubmit={async (e) => {
@@ -188,7 +203,9 @@ export default function ClientSettings() {
               <Label>Header logo</Label>
               <MediaPicker
                 value={value.logo}
-                onChange={(logo) => patch({ logo })}
+                onChange={(logo) => {
+                  patch({ logo });
+                }}
               />
             </div>
             <div className="space-y-3">
@@ -271,6 +288,16 @@ export default function ClientSettings() {
         </div>
       </form>
       <SmtpSettings />
+      {isOwner && (
+        <details className="border-t pt-5">
+          <summary className="cursor-pointer text-sm font-semibold">
+            Hosting readiness
+          </summary>
+          <div className="pt-5">
+            <HostingReadiness />
+          </div>
+        </details>
+      )}
       {!isOwner && <PasswordSettings />}
     </AdminPanel>
   );

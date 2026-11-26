@@ -1,4 +1,5 @@
 "use client";
+import { Select, SelectOption } from "@/components/ui/select";
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import {
@@ -23,7 +24,6 @@ import { useDesigners } from "./orders-screen";
 import {
   api,
   card,
-  field,
   formatDate,
   isOverdue,
   StatusPill,
@@ -181,20 +181,20 @@ export function OrderDetail({ id }: { id: string }) {
         </div>
         <label className="flex shrink-0 flex-col gap-1 text-xs text-neutral-500 sm:w-48">
           Status
-          <select
-            className={field}
-            value={order.status}
+          <Select
+            className="h-9 "
+            value={String(order.status)}
             disabled={busy}
-            onChange={(e) => patch({ status: e.target.value })}
+            onValueChange={(selectedValue) => patch({ status: selectedValue })}
           >
             {(Object.keys(statusLabel) as OrderStatus[])
               .filter((s) => isOwner || s !== "cancelled")
               .map((s) => (
-                <option key={s} value={s}>
+                <SelectOption key={s} value={String(s)}>
                   {statusLabel[s]}
-                </option>
+                </SelectOption>
               ))}
-          </select>
+          </Select>
         </label>
       </header>
 
@@ -423,20 +423,20 @@ export function OrderDetail({ id }: { id: string }) {
 
           <Section title="Designer">
             {isOwner ? (
-              <select
+              <Select
                 aria-label="Designer"
-                className={field}
-                value={order.designerId || ""}
+                className="h-9 "
+                value={String(order.designerId || "")}
                 disabled={busy}
-                onChange={(e) => patch({ designerId: e.target.value || null })}
+                onValueChange={(selectedValue) => patch({ designerId: selectedValue || null })}
               >
-                <option value="">No designer (I work on it myself)</option>
+                <SelectOption value="">No designer (I work on it myself)</SelectOption>
                 {designers.map((d) => (
-                  <option key={d.id} value={d.id}>
+                  <SelectOption key={d.id} value={String(d.id)}>
                     {d.name || d.email}
-                  </option>
+                  </SelectOption>
                 ))}
-              </select>
+              </Select>
             ) : (
               <p className="text-sm">
                 {order.designerId === viewerId ? "Assigned to you" : "—"}

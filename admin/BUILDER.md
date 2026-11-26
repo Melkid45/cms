@@ -458,3 +458,25 @@ Our multi-site snapshot is the base; Ilya's commits 680229a..4062011 are merged 
   (ours per website), media thumbnails (ours: image-variants), Google Fonts loader, Shop menu item,
   his changes to the floating header and contact photo panel (they changed live pages).
 - Tests: `test:content` and `test:inline` (his) need an isolated server; see the merge log.
+
+### Shop payments
+
+Shop → Settings → Payments supports pay on receipt, bank transfer instructions, Stripe Checkout (EUR/USD/GBP) and YooKassa redirect payments (RUB). Select the provider for the merchant account; do not choose it from the visitor's IP. Amounts are calculated from the published catalog and delivery rules, never from the browser. Currency changes do not convert amounts.
+
+Before enabling online payments:
+- Set a stable `CMS_AUTH_SECRET` (at least 32 characters). Provider keys are encrypted with it; rotating it requires re-entering keys.
+- Save the public HTTPS origin in Payments. Return URLs use that origin and private order tokens. Do not paste keys into project content or source code.
+- Stripe: save `sk_test_…` / `sk_live_…` and `whsec_…`; register the displayed webhook URL for `checkout.session.completed`, `checkout.session.async_payment_succeeded`, `checkout.session.expired`. Card payments only at this stage.
+- YooKassa: save shop ID and secret key; register the displayed notification URL for `payment.succeeded` / `payment.canceled`. Set the shop currency to RUB. Configure fiscalization in YooKassa or the merchant's external receipt system. Built-in receipt payload supports ordinary unmarked goods with one VAT code for all goods/delivery; mixed VAT, marked goods and settlement receipts after fulfillment need a dedicated fiscal integration.
+- Start with provider test credentials and make a complete provider-hosted test payment. Automated tests mock provider APIs and cannot certify a real merchant account.
+
+Order processing status and payment status are independent. A browser return never marks an order paid. Stripe signatures are checked against the raw body, then the session is re-fetched; YooKassa notifications are verified by re-fetching the payment with merchant credentials. Provider ID, amount, currency, site, order and attempt must all match. Replayed notifications do not deduct stock again. Stock remains reserved until shipment; expired/cancelled online payments release reservations. Pending online payments must reach a final provider state before manual cancellation. A late payment on a cancelled order is flagged for review. Refunds/partial refunds are managed in the provider dashboard at this stage; cancelling an order is not a refund.
+
+Order result URLs are private bearer links under `/api/shop/result`, excluded from indexing, caching and referrer transmission. Offline orders can be marked paid by the assigned client or owner. Online payment status cannot be overridden through the admin PATCH endpoint. Orders with provider payment IDs cannot be deleted.
+
+
+Local shop acceptance check (2026-11-26): the Northline Studio site was assembled through the admin UI (pages, catalog CSV import, layout/navigation and checkout settings). Local routes: `/site/northline-studio/home`, `/shop`, `/checkout`, `/account` under the same site prefix. Nine demo products include a two-variation chair and an unavailable product. Search, material filters, cart quantity/variant/currency, delivery fee and actual YooKassa sandbox redirect/return were checked. Sandbox order #1003 was reconciled as paid through the authenticated provider API, with stock still reserved. This is local demonstration data, not production merchant acceptance. SMTP delivery and externally delivered YooKassa notifications were not exercised against this local instance.
+
+For development only, Store return address accepts loopback HTTP origins such as `http://127.0.0.1:3000`. Use this shop's address, never an unrelated website. Local return works, but provider notifications require a reachable public HTTPS endpoint; use Check payment status during local testing. The merchant name shown by YooKassa comes from the connected merchant account, independently of the return address. Production settings continue to require HTTPS. The result page's strict-origin referrer policy keeps order tokens out of referrers while preserving the origin on payment forms; opaque/null origins are rejected.
+
+Demo desk stock photograph: https://images.unsplash.com/photo-1518455027359-f3f8164ba6bd (replace stock/demo content with the merchant's own product photography before release).

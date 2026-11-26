@@ -1,4 +1,5 @@
 "use client";
+import { Select, SelectOption } from "@/components/ui/select";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { CalendarDays, ChevronLeft, ChevronRight, List, Plus, RefreshCw, Settings2, Trash2 } from "lucide-react";
 import { withSite } from "@/lib/builder/site-client";
@@ -259,14 +260,14 @@ function Calendar({
           {view === "day" ? fmt(date, { weekday: "long", day: "numeric", month: "long", year: "numeric" }) : `${fmt(dates[0], { day: "numeric", month: "short" })} – ${fmt(dates[6], { day: "numeric", month: "short", year: "numeric" })}`}
         </h2>
         {staff.length > 0 && (
-          <select aria-label="Staff" className={cn(field, "w-44")} value={staffFilter} onChange={(e) => setStaffFilter(e.target.value)}>
-            <option value="">All staff</option>
+          <Select aria-label="Staff" className="h-9 w-44" value={String(staffFilter)} onValueChange={(selectedValue) => setStaffFilter(selectedValue)}>
+            <SelectOption value="">All staff</SelectOption>
             {staff.map((p) => (
-              <option key={p.id} value={p.id}>
+              <SelectOption key={p.id} value={String(p.id)}>
                 {p.name}
-              </option>
+              </SelectOption>
             ))}
-          </select>
+          </Select>
         )}
         <div className="flex gap-1 rounded-lg bg-neutral-100 p-1">
           {(["day", "week"] as const).map((v) => (
@@ -375,15 +376,15 @@ function BookingList({ data, onOpen }: { data: Data; onOpen: (b: Booking) => voi
     <div className={cn(card, "p-3 sm:p-5")}>
       <div className="mb-4 flex flex-wrap gap-2">
         <input aria-label="Search bookings" placeholder="Search name, phone, service…" className={cn(field, "w-64")} value={q} onChange={(e) => setQ(e.target.value)} />
-        <select aria-label="Status" className={cn(field, "w-44")} value={filter} onChange={(e) => setFilter(e.target.value as typeof filter)}>
-          <option value="upcoming">Upcoming</option>
-          <option value="">All</option>
+        <Select aria-label="Status" className="h-9 w-44" value={String(filter)} onValueChange={(selectedValue) => setFilter(selectedValue as typeof filter)}>
+          <SelectOption value="upcoming">Upcoming</SelectOption>
+          <SelectOption value="">All</SelectOption>
           {BOOKING_STATUSES.map((s) => (
-            <option key={s} value={s}>
+            <SelectOption key={s} value={String(s)}>
               {BOOKING_STATUS_LABELS[s]}
-            </option>
+            </SelectOption>
           ))}
-        </select>
+        </Select>
       </div>
       <div className="overflow-x-auto">
         <table className="w-full min-w-[640px] text-sm">
@@ -445,25 +446,25 @@ function TimeFields({
     <div className="grid gap-3 sm:grid-cols-2">
       <div>
         <label className={label} htmlFor="bk-svc">Service</label>
-        <select id="bk-svc" className={field} value={value.serviceId} onChange={(e) => onChange({ ...value, serviceId: e.target.value })}>
+        <Select id="bk-svc" className="h-9 " value={String(value.serviceId)} onValueChange={(selectedValue) => onChange({ ...value, serviceId: selectedValue })}>
           {s.services.map((x) => (
-            <option key={x.id} value={x.id}>
+            <SelectOption key={x.id} value={String(x.id)}>
               {x.name} · {x.duration} min{x.active ? "" : " (off)"}
-            </option>
+            </SelectOption>
           ))}
-        </select>
+        </Select>
       </div>
       {s.staff.length > 0 && (
         <div>
           <label className={label} htmlFor="bk-staff">Staff</label>
-          <select id="bk-staff" className={field} value={value.staffId} onChange={(e) => onChange({ ...value, staffId: e.target.value })}>
-            <option value="">First free</option>
+          <Select id="bk-staff" className="h-9 " value={String(value.staffId)} onValueChange={(selectedValue) => onChange({ ...value, staffId: selectedValue })}>
+            <SelectOption value="">First free</SelectOption>
             {s.staff.map((p) => (
-              <option key={p.id} value={p.id}>
+              <SelectOption key={p.id} value={String(p.id)}>
                 {p.name}
-              </option>
+              </SelectOption>
             ))}
-          </select>
+          </Select>
         </div>
       )}
       <div>

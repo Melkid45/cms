@@ -31,12 +31,13 @@
   "connected-content",
   "cart",
   "button-theme",
+  "store-controls",
   "refresh",
   "site"
  ],
  "hashes": {
   "base": "710907c4f4",
-  "header": "35b0970e57",
+  "header": "7aa94f7374",
   "footer": "e6c444903d",
   "hero": "0ef6740741",
   "about": "41023ae754",
@@ -46,10 +47,10 @@
   "projects": "c2214477ab",
   "gallery": "2cc5d8bedf",
   "process": "62a68ee31f",
-  "pricing": "2c3f1540f8",
+  "pricing": "a9fc03dac6",
   "testimonials": "776a85e7ae",
   "faq": "a1f026aa5b",
-  "contact": "4b82bea18a",
+  "contact": "fe0808edbb",
   "logos": "2f2e1e05bc",
   "calculator": "2eacd38ec3",
   "team": "36bacaaa66",
@@ -64,9 +65,10 @@
   "projects-explorations": "c8af2ca732",
   "testimonials-explorations": "713f07b493",
   "connected-content": "d992258b60",
-  "cart": "b31266eba3",
+  "cart": "41d0af585a",
   "button-theme": "b91725acef",
+  "store-controls": "6bed069124",
   "refresh": "c0c38e3b6e",
-  "site": "c93cd99395"
+  "site": "0103899514"
  }
 }

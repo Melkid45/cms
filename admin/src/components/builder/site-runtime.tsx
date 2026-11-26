@@ -5,6 +5,7 @@ import { X } from "lucide-react";
 import Splide from "@splidejs/splide";
 import "@splidejs/splide/css/core";
 import { mountSiteWidgets } from "./site-widgets";
+import { mountStoreControls } from "./store-controls";
 import { mountShopWidgets } from "./shop-widgets";
 import { mountMapWidgets } from "./map-widgets";
 import { mountCartWidgets, type CartLook } from "./cart-widgets";
@@ -414,6 +415,7 @@ export function useSiteRuntime(
       signal,
       el.dataset.selectSections === "true",
     );
+    const unmountStoreControls = mountStoreControls(el);
     let token = "";
     const loadToken = async () => {
       if (!pageId) return "";
@@ -514,6 +516,7 @@ export function useSiteRuntime(
       sliders.forEach((slider) => slider.destroy(true));
       timers.forEach(clearTimeout);
       showcases.forEach((reset) => reset());
+      unmountStoreControls();
       unmountWidgets();
       unmountShopWidgets();
       unmountMapWidgets();

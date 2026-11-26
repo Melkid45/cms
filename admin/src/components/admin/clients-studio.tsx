@@ -1,4 +1,5 @@
 "use client";
+import { Select, SelectOption } from "@/components/ui/select";
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -275,20 +276,20 @@ export function ClientsStudio({ data }: { data: StudioData }) {
               className={cn(control, "w-full pl-9")}
             />
           </label>
-          <select
+          <Select
             aria-label="Sort clients"
-            value={sort}
-            onChange={(event) => {
-              setSort(event.target.value as Sort);
+            value={String(sort)}
+            onValueChange={(selectedValue) => {
+              setSort(selectedValue as Sort);
               setPage(0);
             }}
-            className={cn(control, "px-3")}
+            className="h-9 "
           >
-            <option value="attention">Needs attention</option>
-            <option value="activity">Recently updated</option>
-            <option value="name">Name A–Z</option>
-            <option value="newest">Newest first</option>
-          </select>
+            <SelectOption value="attention">Needs attention</SelectOption>
+            <SelectOption value="activity">Recently updated</SelectOption>
+            <SelectOption value="name">Name A–Z</SelectOption>
+            <SelectOption value="newest">Newest first</SelectOption>
+          </Select>
           <Button
             variant="outline"
             className={big}

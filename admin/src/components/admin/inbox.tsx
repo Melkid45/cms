@@ -1,4 +1,5 @@
 "use client";
+import { Select, SelectOption } from "@/components/ui/select";
 import { withSite } from "@/lib/builder/site-client";
 import { useEffect, useState } from "react";
 import { Mail, Check, RefreshCw, Trash2 } from "lucide-react";
@@ -141,7 +142,7 @@ export default function Submissions({
             {isOwner && (
               <Button
                 nativeButton={false}
-                render={<Link href="/dashboard/settings/forms" />}
+                render={<Link href="/dashboard/settings/client" />}
               >
                 Form settings
               </Button>
@@ -242,21 +243,20 @@ export default function Submissions({
                 <Check />
                 {item.read ? "Read" : "Mark as read"}
               </Button>
-              <select
+              <Select
                 aria-label="Mark as spam or test"
-                className="h-8 rounded-md border bg-white px-2 text-xs"
-                value={item.flag || ""}
+                className="h-9 "
+                value={String(item.flag || "")}
                 disabled={!!saving}
-                onChange={(e) =>
+                onValueChange={(selectedValue) =>
                   void update(item, {
-                    flag: (e.target.value || null) as Submission["flag"],
-                  })
-                }
+                    flag: (selectedValue || null) as Submission["flag"],
+                  })}
               >
-                <option value="">Real enquiry</option>
-                <option value="spam">Spam</option>
-                <option value="test">Test</option>
-              </select>
+                <SelectOption value="">Real enquiry</SelectOption>
+                <SelectOption value="spam">Spam</SelectOption>
+                <SelectOption value="test">Test</SelectOption>
+              </Select>
               {isOwner && (
                 <Button
                   size="icon-sm"

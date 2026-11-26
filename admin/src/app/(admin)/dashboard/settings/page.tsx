@@ -4,13 +4,10 @@ import {
   CircleUserRound,
   Globe,
   Globe2,
-  KeyRound,
   LucideIcon,
   Megaphone,
   MessageCircle,
   Palette,
-  ShoppingCart,
-  SlidersHorizontal,
 } from "lucide-react";
 import { AdminPanel } from "@/components/admin/admin-panel";
 import { Card, CardContent } from "@/components/ui/card";
@@ -32,15 +29,9 @@ const settings = [
   },
   {
     title: "Website settings",
-    text: "Company details, logos, enquiries and email delivery",
+    text: "Name, contacts, logos, enquiries and SMTP",
     icon: Globe,
     href: "/dashboard/settings/client",
-  },
-  {
-    title: "Forms & hosting",
-    text: "Inbox, SMTP delivery and production readiness",
-    icon: Globe,
-    href: "/dashboard/settings/forms",
   },
   {
     title: "Profile",
@@ -49,40 +40,10 @@ const settings = [
     href: "/dashboard/settings/profile",
   },
   {
-    title: "Project",
-    text: "Website, online store, regional settings, and SMTP",
-    icon: SlidersHorizontal,
-    href: "/dashboard/settings/project",
-  },
-  {
-    title: "Localization",
-    text: "Languages and regional formats",
-    icon: Globe2,
-    href: "#",
-  },
-  {
-    title: "API tokens",
-    text: "Access keys for external applications",
-    icon: KeyRound,
-    href: "#",
-  },
-  {
-    title: "Brand",
-    text: "Logo and website color palette",
-    icon: Globe,
-    href: "/dashboard/settings/setup",
-  },
-  {
     title: "Website style",
-    text: "Custom CSS: same blocks, a unique look for this website",
+    text: "Colors, typography, buttons, layout and custom CSS",
     icon: Palette,
     href: "/dashboard/settings/style",
-  },
-  {
-    title: "Shop cart",
-    text: "Cart window layout and the header cart button",
-    icon: ShoppingCart,
-    href: "/dashboard/settings/cart",
   },
   {
     title: "Social accounts",
@@ -108,21 +69,19 @@ const crmSettings: SettingsItem = {
 export default async function SettingsPage() {
   const user = await currentUser();
   // Designers: the design screens; clients: their website settings only.
-  const designer = [
-    "/dashboard/settings/style",
-    "/dashboard/settings/cart",
-    "/dashboard/settings/setup",
-    "/dashboard/settings/project",
-  ];
+  const designer = ["/dashboard/settings/style", "/dashboard/settings/client"];
   const visible =
     user.role === "super-admin"
       ? [...settings, domainSettings, crmSettings]
       : user.role === "designer"
-        ? [...settings.filter((item) => designer.includes(item.href)), domainSettings]
+        ? [
+            ...settings.filter((item) => designer.includes(item.href)),
+            domainSettings,
+          ]
         : [
             {
               title: "Website settings",
-              text: "Company details, logos, enquiries and email delivery",
+              text: "Name, contacts, logos, enquiries and SMTP",
               icon: Globe,
               href: "/dashboard/settings/client",
             },
@@ -130,9 +89,7 @@ export default async function SettingsPage() {
             crmSettings,
           ];
   return (
-    <AdminPanel
-      title="Settings"
-    >
+    <AdminPanel title="Settings">
       <div className="grid gap-3 md:grid-cols-2">
         {visible.map(({ title, text, icon: Icon, href }) => (
           <Link href={href} key={title}>

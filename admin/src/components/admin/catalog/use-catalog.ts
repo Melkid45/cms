@@ -12,6 +12,7 @@ export interface ProductPage {
   published: boolean;
 }
 export interface CatalogData {
+  currency?:string;
   catalog: Catalog;
   siteKey: string;
   languages: Languages | null;

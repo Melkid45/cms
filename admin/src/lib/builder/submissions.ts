@@ -300,3 +300,5 @@ export async function limitOrders(ip: string, kind: "start" | "save") {
       : consumeLimit(data, "order-save:" + ip, 300, 60 * 60000),
   );
 }
+
+export async function limitPaymentRequests(ip:string){return inbox(legacySiteId,data=>consumeLimit(data,"payment:"+ip,20,60000));}

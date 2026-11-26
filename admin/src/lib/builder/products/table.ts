@@ -1,7 +1,15 @@
 // Catalogue ⇄ table (CSV export, CSV/XLSX import). Client-safe: the import screen uses the
 // same column list to offer the mapping.
 import type { Locale } from "../i18n";
-import { emptyText, slugify, STOCK, type Product, type ProductText, type Spec, type Stock } from "./shared";
+import {
+  emptyText,
+  slugify,
+  STOCK,
+  type Product,
+  type ProductText,
+  type Spec,
+  type Stock,
+} from "./shared";
 
 const TEXT_COLUMNS: [string, keyof ProductText][] = [
   ["name", "name"],
@@ -18,7 +26,19 @@ const TEXT_COLUMNS: [string, keyof ProductText][] = [
   ["card_specs", "cardSpecs"],
   ["specs", "specs"],
 ];
-const BASE_COLUMNS = ["id", "sku", "category", "price", "old_price", "stock", "qty", "hidden", "images", "options"];
+const BASE_COLUMNS = [
+  "id",
+  "sku",
+  "category",
+  "price",
+  "old_price",
+  "stock",
+  "qty",
+  "hidden",
+  "images",
+  "options",
+  "variants",
+];
 export function tableColumns(locales: string[], filterKeys: string[]) {
   return [
     ...BASE_COLUMNS,
@@ -27,7 +47,8 @@ export function tableColumns(locales: string[], filterKeys: string[]) {
   ];
 }
 // Specification cells: one "Label: value" per line.
-const specsCell = (list: Spec[]) => list.map((s) => `${s.key}: ${s.value}`).join("\n");
+const specsCell = (list: Spec[]) =>
+  list.map((s) => `${s.key}: ${s.value}`).join("\n");
 const parseSpecs = (cell: string): Spec[] =>
   cell
     .split(/\r?\n/)
@@ -35,21 +56,42 @@ const parseSpecs = (cell: string): Spec[] =>
     .filter(Boolean)
     .map((line) => {
       const at = line.indexOf(":");
-      return at < 0 ? { key: line, value: "" } : { key: line.slice(0, at).trim(), value: line.slice(at + 1).trim() };
+      return at < 0
+        ? { key: line, value: "" }
+        : { key: line.slice(0, at).trim(), value: line.slice(at + 1).trim() };
     });
 export function productRow(p: Product, columns: string[]): string[] {
   return columns.map((c) => {
     switch (c) {
-      case "id": return p.id;
-      case "sku": return p.sku;
-      case "category": return p.category;
-      case "price": return String(p.price);
-      case "old_price": return p.oldPrice == null ? "" : String(p.oldPrice);
-      case "stock": return p.stock;
-      case "qty": return p.qty == null ? "" : String(p.qty);
-      case "hidden": return p.hidden ? "yes" : "";
-      case "images": return p.images.join("\n");
-      case "options": return p.options.length ? JSON.stringify(p.options) : "";
+      case "id":
+        return p.id;
+      case "sku":
+        return p.sku;
+      case "category":
+        return p.category;
+      case "price":
+        return String(p.price);
+      case "old_price":
+        return p.oldPrice == null ? "" : String(p.oldPrice);
+      case "stock":
+        return p.stock;
+      case "qty":
+        return p.qty == null ? "" : String(p.qty);
+      case "hidden":
+        return p.hidden ? "yes" : "";
+      case "images":
+        return p.images.join("\n");
+      case "options":
+        return p.options.length ? JSON.stringify(p.options) : "";
+      case "variants":
+        return p.variants?.length
+          ? JSON.stringify(
+              p.variants.map(({ reserved: _, ...v }) => {
+                void _;
+                return v;
+              }),
+            )
+          : "";
     }
     if (c.startsWith("filter_")) return p.filters[c.slice(7)] || "";
     const m = c.match(/^(.+)_([a-z]{2})$/);
@@ -73,7 +115,9 @@ export function toCsv(rows: string[][]) {
 export function parseCsv(text: string): string[][] {
   const source = text.replace(/^﻿/, "");
   const head = source.split(/\r?\n/, 1)[0] || "";
-  const delimiter = [",", ";", "\t"].sort((a, b) => head.split(b).length - head.split(a).length)[0];
+  const delimiter = [",", ";", "\t"].sort(
+    (a, b) => head.split(b).length - head.split(a).length,
+  )[0];
   const rows: string[][] = [];
   let row: string[] = [],
     cell = "",
@@ -106,24 +150,70 @@ export function parseCsv(text: string): string[][] {
 }
 // Column guess for an imported header: export names first, then common names in LV/RU/EN.
 const ALIASES: Record<string, string> = {
-  code: "sku", kods: "sku", artikuls: "sku", "артикул": "sku", "код": "sku", article: "sku",
-  cena: "price", "цена": "price", "old price": "old_price", "vecā cena": "old_price", "старая цена": "old_price",
-  kategorija: "category", "категория": "category", quantity: "qty", daudzums: "qty", "количество": "qty",
-  noliktavā: "stock", "наличие": "stock", availability: "stock", image: "images", photo: "images", attēls: "images", "фото": "images",
+  code: "sku",
+  kods: "sku",
+  artikuls: "sku",
+  артикул: "sku",
+  код: "sku",
+  article: "sku",
+  cena: "price",
+  цена: "price",
+  "old price": "old_price",
+  "vecā cena": "old_price",
+  "старая цена": "old_price",
+  kategorija: "category",
+  категория: "category",
+  quantity: "qty",
+  daudzums: "qty",
+  количество: "qty",
+  noliktavā: "stock",
+  наличие: "stock",
+  availability: "stock",
+  image: "images",
+  photo: "images",
+  attēls: "images",
+  фото: "images",
 };
-export function guessColumn(header: string, columns: string[], defaultLocale: string) {
+export function guessColumn(
+  header: string,
+  columns: string[],
+  defaultLocale: string,
+) {
   const h = header.trim().toLowerCase().replace(/\s+/g, " ");
   const plain = h.replace(/ /g, "_");
   if (columns.includes(plain)) return plain;
   if (ALIASES[h] && columns.includes(ALIASES[h])) return ALIASES[h];
-  const named: Record<string, string> = { name: "name", title: "name", nosaukums: "name", "название": "name", description: "description", apraksts: "description", "описание": "description" };
-  if (named[h] && columns.includes(`${named[h]}_${defaultLocale}`)) return `${named[h]}_${defaultLocale}`;
+  const named: Record<string, string> = {
+    name: "name",
+    title: "name",
+    nosaukums: "name",
+    название: "name",
+    description: "description",
+    apraksts: "description",
+    описание: "description",
+  };
+  if (named[h] && columns.includes(`${named[h]}_${defaultLocale}`))
+    return `${named[h]}_${defaultLocale}`;
   return "";
 }
 // One imported row → changes to apply on top of the matched (or a new) product.
 export interface RowChange {
   match: { id?: string; sku?: string; slug?: string };
-  set: Partial<Pick<Product, "sku" | "category" | "price" | "oldPrice" | "stock" | "qty" | "hidden" | "images" | "options">>;
+  set: Partial<
+    Pick<
+      Product,
+      | "sku"
+      | "category"
+      | "price"
+      | "oldPrice"
+      | "stock"
+      | "qty"
+      | "hidden"
+      | "images"
+      | "options"
+      | "variants"
+    >
+  >;
   filters: Record<string, string>;
   text: Partial<Record<Locale, Partial<ProductText>>>;
   errors: string[];
@@ -133,12 +223,31 @@ const number = (v: string) => {
   return Number.isFinite(n) ? n : NaN;
 };
 const STOCK_WORDS: Record<string, Stock> = {
-  yes: "in_stock", "in stock": "in_stock", ir: "in_stock", "есть": "in_stock", "в наличии": "in_stock",
-  "to order": "to_order", "pasūtāms": "to_order", "под заказ": "to_order",
-  no: "out_of_stock", "out of stock": "out_of_stock", nav: "out_of_stock", "нет": "out_of_stock",
+  yes: "in_stock",
+  "in stock": "in_stock",
+  ir: "in_stock",
+  есть: "in_stock",
+  "в наличии": "in_stock",
+  "to order": "to_order",
+  pasūtāms: "to_order",
+  "под заказ": "to_order",
+  no: "out_of_stock",
+  "out of stock": "out_of_stock",
+  nav: "out_of_stock",
+  нет: "out_of_stock",
 };
-export function rowChange(row: string[], mapping: string[], defaultLocale: string): RowChange {
-  const change: RowChange = { match: {}, set: {}, filters: {}, text: {}, errors: [] };
+export function rowChange(
+  row: string[],
+  mapping: string[],
+  defaultLocale: string,
+): RowChange {
+  const change: RowChange = {
+    match: {},
+    set: {},
+    filters: {},
+    text: {},
+    errors: [],
+  };
   mapping.forEach((column, i) => {
     if (!column) return;
     const value = (row[i] ?? "").trim().replace(/^'(?=[=+\-@])/, "");
@@ -146,8 +255,15 @@ export function rowChange(row: string[], mapping: string[], defaultLocale: strin
     const textField = m && TEXT_COLUMNS.find(([name]) => name === m[1])?.[1];
     if (textField) {
       const t = (change.text[m![2] as Locale] ??= {});
-      (t as Record<string, unknown>)[textField] = ["topSpecs", "cardSpecs", "specs"].includes(textField) ? parseSpecs(value) : value;
-      if (textField === "slug" && m![2] === defaultLocale && value) change.match.slug = value;
+      (t as Record<string, unknown>)[textField] = [
+        "topSpecs",
+        "cardSpecs",
+        "specs",
+      ].includes(textField)
+        ? parseSpecs(value)
+        : value;
+      if (textField === "slug" && m![2] === defaultLocale && value)
+        change.match.slug = value;
       return;
     }
     if (column.startsWith("filter_")) {
@@ -168,7 +284,8 @@ export function rowChange(row: string[], mapping: string[], defaultLocale: strin
       case "price":
       case "old_price": {
         const n = value ? number(value) : null;
-        if (n !== null && (Number.isNaN(n) || n < 0)) change.errors.push(`${column}: "${value}" is not a price`);
+        if (n !== null && (Number.isNaN(n) || n < 0))
+          change.errors.push(`${column}: "${value}" is not a price`);
         else if (column === "price") {
           if (n === null) change.errors.push("price is empty");
           else change.set.price = n;
@@ -177,13 +294,19 @@ export function rowChange(row: string[], mapping: string[], defaultLocale: strin
       }
       case "qty": {
         const n = value ? Math.round(number(value)) : null;
-        if (n !== null && (Number.isNaN(n) || n < 0)) change.errors.push(`qty: "${value}" is not a number`);
+        if (n !== null && (Number.isNaN(n) || n < 0))
+          change.errors.push(`qty: "${value}" is not a number`);
         else change.set.qty = n;
         break;
       }
       case "stock": {
-        const s = (STOCK as readonly string[]).includes(value) ? (value as Stock) : STOCK_WORDS[value.toLowerCase()];
-        if (value && !s) change.errors.push(`stock: "${value}" (use in_stock, to_order or out_of_stock)`);
+        const s = (STOCK as readonly string[]).includes(value)
+          ? (value as Stock)
+          : STOCK_WORDS[value.toLowerCase()];
+        if (value && !s)
+          change.errors.push(
+            `stock: "${value}" (use in_stock, to_order or out_of_stock)`,
+          );
         else if (s) change.set.stock = s;
         break;
       }
@@ -191,7 +314,17 @@ export function rowChange(row: string[], mapping: string[], defaultLocale: strin
         change.set.hidden = /^(yes|true|1|jā|да|hidden)$/i.test(value);
         break;
       case "images":
-        change.set.images = value.split(/[\n|]+/).map((s) => s.trim()).filter(Boolean);
+        change.set.images = value
+          .split(/[\n|]+/)
+          .map((s) => s.trim())
+          .filter(Boolean);
+        break;
+      case "variants":
+        try {
+          change.set.variants = value ? JSON.parse(value) : [];
+        } catch {
+          change.errors.push("variants: not valid JSON");
+        }
         break;
       case "options":
         if (!value) change.set.options = [];
@@ -199,7 +332,9 @@ export function rowChange(row: string[], mapping: string[], defaultLocale: strin
           try {
             change.set.options = JSON.parse(value);
           } catch {
-            change.errors.push("options: not valid JSON (export a product to see the format)");
+            change.errors.push(
+              "options: not valid JSON (export a product to see the format)",
+            );
           }
         break;
     }
@@ -209,7 +344,10 @@ export function rowChange(row: string[], mapping: string[], defaultLocale: strin
 // Matched product (or a new one) with the row's changes; slugs of new languages from the name.
 export function mergeChange(base: Product | undefined, change: RowChange) {
   const text: Product["text"] = structuredClone(base?.text || {});
-  for (const [locale, t] of Object.entries(change.text) as [Locale, Partial<ProductText>][]) {
+  for (const [locale, t] of Object.entries(change.text) as [
+    Locale,
+    Partial<ProductText>,
+  ][]) {
     const next = { ...emptyText(), ...text[locale], ...t };
     if (!next.name && !base?.text[locale]) continue;
     if (!next.slug && next.name) next.slug = slugify(next.name);
@@ -225,9 +363,14 @@ export function mergeChange(base: Product | undefined, change: RowChange) {
     images: base?.images ?? [],
     hidden: base?.hidden ?? false,
     options: base?.options ?? [],
+    variants: base?.variants ?? [],
     pages: base?.pages ?? {},
     ...change.set,
-    filters: Object.fromEntries(Object.entries({ ...base?.filters, ...change.filters }).filter(([, v]) => v)),
+    filters: Object.fromEntries(
+      Object.entries({ ...base?.filters, ...change.filters }).filter(
+        ([, v]) => v,
+      ),
+    ),
     text,
   };
 }

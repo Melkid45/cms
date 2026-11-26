@@ -120,3 +120,40 @@ export function fontPairVars(id?: string): Record<string, string> {
     "--font-heading-weight": String(pair.weight),
   };
 }
+
+// Individual font choices reuse the same self-hosted faces as the existing pairs.
+export const WEBSITE_FONTS = [
+  ["manrope", "Manrope", "--font-manrope"],
+  ["inter", "Inter", "--font-inter"],
+  ["inter-tight", "Inter Tight", "--font-inter-tight"],
+  ["montserrat", "Montserrat", "--font-montserrat"],
+  ["lora", "Lora", "--font-lora"],
+  ["source-sans", "Source Sans 3", "--font-source-sans"],
+  ["playfair-display", "Playfair Display", "--font-playfair"],
+  ["cormorant-garamond", "Cormorant Garamond", "--font-cormorant"],
+  ["pt-serif", "PT Serif", "--font-pt-serif"],
+  ["pt-sans", "PT Sans", "--font-pt-sans"],
+  ["nunito", "Nunito", "--font-nunito"],
+  ["oswald", "Oswald", "--font-oswald"],
+  ["roboto", "Roboto", "--font-roboto"],
+  ["unbounded", "Unbounded", "--font-unbounded"],
+  ["dm-serif", "DM Serif Text", "--font-dm-serif"],
+  ["jakarta", "Plus Jakarta Sans", "--font-jakarta"],
+  ["raleway", "Raleway", "--font-raleway"],
+  ["open-sans", "Open Sans", "--font-open-sans"],
+] as const;
+export function websiteFontFamily(id?: string) {
+  const font = WEBSITE_FONTS.find(([key]) => key === id);
+  return font ? `var(${font[2]}), "${font[1]}", sans-serif` : undefined;
+}
+export function websiteFontVars(brand: {
+  headingFont?: string;
+  bodyFont?: string;
+}) {
+  const heading = websiteFontFamily(brand.headingFont),
+    body = websiteFontFamily(brand.bodyFont);
+  return {
+    ...(heading ? { "--font-heading": heading } : {}),
+    ...(body ? { "--font-body": body } : {}),
+  };
+}

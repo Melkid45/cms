@@ -1,3 +1,4 @@
+import {keepCatalogInfo} from "./products/apply";
 import type { Project, Section, CmsService } from "./types";
 import { definition } from "./catalog";
 import { collectionItems } from "./collections";
@@ -94,13 +95,13 @@ export function connectedContent(
     footer: bind(source.layout.footer),
   };
   return {
-    project: {
+    project: keepCatalogInfo(source,{
       ...source,
       pages,
       layout,
       formDefinitions: [...forms.values()],
       services: [...services.values()],
-    },
+    }),
     sections,
   };
 }

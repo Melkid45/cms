@@ -1,4 +1,5 @@
 "use client";
+import { Select, SelectOption } from "@/components/ui/select";
 import { useCallback, useEffect, useState } from "react";
 import { ArrowDown, ArrowUp, Plus, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -221,16 +222,16 @@ function PipelineSettings({ crm }: { crm: ReturnType<typeof useCrm> }) {
         </label>
         <label className="mt-4 flex items-center justify-between gap-4 text-sm">
           <span>Currency of new deals</span>
-          <select
-            className={`${field} max-w-28`}
-            value={data.settings.currency}
+          <Select
+            className="h-9 max-w-28"
+            value={String(data.settings.currency)}
             disabled={busy}
-            onChange={(e) => void act({ action: "settings.save", revision: data.settingsRevision, settings: { ...data.settings, currency: e.target.value } })}
+            onValueChange={(selectedValue) => void act({ action: "settings.save", revision: data.settingsRevision, settings: { ...data.settings, currency: selectedValue } })}
           >
             {[...new Set(["EUR", "USD", "GBP", "PLN", "SEK", "NOK", "DKK", "CHF", data.settings.currency])].map((c) => (
-              <option key={c}>{c}</option>
+              <SelectOption value={String(c)} key={c}>{c}</SelectOption>
             ))}
-          </select>
+          </Select>
         </label>
       </section>
       <section className={`${card} p-5 sm:p-6`}>
@@ -241,11 +242,11 @@ function PipelineSettings({ crm }: { crm: ReturnType<typeof useCrm> }) {
           {list.map((s, i) => (
             <div key={s.id || i} className="flex items-center gap-2">
               <input aria-label="Stage name" className={field} value={s.name} maxLength={40} onChange={(e) => edit(list.map((x, j) => (j === i ? { ...x, name: e.target.value } : x)))} />
-              <select aria-label="Stage type" className={`${field} w-28`} value={s.kind} onChange={(e) => edit(list.map((x, j) => (j === i ? { ...x, kind: e.target.value as Stage["kind"] } : x)))}>
-                <option value="open">Open</option>
-                <option value="won">Won</option>
-                <option value="lost">Lost</option>
-              </select>
+              <Select aria-label="Stage type" className="h-9 w-28" value={String(s.kind)} onValueChange={(selectedValue) => edit(list.map((x, j) => (j === i ? { ...x, kind: selectedValue as Stage["kind"] } : x)))}>
+                <SelectOption value="open">Open</SelectOption>
+                <SelectOption value="won">Won</SelectOption>
+                <SelectOption value="lost">Lost</SelectOption>
+              </Select>
               <Button size="icon-sm" variant="ghost" aria-label="Move up" disabled={i === 0} onClick={() => move(i, -1)}>
                 <ArrowUp />
               </Button>

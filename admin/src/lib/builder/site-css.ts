@@ -19,6 +19,7 @@ const ALWAYS = new Set([
   "connected-content",
   "cart",
   "button-theme",
+  "store-controls",
 ]);
 const families = new Set(data.order.filter((id) => !ALWAYS.has(id)));
 const hashes = data.hashes as Record<string, string>;

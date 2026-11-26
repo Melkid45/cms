@@ -147,3 +147,11 @@ html[data-site-menu-open] { overflow: hidden; }
 // header-v20: reserve the real header height before the canvas script measures it (no layout shift on load).
 .builder-header-slot:has(.site-header--shop) { min-height: 72px; }
 .site-header--shop .site-header__actions { min-height: 40px; }
+
+@media (max-width: 600px) {
+  .site-header--shop {
+    .site-header__pill { display: none; }
+    .site-header__row { gap: 12px; }
+    .site-header__actions { flex-shrink: 0; }
+  }
+}

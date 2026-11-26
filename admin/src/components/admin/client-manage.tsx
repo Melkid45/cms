@@ -1,4 +1,5 @@
 "use client";
+import { Select, SelectOption } from "@/components/ui/select";
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
@@ -31,8 +32,6 @@ import type { StudioAccount, StudioData, StudioSite } from "@/lib/builder/studio
 // Client page inside a client (/dashboard/client) share these parts (Vova, 2026-11-22).
 
 export const big = "h-10 px-4 text-sm";
-const field =
-  "h-10 w-full rounded-lg border border-[#e2e2e2] bg-white px-3 text-sm outline-none focus-visible:ring-3 focus-visible:ring-ring/50";
 type Credentials = { email: string; password: string };
 export type ClientTab = "websites" | "logins" | "billing";
 export const clientTabs: [ClientTab, string][] = [
@@ -296,14 +295,14 @@ export function AddWebsiteDialog({
         </div>
         <div className="space-y-1.5">
           <Label htmlFor="new-site-copy">Start from</Label>
-          <select id="new-site-copy" name="copyFrom" className={field}>
-            <option value="">Blank website</option>
+          <Select id="new-site-copy" name="copyFrom" defaultValue="" className="h-9">
+            <SelectOption value="">Blank website</SelectOption>
             {sites.map((site) => (
-              <option key={site.id} value={site.id}>
+              <SelectOption key={site.id} value={String(site.id)}>
                 Copy of {site.name}
-              </option>
+              </SelectOption>
             ))}
-          </select>
+          </Select>
         </div>
         {error && <p className="text-sm text-red-600">{error}</p>}
         <div className="mt-2 flex gap-2">
@@ -644,13 +643,13 @@ export function ClientTabContent({
             {!dialog.site && (
               <div className="space-y-1.5">
                 <Label htmlFor="login-site">Website</Label>
-                <select id="login-site" name="site" className={field}>
+                <Select id="login-site" name="site" defaultValue={sites[0]?.id || ""} className="h-9">
                   {sites.map((site) => (
-                    <option key={site.id} value={site.id}>
+                    <SelectOption key={site.id} value={String(site.id)}>
                       {site.name}
-                    </option>
+                    </SelectOption>
                   ))}
-                </select>
+                </Select>
               </div>
             )}
             <div className="space-y-1.5">

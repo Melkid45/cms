@@ -27,6 +27,8 @@ export interface SiteStyle {
   radius?: number;
   spacing?: Spacing;
   buttons?: ButtonShape;
+  // Explicit button radius overrides the shape preset, independently of cards.
+  buttonRadius?: number;
   // Main button colour (#rrggbb; empty = the brand primary colour) and the look + hover motion
   // of main and secondary (outline) buttons. Unset = the library look (button-theme.scss is inactive).
   buttonColor?: string;
@@ -188,6 +190,10 @@ export function styleVars(style?: SiteStyle, bg?: string): Record<string, string
     vars["--radius"] = `${style.radius}px`;
   if (style.spacing && SPACE[style.spacing]) vars["--section-space"] = SPACE[style.spacing];
   if (style.buttons && BUTTON[style.buttons]) vars["--button-radius"] = BUTTON[style.buttons];
+  if (typeof style.buttonRadius === "number" && style.buttonRadius >= 0 && style.buttonRadius <= 100) {
+    vars["--button-radius"] = `${style.buttonRadius}px`;
+    vars["--radius-button"] = `${style.buttonRadius}px`;
+  }
   if (hex(style.buttonColor)) {
     const c = style.buttonColor!;
     vars["--color-button"] = c;

@@ -308,7 +308,9 @@
 .site-canvas .account-menu__head .account-avatar { width: 40px; height: 40px; background: var(--color-surface); color: var(--color-ink); }
 .contact--cabinet {
   container-type: inline-size;
-  .contact__cab-out { display: flex; flex-direction: column; align-items: flex-start; gap: 12px; padding: 28px; border-radius: 22px; box-shadow: inset 0 0 0 1px var(--color-border); }
+  .contact__cab-out { display: flex; flex-direction: column; align-items: flex-start; gap: 24px; max-width: 560px; margin: clamp(32px, 6vw, 96px) auto; padding: 0; min-height: 220px; }
+  .contact__cab-out > .heading { font-size: clamp(32px, 4vw, 56px); }
+  .contact__cab-out > p { color: var(--color-muted); max-width: 40ch; }
   .contact__cab-out[hidden], .contact__cab-view[hidden], .contact__cab-shop { display: none; }
   .cab-crumbs { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 26px; color: var(--color-muted); font-size: 14px; }
   .cab-crumbs a:hover { color: var(--color-ink); }

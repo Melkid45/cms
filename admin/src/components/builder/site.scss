@@ -37,6 +37,7 @@
 @use "connected-content";
 @use "cart";
 @use "button-theme";
+@use "store-controls";
 // Library-wide refresh rules must load after every section style.
 @use "../../../../frontend/src/styles/template/refresh";
 .site-canvas {
@@ -357,3 +358,24 @@
 .site-canvas[data-site-style] [data-tone="accent"] {
   --color-muted: color-mix(in srgb, var(--brand-on-accent) 88%, var(--brand-accent));
 }
+
+.site-canvas .button[aria-disabled="true"] { opacity: .45; cursor: not-allowed; }
+
+.shop-payment-choice { display: grid; gap: 8px; margin-block: 16px; font-size: 14px;
+  select { width: 100%; min-height: 44px; padding: 10px 12px; border: 1px solid var(--color-border, #dedede); border-radius: var(--button-radius, 8px); background: var(--color-bg, white); color: var(--color-ink, #202020); font: inherit; }
+}
+
+.site-menu__links .builder-menu-group { flex-direction: column; align-items: flex-start; gap: 24px; }
+
+// Checkout rows use the same compact type scale as the cart drawer.
+.pricing--checkout .cart-line { grid-template-columns: minmax(0, 1fr) auto; gap: 12px; padding-bottom: 24px; border-bottom: 1px solid var(--color-border); }
+.pricing--checkout .cart-line__qty { grid-column: 1; grid-row: 2; }
+.pricing--checkout .cart-line__price { grid-column: 2; grid-row: 1; font-weight: 500; }
+.pricing--checkout .cart-line__remove { grid-column: 2; grid-row: 2; justify-self: end; font-size: 12px; }
+.pricing--checkout .cart-total { font-size: 18px; font-weight: 500; }
+.pricing--checkout .cart-total .heading { font-family: var(--font-body); font-size: 22px; font-weight: 500; }
+.pricing--checkout .shop-payment-choice { margin: 4px 0; }
+.site-header--shop .cart-link { display: inline-flex; gap: 8px; width: auto; padding-inline: 10px; }
+.site-header--shop .cart-link__label { font-size: 14px; }
+.site-header--shop .cart-link__count { top: 0; right: 0; background: var(--color-ink); color: var(--color-bg); }
+.pricing__pd-variations { display: grid; gap: 16px; font-size: 14px; }

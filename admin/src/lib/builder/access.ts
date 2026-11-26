@@ -35,7 +35,7 @@ export function canAccessSite(
 // Screens a designer may open in addition to the client ones.
 export function designerRoute(path: string) {
   return (
-    (clientRoute(path) && !crmRoute(path)) ||
+    (clientRoute(path) && !crmRoute(path) && path !== "/dashboard/shop/orders") ||
     path.startsWith("/dashboard/pages") ||
     path === "/dashboard/layout" ||
     path === "/dashboard/content" ||
@@ -65,6 +65,11 @@ export function clientRoute(path: string) {
     (path.startsWith("/dashboard/pages/") && path !== "/dashboard/pages/new") ||
     path === "/dashboard/submissions" ||
     path === "/dashboard/shop-orders" ||
+    path === "/dashboard/shop" ||
+    path === "/dashboard/shop/products" ||
+    path.startsWith("/dashboard/shop/products/") ||
+    path === "/dashboard/shop/orders" ||
+    path === "/dashboard/shop/settings" ||
     // Product catalogue of the website (no customer data: designers too).
     path === "/dashboard/catalog" ||
     path.startsWith("/dashboard/catalog/") ||

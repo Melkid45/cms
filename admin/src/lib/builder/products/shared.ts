@@ -46,6 +46,26 @@ export interface ProductOption {
   // Two choices per group on the product page; delta = surcharge in EUR (0 = included).
   choices: { name: Partial<Record<Locale, string>>; delta: number }[];
 }
+export interface ProductVariant {
+  id: string;
+  name: string;
+  attributes: Spec[];
+  sku: string;
+  price: number;
+  oldPrice: number | null;
+  images: string[];
+  stock: Stock;
+  qty: number | null;
+  reserved?: number;
+  hidden: boolean;
+}
+export const availableQty = (item: {
+  qty: number | null;
+  reserved?: number;
+}) => (item.qty === null ? null : Math.max(0, item.qty - (item.reserved || 0)));
+export const variantLabel = (variant: ProductVariant) =>
+  variant.name ||
+  variant.attributes.map((a) => `${a.key}: ${a.value}`).join(" / ");
 export interface Product {
   id: string;
   sku: string;
@@ -54,6 +74,8 @@ export interface Product {
   oldPrice: number | null;
   stock: Stock;
   qty: number | null;
+  reserved?: number;
+  variants?: ProductVariant[];
   // Media library URLs; the first one is the main photo.
   images: string[];
   hidden: boolean;
@@ -116,7 +138,15 @@ export const emptyText = (): ProductText => ({
   cardSpecs: [],
   specs: [],
 });
-export const LIMITS = { topSpecs: 4, cardSpecs: 4, specs: 12, options: 5, choices: 2, images: 5, filters: 4 };
+export const LIMITS = {
+  topSpecs: 4,
+  cardSpecs: 4,
+  specs: 12,
+  options: 5,
+  choices: 2,
+  images: 5,
+  filters: 4,
+};
 
 export function formatPrice(n: number, format = "{n} €") {
   const value = Number.isInteger(n) ? String(n) : n.toFixed(2);
@@ -124,12 +154,44 @@ export function formatPrice(n: number, format = "{n} €") {
 }
 // "−12%" when the old price is higher.
 export function discountLabel(price: number, oldPrice: number | null) {
-  return oldPrice && oldPrice > price ? `−${Math.round((1 - price / oldPrice) * 100)}%` : "";
+  return oldPrice && oldPrice > price
+    ? `−${Math.round((1 - price / oldPrice) * 100)}%`
+    : "";
 }
 const TRANSLIT: Record<string, string> = {
-  а: "a", б: "b", в: "v", г: "g", д: "d", е: "e", ё: "e", ж: "zh", з: "z", и: "i", й: "j", к: "k", л: "l", м: "m",
-  н: "n", о: "o", п: "p", р: "r", с: "s", т: "t", у: "u", ф: "f", х: "h", ц: "c", ч: "ch", ш: "sh", щ: "shch",
-  ъ: "", ы: "y", ь: "", э: "e", ю: "yu", я: "ya",
+  а: "a",
+  б: "b",
+  в: "v",
+  г: "g",
+  д: "d",
+  е: "e",
+  ё: "e",
+  ж: "zh",
+  з: "z",
+  и: "i",
+  й: "j",
+  к: "k",
+  л: "l",
+  м: "m",
+  н: "n",
+  о: "o",
+  п: "p",
+  р: "r",
+  с: "s",
+  т: "t",
+  у: "u",
+  ф: "f",
+  х: "h",
+  ц: "c",
+  ч: "ch",
+  ш: "sh",
+  щ: "shch",
+  ъ: "",
+  ы: "y",
+  ь: "",
+  э: "e",
+  ю: "yu",
+  я: "ya",
 };
 // URL part from a name: lower case, Latin letters (Latvian/Cyrillic transliterated), digits, dashes.
 export function slugify(value: string) {
@@ -144,12 +206,18 @@ export function slugify(value: string) {
     .replace(/-+$/, "");
 }
 // Languages products are written in: the website's languages (default first), else the home page's.
-export function catalogLocales(project: Pick<Project, "languages" | "pages" | "layout">): string[] {
+export function catalogLocales(
+  project: Pick<Project, "languages" | "pages" | "layout">,
+): string[] {
   const l = project.languages;
-  if (l?.enabled.length) return [l.default, ...l.enabled.filter((x) => x !== l.default)];
-  return [project.pages.find((p) => p.id === project.layout.homePageId)?.locale || "en"];
+  if (l?.enabled.length)
+    return [l.default, ...l.enabled.filter((x) => x !== l.default)];
+  return [
+    project.pages.find((p) => p.id === project.layout.homePageId)?.locale ||
+      "en",
+  ];
 }
-export const productName =(p: Product, locale?: string) =>
+export const productName = (p: Product, locale?: string) =>
   (locale && p.text[locale as Locale]?.name) ||
   Object.values(p.text).find((t) => t?.name)?.name ||
   p.sku ||

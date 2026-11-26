@@ -237,21 +237,21 @@ export function SectionEditor({
         {!contentOnly && (
           <label className="flex items-center justify-between gap-4 rounded-xl bg-white p-4 text-sm">
             <span className="font-medium">Background</span>
-            <select
-              value={section.tone || ""}
-              onChange={(e) =>
+            <Select
+              aria-label="Section background"
+              value={String(section.tone || "")}
+              onValueChange={(selectedValue) =>
                 onChange({
                   ...section,
-                  tone: (e.target.value || undefined) as Section["tone"],
-                })
-              }
-              className="h-9 rounded-lg bg-neutral-50 px-3 text-sm outline-none focus-visible:ring-2 focus-visible:ring-neutral-900"
+                  tone: (selectedValue || undefined) as Section["tone"],
+                })}
+              className="h-9 max-w-48"
             >
-              <option value="">Page background</option>
-              <option value="tint">Tinted</option>
-              <option value="dark">Dark</option>
-              <option value="accent">Accent colour</option>
-            </select>
+              <SelectOption value="">Page background</SelectOption>
+              <SelectOption value="tint">Tinted</SelectOption>
+              <SelectOption value="dark">Dark</SelectOption>
+              <SelectOption value="accent">Accent colour</SelectOption>
+            </Select>
           </label>
         )}
         {categories.map((name, index) => (

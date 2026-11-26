@@ -46,7 +46,7 @@ export function CrmOverview() {
                 note: Object.entries(data.revenue)
                   .map(([c, v]) => money(v, c))
                   .join(" · ") || "today",
-                href: "/dashboard/shop-orders",
+                href: "/dashboard/shop/orders",
               },
             ]
           : []),

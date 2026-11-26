@@ -1,4 +1,5 @@
 "use client";
+import { Select, SelectOption } from "@/components/ui/select";
 import { useState } from "react";
 import { FileUp, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -107,22 +108,22 @@ export function CatalogImport({ onDone, onClose }: { onDone: () => void; onClose
                   {header || `Column ${i + 1}`}
                   <span className="block truncate text-xs text-neutral-500">{parsed.sample[0]?.[i] || "—"}</span>
                 </span>
-                <select
+                <Select
                   aria-label={`Field for column ${header || i + 1}`}
-                  className="h-8 max-w-44 rounded-md bg-white px-2 text-sm"
-                  value={mapping[i] || ""}
-                  onChange={(e) => {
+                  className="h-9 max-w-44"
+                  value={String(mapping[i] || "")}
+                  onValueChange={(selectedValue) => {
                     setPreview(null);
-                    setMapping((m) => m.map((v, j) => (j === i ? e.target.value : v)));
+                    setMapping((m) => m.map((v, j) => (j === i ? selectedValue : v)));
                   }}
                 >
-                  <option value="">Skip</option>
+                  <SelectOption value="">Skip</SelectOption>
                   {parsed.columns.map((c) => (
-                    <option key={c} value={c}>
+                    <SelectOption key={c} value={String(c)}>
                       {c}
-                    </option>
+                    </SelectOption>
                   ))}
-                </select>
+                </Select>
               </label>
             ))}
           </div>

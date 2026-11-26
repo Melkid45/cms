@@ -1,4 +1,5 @@
 "use client";
+import { Select, SelectOption } from "@/components/ui/select";
 import { useState } from "react";
 import { Plus, Trash2, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -14,7 +15,7 @@ export function CatalogSettingsPanel({
 }: {
   data: CatalogData;
   onSaved: (settings: CatalogSettings) => void;
-  onClose: () => void;
+  onClose?: () => void;
 }) {
   const [s, setS] = useState<CatalogSettings>(data.catalog.settings),
     [categories, setCategories] = useState(data.catalog.settings.categories.join(", ")),
@@ -40,9 +41,9 @@ export function CatalogSettingsPanel({
           <h2 className="font-medium">Catalogue settings</h2>
           <p className="mt-1 text-sm text-neutral-500">How products appear on the website.</p>
         </div>
-        <Button size="icon-sm" variant="ghost" aria-label="Close settings" onClick={onClose}>
+        {onClose && <Button size="icon-sm" variant="ghost" aria-label="Close settings" onClick={onClose}>
           <X />
-        </Button>
+        </Button>}
       </div>
       <div className="grid gap-6 lg:grid-cols-2">
         <div>
@@ -51,20 +52,20 @@ export function CatalogSettingsPanel({
           {data.locales.map((l) => (
             <label key={l} className="mb-2 flex items-center gap-3 text-sm">
               <span className="w-8 uppercase text-neutral-500">{l}</span>
-              <select
-                className="h-8 flex-1 rounded-md bg-neutral-100 px-2"
-                value={s.templates[l as keyof CatalogSettings["templates"]] || ""}
-                onChange={(e) => setS({ ...s, templates: { ...s.templates, [l]: e.target.value } })}
+              <Select
+                className="h-9 flex-1"
+                value={String(s.templates[l as keyof CatalogSettings["templates"]] || "")}
+                onValueChange={(selectedValue) => setS({ ...s, templates: { ...s.templates, [l]: selectedValue } })}
               >
-                <option value="">First product page of this language</option>
+                <SelectOption value="">First product page of this language</SelectOption>
                 {data.productPages
                   .filter((p) => p.locale === l)
                   .map((p) => (
-                    <option key={p.id} value={p.id}>
+                    <SelectOption key={p.id} value={String(p.id)}>
                       {p.title} (/{p.slug})
-                    </option>
+                    </SelectOption>
                   ))}
-              </select>
+              </Select>
             </label>
           ))}
         </div>
@@ -90,10 +91,6 @@ export function CatalogSettingsPanel({
           )}
         </div>
         <div>
-          <label className={label} htmlFor="cat-price-format">
-            Price format ({"{n}"} = number)
-          </label>
-          <Input id="cat-price-format" value={s.priceFormat} onChange={(e) => setS({ ...s, priceFormat: e.target.value })} />
           <label className={`${label} mt-4`} htmlFor="cat-categories">
             Categories (comma separated)
           </label>

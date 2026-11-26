@@ -1,3 +1,7 @@
+import { paymentChoice } from "./payment-choice";
+import type { PaymentMethod } from "@/lib/builder/payments-shared";
+import type { CommerceSettings } from "@/lib/builder/commerce-settings";
+import { checkoutBody, checkoutComplete } from "./checkout-request";
 // Instant checkout popup (no cart), rebuilt 1:1 from the Zcena prototype's checkout(p, c):
 // every order button (product card, product page, configurator) opens this popup for that one
 // product; it sends a real order to /api/shop/orders (the server prices it again from the
@@ -10,91 +14,218 @@
 // (pickup point of the delivery block; address with register suggestions, towns of the delivery
 // block and geolocation; zone price), customer account, status messages, newsletter, submit.
 import type { CartLine } from "./cart-widgets";
-import { foldText, zoneForAddress, type Place, type Point } from "@/lib/builder/shop-zones";
+import {
+  foldText,
+  zoneForAddress,
+  type Place,
+  type Point,
+} from "@/lib/builder/shop-zones";
 
 type Lang = "lv" | "ru" | "en";
 // Texts of the prototype (js/i18n.js + js/account.js), lv / ru / en. Marked "own": not in the
 // prototype (it had no real register fallback, no sending state).
 const T = {
   lv: {
-    h: "Noformēt pasūtījumu", sub: "Bez reģistrācijas un priekšapmaksas. Apmaksa saņemot.",
-    person: "Privātpersona", company: "Uzņēmums", reg: "Reģistrācijas numurs", searching: "Meklējam reģistrā…",
-    regBad: "Šāda numura reģistrā nav. Pārbaudiet ciparus.", regClosed: "Uzņēmums likvidēts vai izslēgts no reģistra.",
+    h: "Noformēt pasūtījumu",
+    sub: "Veikals apstiprinās jūsu pasūtījuma detaļas.",
+    person: "Privātpersona",
+    company: "Uzņēmums",
+    reg: "Reģistrācijas numurs",
+    searching: "Meklējam reģistrā…",
+    regBad: "Šāda numura reģistrā nav. Pārbaudiet ciparus.",
+    regClosed: "Uzņēmums likvidēts vai izslēgts no reģistra.",
     regOff: "Reģistrs šobrīd nav pieejams — numuru pārbaudīsim paši.", // own
-    name: "Vārds", contact: "Kontaktpersona", phone: "Tālrunis", email: "E-pasts",
-    pickup: "Saņemšu pats", delivery: "Piegāde Latvijā", addr: "Piegādes adrese", addrPh: "Iela, māja, pilsēta",
-    geo: "Mana vieta", flat: "Dzīvoklis / kāpņutelpa", flatPh: "dz. 12, 2. kāpņutelpa", notePh: "Domofona kods u.c.",
-    pc: "Dators", total: "Kopā saņemot", pkH: "Saņemšana uz vietas", dlH: "Piegāde", free: "Bez maksas",
-    byAddr: "pēc adreses", readyAt: "Gatavs saņemšanai",
+    name: "Vārds",
+    contact: "Kontaktpersona",
+    phone: "Tālrunis",
+    email: "E-pasts",
+    pickup: "Saņemšu pats",
+    delivery: "Piegāde",
+    addr: "Piegādes adrese",
+    addrPh: "Iela, māja, pilsēta",
+    geo: "Mana vieta",
+    flat: "Dzīvoklis / kāpņutelpa",
+    flatPh: "dz. 12, 2. kāpņutelpa",
+    notePh: "Domofona kods u.c.",
+    pc: "Prece",
+    total: "Kopā",
+    pkH: "Saņemšana uz vietas",
+    dlH: "Piegāde",
+    free: "Bez maksas",
+    byAddr: "pēc adreses",
+    readyAt: "Gatavs saņemšanai",
     news: "Vēlos dažreiz saņemt no {shop} padomus datora kopšanai un uzlabojumu piedāvājumus. Var atteikties jebkurā brīdī, pasūtījumu neietekmē.",
-    send: "Nosūtīt pasūtījumu", sending: "Sūtām…", // own
-    terms: "Nospiežot «Nosūtīt pasūtījumu», jūs piekrītat [noteikumiem]. Mēs piezvanīsim un apstiprināsim detaļas.",
-    err: "Pārbaudiet iezīmētos laukus", errAddr: "Izvēlieties adresi no ieteikumiem", errReg: "Pārbaudiet reģistrācijas numuru",
-    geoNo: "Ģeolokācija šajā pārlūkā nav pieejama", geoWait: "Nosakām atrašanās vietu…",
-    geoOk: "Adrese noteikta — precizējiet ielu un māju", geoFail: "Neizdevās noteikt — ievadiet adresi", geoMe: "Mana atrašanās vieta",
-    notify: "Sūtīt pasūtījuma statusu uz", notifyP: "Paziņosim, kad dators būs salikts un kad kurjers izbrauks. Tikai par šo pasūtījumu, bez reklāmas.",
-    acc: "Izveidot personīgo kabinetu", accP: "pasūtījumu vēsture, statuss un garantija vienuviet",
-    accPass: "Izdomājiet paroli (no 6 simboliem)", accIn: "Pasūtījums saglabāsies jūsu kabinetā", accLogin: "Jau ir kabinets? Ieiet",
-    doneH: "Pasūtījums saņemts!", doneP: "Paldies, {n}! Piezvanīsim darba laikā, apstiprināsim komplektāciju un {w}.",
-    doneWp: "saņemšanas laiku", doneWd: "piegādes laiku", pay: "Apmaksa", payV: "Saņemot", doneTot: "Kopā",
-    cab: "Atvērt pasūtījumu", ok: "Gatavs",
+    send: "Nosūtīt pasūtījumu",
+    sending: "Sūtām…", // own
+    terms:
+      "Nospiežot «Nosūtīt pasūtījumu», jūs piekrītat [noteikumiem]. Mēs piezvanīsim un apstiprināsim detaļas.",
+    err: "Pārbaudiet iezīmētos laukus",
+    errAddr: "Izvēlieties adresi no ieteikumiem",
+    errReg: "Pārbaudiet reģistrācijas numuru",
+    geoNo: "Ģeolokācija šajā pārlūkā nav pieejama",
+    geoWait: "Nosakām atrašanās vietu…",
+    geoOk: "Adrese noteikta — precizējiet ielu un māju",
+    geoFail: "Neizdevās noteikt — ievadiet adresi",
+    geoMe: "Mana atrašanās vieta",
+    notify: "Sūtīt pasūtījuma statusu uz",
+    notifyP:
+      "Paziņosim, kad pasūtījums būs gatavs. Tikai par šo pasūtījumu, bez reklāmas.",
+    acc: "Izveidot personīgo kabinetu",
+    accP: "pasūtījumu vēsture, statuss un garantija vienuviet",
+    accPass: "Izdomājiet paroli (no 6 simboliem)",
+    accIn: "Pasūtījums saglabāsies jūsu kabinetā",
+    accLogin: "Jau ir kabinets? Ieiet",
+    doneH: "Pasūtījums saņemts!",
+    doneP:
+      "Paldies, {n}! Piezvanīsim darba laikā, apstiprināsim komplektāciju un {w}.",
+    doneWp: "saņemšanas laiku",
+    doneWd: "piegādes laiku",
+    pay: "Apmaksa",
+    payV: "Saņemot",
+    doneTot: "Kopā",
+    cab: "Atvērt pasūtījumu",
+    ok: "Gatavs",
   },
   ru: {
-    h: "Оформить заказ", sub: "Без регистрации и предоплаты. Оплата при получении.",
-    person: "Частное лицо", company: "Компания", reg: "Регистрационный номер", searching: "Ищем в реестре…",
-    regBad: "Такого номера нет в реестре. Проверьте цифры.", regClosed: "Компания ликвидирована или исключена из реестра.",
+    h: "Оформить заказ",
+    sub: "Магазин подтвердит детали вашего заказа.",
+    person: "Частное лицо",
+    company: "Компания",
+    reg: "Регистрационный номер",
+    searching: "Ищем в реестре…",
+    regBad: "Такого номера нет в реестре. Проверьте цифры.",
+    regClosed: "Компания ликвидирована или исключена из реестра.",
     regOff: "Реестр сейчас недоступен — проверим номер сами.", // own
-    name: "Имя", contact: "Контактное лицо", phone: "Телефон", email: "Email",
-    pickup: "Заберу сам", delivery: "Доставка по Латвии", addr: "Адрес доставки", addrPh: "Улица, дом, город",
-    geo: "Моё место", flat: "Квартира / подъезд", flatPh: "кв. 12, подъезд 2", notePh: "Код домофона и т.п.",
-    pc: "Компьютер", total: "Итого при получении", pkH: "Самовывоз", dlH: "Доставка", free: "Бесплатно",
-    byAddr: "по адресу", readyAt: "Готов к выдаче",
+    name: "Имя",
+    contact: "Контактное лицо",
+    phone: "Телефон",
+    email: "Email",
+    pickup: "Заберу сам",
+    delivery: "Доставка",
+    addr: "Адрес доставки",
+    addrPh: "Улица, дом, город",
+    geo: "Моё место",
+    flat: "Квартира / подъезд",
+    flatPh: "кв. 12, подъезд 2",
+    notePh: "Код домофона и т.п.",
+    pc: "Товар",
+    total: "Итого",
+    pkH: "Самовывоз",
+    dlH: "Доставка",
+    free: "Бесплатно",
+    byAddr: "по адресу",
+    readyAt: "Готов к выдаче",
     news: "Хочу иногда получать от {shop} советы по уходу за компьютером и предложения по апгрейду. Можно отписаться в любой момент, на заказ не влияет.",
-    send: "Отправить заказ", sending: "Отправляем…", // own
-    terms: "Нажимая «Отправить заказ», вы соглашаетесь с [правилами]. Мы перезвоним и подтвердим детали.",
-    err: "Проверьте выделенные поля", errAddr: "Выберите адрес из подсказок", errReg: "Проверьте регистрационный номер",
-    geoNo: "Геолокация недоступна в этом браузере", geoWait: "Определяем местоположение…",
-    geoOk: "Адрес определён — уточните улицу и дом", geoFail: "Не удалось определить — введите адрес вручную", geoMe: "Моё местоположение",
-    notify: "Присылать статус заказа в", notifyP: "Сообщим, когда компьютер собран и когда курьер выехал. Только по этому заказу, без рекламы.",
-    acc: "Создать личный кабинет", accP: "история заказов, статус и гарантия в одном месте",
-    accPass: "Придумайте пароль (от 6 символов)", accIn: "Заказ сохранится в вашем кабинете", accLogin: "Уже есть кабинет? Войти",
-    doneH: "Заказ получен!", doneP: "Спасибо, {n}! Перезвоним в рабочее время, подтвердим комплектацию и {w}.",
-    doneWp: "время самовывоза", doneWd: "время доставки", pay: "Оплата", payV: "При получении", doneTot: "Итого",
-    cab: "Открыть заказ", ok: "Готово",
+    send: "Отправить заказ",
+    sending: "Отправляем…", // own
+    terms:
+      "Нажимая «Отправить заказ», вы соглашаетесь с [правилами]. Мы перезвоним и подтвердим детали.",
+    err: "Проверьте выделенные поля",
+    errAddr: "Выберите адрес из подсказок",
+    errReg: "Проверьте регистрационный номер",
+    geoNo: "Геолокация недоступна в этом браузере",
+    geoWait: "Определяем местоположение…",
+    geoOk: "Адрес определён — уточните улицу и дом",
+    geoFail: "Не удалось определить — введите адрес вручную",
+    geoMe: "Моё местоположение",
+    notify: "Присылать статус заказа в",
+    notifyP:
+      "Сообщим, когда компьютер собран и когда курьер выехал. Только по этому заказу, без рекламы.",
+    acc: "Создать личный кабинет",
+    accP: "история заказов, статус и гарантия в одном месте",
+    accPass: "Придумайте пароль (от 6 символов)",
+    accIn: "Заказ сохранится в вашем кабинете",
+    accLogin: "Уже есть кабинет? Войти",
+    doneH: "Заказ получен!",
+    doneP:
+      "Спасибо, {n}! Перезвоним в рабочее время, подтвердим комплектацию и {w}.",
+    doneWp: "время самовывоза",
+    doneWd: "время доставки",
+    pay: "Оплата",
+    payV: "При получении",
+    doneTot: "Итого",
+    cab: "Открыть заказ",
+    ok: "Готово",
   },
   en: {
-    h: "Place your order", sub: "No sign-up, no prepayment. Pay on receipt.",
-    person: "Individual", company: "Company", reg: "Registration number", searching: "Searching the register…",
-    regBad: "This number is not in the register. Please check.", regClosed: "This company is liquidated or removed from the register.",
-    regOff: "The register is not available right now — we will check the number ourselves.", // own
-    name: "Name", contact: "Contact person", phone: "Phone", email: "Email",
-    pickup: "I will pick up", delivery: "Deliver in Latvia", addr: "Delivery address", addrPh: "Street, house, town",
-    geo: "My location", flat: "Flat / entrance", flatPh: "flat 12, entrance 2", notePh: "Door code etc.",
-    pc: "Computer", total: "Total on receipt", pkH: "Pick-up", dlH: "Delivery", free: "Free",
-    byAddr: "by address", readyAt: "Ready",
-    news: "Send me occasional PC care tips and upgrade offers from {shop}. Unsubscribe any time; does not affect the order.",
-    send: "Send order", sending: "Sending…", // own
-    terms: "By sending the order you accept the [terms]. We will call to confirm the details.",
-    err: "Please check the highlighted fields", errAddr: "Pick an address from the suggestions", errReg: "Check the registration number",
-    geoNo: "Geolocation is not available in this browser", geoWait: "Locating…",
-    geoOk: "Address found — check street and house", geoFail: "Could not locate — please type the address", geoMe: "My location",
-    notify: "Send order status to", notifyP: "We will tell you when the PC is built and when the courier leaves. This order only, no ads.",
-    acc: "Create an account", accP: "order history, status and warranty in one place",
-    accPass: "Choose a password (6+ characters)", accIn: "The order will be saved to your account", accLogin: "Have an account? Sign in",
-    doneH: "Order received!", doneP: "Thank you, {n}! We will call during working hours to confirm the configuration and {w}.",
-    doneWp: "pick-up time", doneWd: "delivery time", pay: "Payment", payV: "On receipt", doneTot: "Total",
-    cab: "Open the order", ok: "Done",
+    h: "Place your order",
+    sub: "Your order details will be confirmed by the shop.",
+    person: "Individual",
+    company: "Company",
+    reg: "Registration number",
+    searching: "Searching the register…",
+    regBad: "This number is not in the register. Please check.",
+    regClosed: "This company is liquidated or removed from the register.",
+    regOff:
+      "The register is not available right now — we will check the number ourselves.", // own
+    name: "Name",
+    contact: "Contact person",
+    phone: "Phone",
+    email: "Email",
+    pickup: "I will pick up",
+    delivery: "Delivery",
+    addr: "Delivery address",
+    addrPh: "Street, house, town",
+    geo: "My location",
+    flat: "Flat / entrance",
+    flatPh: "flat 12, entrance 2",
+    notePh: "Door code etc.",
+    pc: "Item",
+    total: "Total",
+    pkH: "Pick-up",
+    dlH: "Delivery",
+    free: "Free",
+    byAddr: "by address",
+    readyAt: "Ready",
+    news: "Send me occasional news and offers from {shop}. Unsubscribe any time; does not affect the order.",
+    send: "Send order",
+    sending: "Sending…", // own
+    terms:
+      "By sending the order you accept the [terms]. We will call to confirm the details.",
+    err: "Please check the highlighted fields",
+    errAddr: "Pick an address from the suggestions",
+    errReg: "Check the registration number",
+    geoNo: "Geolocation is not available in this browser",
+    geoWait: "Locating…",
+    geoOk: "Address found — check street and house",
+    geoFail: "Could not locate — please type the address",
+    geoMe: "My location",
+    notify: "Send order status to",
+    notifyP: "Updates about this order only, no ads.",
+    acc: "Create an account",
+    accP: "order history, status and warranty in one place",
+    accPass: "Choose a password (6+ characters)",
+    accIn: "The order will be saved to your account",
+    accLogin: "Have an account? Sign in",
+    doneH: "Order received!",
+    doneP:
+      "Thank you, {n}! We will call during working hours to confirm the configuration and {w}.",
+    doneWp: "pick-up time",
+    doneWd: "delivery time",
+    pay: "Payment",
+    payV: "On receipt",
+    doneTot: "Total",
+    cab: "Open the order",
+    ok: "Done",
   },
 } satisfies Record<Lang, Record<string, string>>;
 type Text = (typeof T)["lv"];
 
 const ICON = {
-  check: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m5 12 5 5L20 7"/></svg>',
+  check:
+    '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m5 12 5 5L20 7"/></svg>',
   pin: '<svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3"/></svg>',
 };
 const esc = (s: unknown) =>
-  String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]!);
-const textOf = (el: Element | null | undefined) => (el?.textContent || "").replace(/\s+/g, " ").trim();
+  String(s ?? "").replace(
+    /[&<>"']/g,
+    (c) =>
+      ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[
+        c
+      ]!,
+  );
+const textOf = (el: Element | null | undefined) =>
+  (el?.textContent || "").replace(/\s+/g, " ").trim();
 
 // ---------------------------------------------------------------- what is being ordered
 export interface PopupItem {
@@ -105,76 +236,136 @@ export interface PopupItem {
 }
 // Short names like the prototype (pcTitle / cfgShort): "Ryzen 5 5500 · RTX 5050 8 GB · 16 GB · 500 GB".
 const shortName = (s: string) =>
-  s.replace(/^(AMD|Intel) /, "").replace(/^(GeForce|Radeon) /, "").replace(/ DDR\d.*$/, "").replace(/^(SSD|NVMe) /, "");
-const imgSrc = (img: Element | null | undefined) => img?.getAttribute("src") || "";
+  s
+    .replace(/^(AMD|Intel) /, "")
+    .replace(/^(GeForce|Radeon) /, "")
+    .replace(/ DDR\d.*$/, "")
+    .replace(/^(SSD|NVMe) /, "");
+const imgSrc = (img: Element | null | undefined) =>
+  img?.getAttribute("src") || "";
 export function popupItem(button: Element, line: CartLine): PopupItem {
   const card = button.closest(".pricing__shop-card");
   if (card) {
-    const specs = [...card.querySelectorAll(".pricing__shop-spec dd")].map(textOf).filter(Boolean).slice(0, 4);
-    return { line, image: imgSrc(card.querySelector("img")), title: line.name, short: specs.map(shortName).join(" · ") };
+    const specs = [...card.querySelectorAll(".pricing__shop-spec dd")]
+      .map(textOf)
+      .filter(Boolean)
+      .slice(0, 4);
+    return {
+      line,
+      image: imgSrc(card.querySelector("img")),
+      title: line.name,
+      short: specs.map(shortName).join(" · "),
+    };
   }
   const product = button.closest("[data-product]");
   if (product) {
     // Specs with the chosen options in place of the included ones (the prototype's selected configuration).
-    const specs = [...product.querySelectorAll(".pricing__pd-specs .pricing__pd-spec")].slice(0, 4).map((s) => ({
-      dt: textOf(s.querySelector("dt")),
-      dd: textOf(s.querySelector("dd")),
-    }));
+    const specs = [
+      ...product.querySelectorAll(".pricing__pd-specs .pricing__pd-spec"),
+    ]
+      .slice(0, 4)
+      .map((s) => ({
+        dt: textOf(s.querySelector("dt")),
+        dd: textOf(s.querySelector("dd")),
+      }));
     product.querySelectorAll("[data-choice-group]").forEach((group) => {
-      const choices = [...group.querySelectorAll(".pricing__pd-choice")].map((c) => textOf(c.querySelector(":scope > :not(.pricing__pd-delta)")));
-      const active = textOf(group.querySelector(".pricing__pd-choice.is-active > :not(.pricing__pd-delta)")) || choices[0];
+      const choices = [...group.querySelectorAll(".pricing__pd-choice")].map(
+        (c) => textOf(c.querySelector(":scope > :not(.pricing__pd-delta)")),
+      );
+      const active =
+        textOf(
+          group.querySelector(
+            ".pricing__pd-choice.is-active > :not(.pricing__pd-delta)",
+          ),
+        ) || choices[0];
       const label = textOf(group.querySelector(".pricing__pd-label"));
-      const spec = specs.find((s) => (label && s.dt === label) || choices.includes(s.dd));
+      const spec = specs.find(
+        (s) => (label && s.dt === label) || choices.includes(s.dd),
+      );
       if (spec && active) spec.dd = active;
     });
-    const picked = product.querySelector<HTMLElement>(".pricing__pd-pick[data-picked]");
+    const picked = product.querySelector<HTMLElement>(
+      ".pricing__pd-pick[data-picked]",
+    );
     const short = specs.length
       ? specs.map((s) => shortName(s.dd)).join(" · ")
       : textOf(product.querySelector(".pricing__pd-buy-line"));
     return {
       line,
-      image: imgSrc(picked?.querySelector("img")) || imgSrc(product.querySelector(".pricing__pd-image")),
-      title: textOf((product.querySelector(".pricing__pd-info") || product).querySelector("h1,h2,h3")) || line.name,
-      short,
+      image:
+        imgSrc(picked?.querySelector("img")) ||
+        imgSrc(product.querySelector(".pricing__pd-image")),
+      title:
+        textOf(
+          (product.querySelector(".pricing__pd-info") || product).querySelector(
+            "h1,h2,h3",
+          ),
+        ) || line.name,
+      short: (product as HTMLElement).dataset.variantLabel || short,
     };
   }
   const cfg = button.closest("[data-configurator]");
   // Configurator: the first step is the case (its picture); the title is processor · graphics card.
-  const values = (cfg ? [...cfg.querySelectorAll(".pricing__cfg-step")] : []).slice(1).map((s) => textOf(s.querySelector(".pricing__cfg-value")));
+  const values = (cfg ? [...cfg.querySelectorAll(".pricing__cfg-step")] : [])
+    .slice(1)
+    .map((s) => textOf(s.querySelector(".pricing__cfg-value")));
   const parts = values.filter(Boolean).map(shortName);
   const gpu = parts.find((v) => /\b(RTX|GTX|RX|Arc)\s/.test(v));
   return {
     line,
     image: imgSrc(cfg?.querySelector(".pricing__cfg-image")),
-    title: [parts[0], gpu?.replace(/ \d+ GB$/, "")].filter(Boolean).join(" · ") || line.name,
+    title:
+      [parts[0], gpu?.replace(/ \d+ GB$/, "")].filter(Boolean).join(" · ") ||
+      line.name,
     short: parts.join(" · "),
   };
 }
 
 // ---------------------------------------------------------------- website data (cached per page load)
-interface Zone { name: string; price: number | null; from: number | null; priceText: string; term: string }
+interface Zone {
+  name: string;
+  price: number | null;
+  from: number | null;
+  priceText: string;
+  term: string;
+}
 interface SiteData {
+  receiptEmailRequired?: boolean;
+  paymentMethods?: PaymentMethod[];
+  settings?: CommerceSettings;
   zones: Zone[];
   places: Place[];
-  pickup: { address: string; hours: string[]; note: string; google: string; waze: string; point: Point | null } | null;
+  pickup: {
+    address: string;
+    hours: string[];
+    note: string;
+    google: string;
+    waze: string;
+    point: Point | null;
+  } | null;
   shop: string;
 }
-const siteData = new Map<string, Promise<SiteData>>();
-const loadSite = (siteId: string, locale: string) => {
-  const key = `${siteId}:${locale}`;
-  if (!siteData.has(key))
-    siteData.set(
-      key,
-      fetch(`/api/shop/orders?site=${encodeURIComponent(siteId)}&locale=${encodeURIComponent(locale)}`)
-        .then((r) => (r.ok ? r.json() : Promise.reject()))
-        .then((d) => ({ zones: d.zones || [], places: d.places || [], pickup: d.pickup || null, shop: d.shop || "" }))
-        .catch(() => {
-          siteData.delete(key);
-          return { zones: [], places: [], pickup: null, shop: "" };
-        }),
-    );
-  return siteData.get(key)!;
-};
+const loadSite = (siteId: string, locale: string): Promise<SiteData> =>
+  fetch(
+    `/api/shop/orders?site=${encodeURIComponent(siteId)}&locale=${encodeURIComponent(locale)}`,
+    { cache: "no-store" },
+  )
+    .then(async (r) => {
+      if (!r.ok)
+        throw new Error(
+          "Could not load checkout settings. Close this window and try again.",
+        );
+      return r.json();
+    })
+    .then((d) => ({
+      zones: d.zones || [],
+      places: d.places || [],
+      pickup: d.pickup || null,
+      shop: d.shop || "",
+      settings: d.settings,
+      paymentMethods: d.paymentMethods,
+      receiptEmailRequired: d.receiptEmailRequired,
+    }));
 const zoneCost = (z: Zone | undefined, sum: number) =>
   !z || z.price === null || (z.from !== null && sum >= z.from) ? 0 : z.price;
 
@@ -303,34 +494,81 @@ export const closeCheckoutPopup = () => current?.close();
 
 export function openCheckoutPopup(item: PopupItem, ctx: PopupContext) {
   current?.close();
-  const code = (ctx.locale || document.documentElement.lang || "lv").slice(0, 2);
+  const code = (ctx.locale || document.documentElement.lang || "lv").slice(
+    0,
+    2,
+  );
   const lang: Lang = code in T ? (code as Lang) : "lv";
-  const t: Text = T[lang];
-  const intl = ({ lv: "lv-LV", ru: "ru-RU", en: "en-GB" } as const)[lang];
-  const eur = (n: number) => `${Math.round(n).toLocaleString(intl).replace(/[\s  ]/g, " ")} €`;
-  const workdays = (n: number) => {
-    const d = new Date();
-    for (let left = n; left > 0; ) {
-      d.setDate(d.getDate() + 1);
-      if (d.getDay() !== 0 && d.getDay() !== 6) left--;
-    }
-    return d.toLocaleDateString(intl, { day: "numeric", month: "short" });
+  const t: Text = {
+    ...T[lang],
+    news:
+      lang === "ru"
+        ? "Получать новости и предложения от {shop}. Можно отписаться в любой момент."
+        : lang === "lv"
+          ? "Saņemt ziņas un piedāvājumus no {shop}. Var atteikties jebkurā laikā."
+          : "Send me news and offers from {shop}. Unsubscribe at any time.",
+    notifyP:
+      lang === "ru"
+        ? "Только обновления этого заказа, без рекламы."
+        : lang === "lv"
+          ? "Tikai šī pasūtījuma statusa ziņas, bez reklāmas."
+          : "Updates about this order only, no ads.",
+    doneP:
+      lang === "ru"
+        ? "Спасибо, {n}! Мы свяжемся с вами, чтобы подтвердить заказ и {w}."
+        : lang === "lv"
+          ? "Paldies, {n}! Sazināsimies, lai apstiprinātu pasūtījumu un {w}."
+          : "Thank you, {n}! We will contact you to confirm the order and {w}.",
   };
-  const ready = `${workdays(2)} – ${workdays(4)}`;
+  const intl = ({ lv: "lv-LV", ru: "ru-RU", en: "en-GB" } as const)[lang];
+  let displayCurrency = item.line.currency || "€";
+  const eur = (n: number) =>
+    `${n.toLocaleString(intl, { minimumFractionDigits: Number.isInteger(n) ? 0 : 2, maximumFractionDigits: 2 })} ${{ EUR: "€", USD: "$", GBP: "£", RUB: "₽" }[displayCurrency] || displayCurrency}`;
   const price = Number.isNaN(item.line.price) ? 0 : item.line.price;
   const draftKey = `hco:${ctx.siteId}`;
-  type Draft = { who: "person" | "company"; how: "pickup" | "delivery"; name: string; phone: string; email: string; reg: string; addr: string; flat: string; news: boolean };
-  let draft: Draft = { who: "person", how: "pickup", name: "", phone: "", email: "", reg: "", addr: "", flat: "", news: false };
-  try { draft = { ...draft, ...JSON.parse(sessionStorage.getItem(draftKey) || "{}") }; } catch {}
+  type Draft = {
+    who: "person" | "company";
+    how: "pickup" | "delivery";
+    name: string;
+    phone: string;
+    email: string;
+    reg: string;
+    addr: string;
+    flat: string;
+    news: boolean;
+  };
+  let draft: Draft = {
+    who: "person",
+    how: "pickup",
+    name: "",
+    phone: "",
+    email: "",
+    reg: "",
+    addr: "",
+    flat: "",
+    news: false,
+  };
+  try {
+    draft = {
+      ...draft,
+      ...JSON.parse(sessionStorage.getItem(draftKey) || "{}"),
+    };
+  } catch {}
   const st = {
     ...draft,
     zone: -1, // row of the delivery block, -1 = not chosen yet
     point: null as Point | null,
-    company: null as null | { reg: string; name: string; address: string; checked: boolean },
+    company: null as null | {
+      reg: string;
+      name: string;
+      address: string;
+      checked: boolean;
+    },
   };
   const controller = new AbortController();
   const signal = controller.signal;
-  const on = (target: EventTarget, type: string, fn: (e: Event) => void) => target.addEventListener(type, fn, { signal });
+  const on = (target: EventTarget, type: string, fn: (e: Event) => void) =>
+    target.addEventListener(type, fn, { signal });
 
   const style = document.createElement("style");
   style.textContent = CSS;
@@ -383,23 +621,49 @@ export function openCheckoutPopup(item: PopupItem, ctx: PopupContext) {
   };
   current = { close };
   on(x, "click", close);
-  on(ovl, "mousedown", (e) => { if (e.target === ovl) close(); });
-  on(document, "keydown", (e) => { if ((e as KeyboardEvent).key === "Escape") close(); });
+  on(ovl, "mousedown", (e) => {
+    if (e.target === ovl) close();
+  });
+  on(document, "keydown", (e) => {
+    if ((e as KeyboardEvent).key === "Escape") close();
+  });
 
   // Signed page token for the order (valid one second after issue): fetched while the buyer types.
   const tokenAt = Date.now();
-  const token = fetch(`/api/forms/token?pageId=${encodeURIComponent(ctx.pageId)}&site=${encodeURIComponent(ctx.siteId)}`, { signal })
-    .then((r) => r.json().then((j) => (r.ok ? String(j.token || "") : Promise.reject(new Error(j.error)))));
+  const token = fetch(
+    `/api/forms/token?pageId=${encodeURIComponent(ctx.pageId)}&site=${encodeURIComponent(ctx.siteId)}`,
+    { signal },
+  ).then((r) =>
+    r
+      .json()
+      .then((j) =>
+        r.ok ? String(j.token || "") : Promise.reject(new Error(j.error)),
+      ),
+  );
   token.catch(() => {});
   // Customer account of this website (account-widgets.ts): signed in → the order goes to the account.
-  const hasAccounts = !!ctx.root.querySelector("[data-account], [data-cabinet]");
-  const cabinetUrl = ctx.root.querySelector<HTMLAnchorElement>(".contact__acc-cabinet")?.getAttribute("href") || "";
-  let customer: { name: string; surname: string; email: string; phone: string } | null = null;
+  const hasAccounts = !!ctx.root.querySelector(
+    "[data-account], [data-cabinet]",
+  );
+  const cabinetUrl =
+    ctx.root
+      .querySelector<HTMLAnchorElement>(".contact__acc-cabinet")
+      ?.getAttribute("href") || "";
+  let customer: {
+    name: string;
+    surname: string;
+    email: string;
+    phone: string;
+  } | null = null;
   // Terms: the website's warranty / terms page linked anywhere on the page.
-  const termsHref = [...ctx.root.querySelectorAll<HTMLAnchorElement>("a[href]")]
-    .map((a) => a.getAttribute("href") || "")
-    .find((h) => /garant|warrant|terms|noteikum|pravil|uslovi/i.test(h)) || "";
-  const terms = esc(t.terms).replace(/\[(.+?)\]/, (_, w) => (termsHref ? `<a class="hco-link" href="${esc(termsHref)}">${w}</a>` : w));
+  const termsHref =
+    [...ctx.root.querySelectorAll<HTMLAnchorElement>("a[href]")]
+      .map((a) => a.getAttribute("href") || "")
+      .find((h) => /garant|warrant|terms|noteikum|pravil|uslovi/i.test(h)) ||
+    "";
+  const terms = esc(t.terms).replace(/\[(.+?)\]/, (_, w) =>
+    termsHref ? `<a class="hco-link" href="${esc(termsHref)}">${w}</a>` : w,
+  );
 
   body.innerHTML = `<form class="hco-co" novalidate>
     <aside class="hco-l">
@@ -429,36 +693,76 @@ export function openCheckoutPopup(item: PopupItem, ctx: PopupContext) {
     </div>
   </form>`;
   const f = body.querySelector<HTMLFormElement>("form")!;
-  const field = (n: string) => f.querySelector<HTMLInputElement>(`[name="${n}"]`)!;
-  const q = <E extends Element = HTMLElement>(s: string) => f.querySelector<E>(s)!;
-  (["name", "phone", "email", "reg", "addr", "flat"] as const).forEach((k) => (field(k).value = st[k] || ""));
+  const field = (n: string) =>
+    f.querySelector<HTMLInputElement>(`[name="${n}"]`)!;
+  const q = <E extends Element = HTMLElement>(s: string) =>
+    f.querySelector<E>(s)!;
+  (["name", "phone", "email", "reg", "addr", "flat"] as const).forEach(
+    (k) => (field(k).value = st[k] || ""),
+  );
   field("news").checked = !!st.news;
   const save = () => {
-    (["name", "phone", "email", "reg", "addr", "flat"] as const).forEach((k) => (st[k] = field(k).value));
+    (["name", "phone", "email", "reg", "addr", "flat"] as const).forEach(
+      (k) => (st[k] = field(k).value),
+    );
     st.news = field("news").checked;
     const { who, how, name, phone, email, reg, addr, flat, news } = st;
-    try { sessionStorage.setItem(draftKey, JSON.stringify({ who, how, name, phone, email, reg, addr, flat, news })); } catch {}
+    try {
+      sessionStorage.setItem(
+        draftKey,
+        JSON.stringify({ who, how, name, phone, email, reg, addr, flat, news }),
+      );
+    } catch {}
   };
   on(f, "input", save);
-  on(field("ntf"), "change", () => (q(".hco-ch").hidden = !field("ntf").checked));
-  setTimeout(() => { if (!closed && matchMedia("(min-width: 641px)").matches) field("name").focus(); }, 60);
+  on(
+    field("ntf"),
+    "change",
+    () => (q(".hco-ch").hidden = !field("ntf").checked),
+  );
+  setTimeout(() => {
+    if (!closed && matchMedia("(min-width: 641px)").matches)
+      field("name").focus();
+  }, 60);
 
+  let payment: ReturnType<typeof paymentChoice> | undefined;
   let data: SiteData = { zones: [], places: [], pickup: null, shop: "" };
   const zoneName = (z: number) => data.zones[z]?.name || "";
-  const dCost = () => (st.how !== "delivery" || st.zone < 0 ? null : zoneCost(data.zones[st.zone], price));
+  const dCost = () =>
+    st.how !== "delivery" || st.zone < 0
+      ? null
+      : zoneCost(data.zones[st.zone], price);
   function render() {
     f.querySelectorAll<HTMLElement>(".hco-tabs").forEach((tb) =>
-      tb.querySelectorAll<HTMLElement>("button").forEach((b) => b.classList.toggle("is-on", st[tb.dataset.k as "who" | "how"] === b.dataset.v)),
+      tb
+        .querySelectorAll<HTMLElement>("button")
+        .forEach((b) =>
+          b.classList.toggle(
+            "is-on",
+            st[tb.dataset.k as "who" | "how"] === b.dataset.v,
+          ),
+        ),
     );
     q("[data-company]").hidden = st.who !== "company";
     field("name").placeholder = st.who === "company" ? t.contact : t.name;
     q("[data-pickup]").hidden = st.how !== "pickup" || !data.pickup;
     q("[data-delivery]").hidden = st.how !== "delivery";
     const dc = dCost();
-    const dTxt = st.how === "pickup" ? t.free : dc === null ? t.byAddr : dc ? eur(dc) : t.free;
-    const conv = ctx.fx(price + (dc || 0));
-    q("[data-lines]").innerHTML = `<div><span>${esc(t.pc)}</span><span>${eur(price)}</span></div><div><span>${esc(st.how === "pickup" ? t.pkH : t.dlH)}${st.zone >= 0 && st.how === "delivery" ? ` · ${esc(zoneName(st.zone))}` : ""}</span><span>${esc(dTxt)}</span></div>
-      <div><span>${esc(t.readyAt)}</span><span>${esc(ready)}</span></div><div class="is-tot"><span>${esc(t.total)}</span><span>${eur(price + (dc || 0))}${conv ? ` <span class="hco-conv">${esc(conv)}</span>` : ""}</span></div>`;
+    const dTxt =
+      st.how === "pickup"
+        ? t.free
+        : dc === null
+          ? t.byAddr
+          : dc
+            ? eur(dc)
+            : t.free;
+    const conv =
+      !data.settings || data.settings.currency === "EUR"
+        ? ctx.fx(price + (dc || 0))
+        : "";
+    q("[data-lines]").innerHTML =
+      `<div><span>${esc(t.pc)}</span><span>${eur(price)}</span></div><div><span>${esc(st.how === "pickup" ? t.pkH : t.dlH)}${st.zone >= 0 && st.how === "delivery" ? ` · ${esc(zoneName(st.zone))}` : ""}</span><span>${esc(dTxt)}</span></div>
+      <div class="is-tot"><span>${esc(t.total)}</span><span>${eur(price + (dc || 0))}${conv ? ` <span class="hco-conv">${esc(conv)}</span>` : ""}</span></div>`;
   }
   f.querySelectorAll<HTMLElement>(".hco-tabs").forEach((tb) =>
     on(tb, "click", (e) => {
@@ -471,17 +775,90 @@ export function openCheckoutPopup(item: PopupItem, ctx: PopupContext) {
     }),
   );
   render();
-  loadSite(ctx.siteId, ctx.locale || "").then((d) => {
-    if (closed) return;
-    data = d;
-    q("[data-news]").textContent = t.news.replace("{shop}", d.shop || "");
-    const p = d.pickup;
-    if (p)
-      q("[data-pickup]").innerHTML = `<div><b>${esc(p.address)}</b><span><span class="hco-hrs">${[...p.hours, p.note].filter(Boolean).map((l) => `<span>${esc(l)}</span>`).join("")}</span></span></div>${p.google ? `<a href="${esc(p.google)}" target="_blank" rel="noopener">Google Maps</a>` : ""}${p.waze ? `<a href="${esc(p.waze)}" target="_blank" rel="noopener">Waze</a>` : ""}`;
-    if (!d.zones.length && st.how === "delivery") st.zone = -1;
-    if (st.addr && st.how === "delivery") setZone(st.addr, null);
-    render();
-  });
+  q<HTMLButtonElement>(".hco-go").disabled = true;
+  loadSite(ctx.siteId, ctx.locale || "")
+    .then((d) => {
+      if (closed) return;
+      data = d;
+      if(d.paymentMethods&&!d.paymentMethods.length)throw new Error("No payment methods are currently available. Please contact the shop.");
+      payment = paymentChoice(
+        q<HTMLButtonElement>(".hco-go"),
+        d.paymentMethods || ["on_receipt"],
+        "hco-in",
+      );
+      const settings = d.settings;
+      const requiredEmail = () =>
+        (field("email").required =
+          !!settings?.checkout.emailRequired ||
+          (!!d.receiptEmailRequired && payment?.value() === "yookassa"));
+      payment.select.addEventListener("change", requiredEmail, { signal });
+      requiredEmail();
+      if (settings) {
+        if (settings.revision) displayCurrency = settings.currency;
+        field("phone").required = settings.checkout.phoneRequired;
+        field("email").required =
+          settings.checkout.emailRequired ||
+          (!!d.receiptEmailRequired && payment?.value() === "yookassa");
+        f.querySelectorAll<HTMLElement>(
+          '.hco-tabs[data-k="who"] button',
+        ).forEach((b) => {
+          if (b.dataset.v === "company")
+            b.hidden = !settings.checkout.companies;
+        });
+        f.querySelectorAll<HTMLElement>(
+          '.hco-tabs[data-k="how"] button',
+        ).forEach(
+          (b) =>
+            (b.hidden =
+              b.dataset.v === "pickup"
+                ? !settings.delivery.pickup
+                : !settings.delivery.shipping),
+        );
+        if (!settings.checkout.companies) st.who = "person";
+        if (st.how === "pickup" && !settings.delivery.pickup)
+          st.how = "delivery";
+        if (st.how === "delivery" && !settings.delivery.shipping)
+          st.how = "pickup";
+        field("news").closest("label")!.hidden = !settings.checkout.newsletter;
+        if (!settings.checkout.newsletter) {
+          field("news").checked = false;
+          st.news = false;
+        }
+        field("ntf").closest("label")!.hidden =
+          !settings.checkout.statusMessages;
+        if (!settings.checkout.statusMessages) {
+          field("ntf").checked = false;
+          q(".hco-ch").hidden = true;
+        }
+        if (settings.delivery.country === "other") {
+          reg.maxLength = 100;
+          reg.inputMode = "text";
+        }
+      }
+      if (reg.value && st.who === "company") lookup();
+      q<HTMLButtonElement>(".hco-go").disabled = false;
+      q("[data-news]").textContent = t.news.replace("{shop}", d.shop || "");
+      const p = d.pickup;
+      if (p)
+        q("[data-pickup]").innerHTML =
+          `<div><b>${esc(p.address)}</b><span><span class="hco-hrs">${[
+            ...p.hours,
+            p.note,
+          ]
+            .filter(Boolean)
+            .map((l) => `<span>${esc(l)}</span>`)
+            .join(
+              "",
+            )}</span></span></div>${p.google ? `<a href="${esc(p.google)}" target="_blank" rel="noopener">Google Maps</a>` : ""}${p.waze ? `<a href="${esc(p.waze)}" target="_blank" rel="noopener">Waze</a>` : ""}`;
+      if (d.settings?.delivery.mode === "flat")
+        st.zone = d.zones.length ? 0 : -1;
+      else if (!d.zones.length && st.how === "delivery") st.zone = -1;
+      if (st.addr && st.how === "delivery") setZone(st.addr, null);
+      render();
+    })
+    .catch((e) => {
+      if (!closed) toast(e.message || t.err);
+    });
 
   // ---- account block
   const accountBox = q("[data-acc-box]");
@@ -498,12 +875,18 @@ export function openCheckoutPopup(item: PopupItem, ctx: PopupContext) {
   };
   renderAccount();
   if (hasAccounts)
-    fetch(`/api/shop/account?site=${encodeURIComponent(ctx.siteId)}`, { signal, cache: "no-store" })
+    fetch(`/api/shop/account?site=${encodeURIComponent(ctx.siteId)}`, {
+      signal,
+      cache: "no-store",
+    })
       .then((r) => r.json())
       .then((j) => {
         if (closed || !j.customer) return;
         customer = j.customer;
-        if (!field("name").value) field("name").value = [customer!.name, customer!.surname].filter(Boolean).join(" ");
+        if (!field("name").value)
+          field("name").value = [customer!.name, customer!.surname]
+            .filter(Boolean)
+            .join(" ");
         if (!field("email").value) field("email").value = customer!.email;
         if (!field("phone").value) field("phone").value = customer!.phone;
         save();
@@ -515,6 +898,13 @@ export function openCheckoutPopup(item: PopupItem, ctx: PopupContext) {
   const found = q("[data-found]");
   const reg = field("reg");
   const lookup = () => {
+    if (data.settings?.delivery.country === "other") {
+      st.company = reg.value.trim()
+        ? { reg: reg.value.trim(), name: "", address: "", checked: false }
+        : null;
+      found.hidden = true;
+      return;
+    }
     reg.value = reg.value.replace(/\D/g, "");
     st.company = null;
     if (reg.value.length < 11) return void (found.hidden = true);
@@ -528,12 +918,19 @@ export function openCheckoutPopup(item: PopupItem, ctx: PopupContext) {
       found.innerHTML = `<span>${esc(msg)}</span>`;
     };
     fetch(`/api/shop/lv?company=${v}`, { signal })
-      .then((r) => (r.ok ? r.json() : Promise.reject(new Error(String(r.status)))))
+      .then((r) =>
+        r.ok ? r.json() : Promise.reject(new Error(String(r.status))),
+      )
       .then((j) => {
         if (reg.value !== v) return;
         if (!j.found) return bad(t.regBad);
         if (!j.active) return bad(t.regClosed);
-        st.company = { reg: v, name: j.name, address: j.address, checked: true };
+        st.company = {
+          reg: v,
+          name: j.name,
+          address: j.address,
+          checked: true,
+        };
         found.className = "hco-found";
         found.innerHTML = `${ICON.check}<div><b>${esc(j.name)}</b>${esc(j.address || "")}</div>`;
       })
@@ -546,14 +943,21 @@ export function openCheckoutPopup(item: PopupItem, ctx: PopupContext) {
       });
   };
   on(reg, "input", lookup);
-  if (reg.value) lookup();
 
   // ---- delivery address: register suggestions (with coordinates), towns of the delivery block, geolocation
   const addr = field("addr");
   const sugg = q("[data-sugg]");
   function setZone(text: string, point: Point | null) {
+    if (data.settings?.delivery.mode === "flat")
+      return void (st.zone = data.zones.length ? 0 : -1);
     if (!data.zones.length) return void (st.zone = -1);
-    st.zone = zoneForAddress(text, data.places, data.zones.length, point, data.pickup?.point).zone;
+    st.zone = zoneForAddress(
+      text,
+      data.places,
+      data.zones.length,
+      point,
+      data.pickup?.point,
+    ).zone;
   }
   const setAddr = (text: string, point: Point | null) => {
     addr.value = text;
@@ -567,9 +971,24 @@ export function openCheckoutPopup(item: PopupItem, ctx: PopupContext) {
     addr.classList.remove("is-bad");
   };
   const zoneLabel = (text: string, point: Point | null) =>
-    data.zones.length ? zoneName(zoneForAddress(text, data.places, data.zones.length, point, data.pickup?.point).zone) : "";
-  let addrTimer: ReturnType<typeof setTimeout> | undefined, addrSeq = 0;
+    data.zones.length
+      ? zoneName(
+          zoneForAddress(
+            text,
+            data.places,
+            data.zones.length,
+            point,
+            data.pickup?.point,
+          ).zone,
+        )
+      : "";
+  let addrTimer: ReturnType<typeof setTimeout> | undefined,
+    addrSeq = 0;
   on(addr, "input", () => {
+    if (data.settings?.delivery.country === "other") {
+      setAddr(addr.value, null);
+      return;
+    }
     st.zone = -1;
     st.point = null;
     render();
@@ -583,11 +1002,17 @@ export function openCheckoutPopup(item: PopupItem, ctx: PopupContext) {
           .then((list: { label: string; lat: number; lon: number }[]) => {
             if (seq !== addrSeq || !Array.isArray(list) || !list.length) return;
             sugg.innerHTML = list
-              .map((x, i) => `<button type="button" data-a="${i}">${esc(x.label)} <small>· ${esc(zoneLabel(x.label, x))}</small></button>`)
+              .map(
+                (x, i) =>
+                  `<button type="button" data-a="${i}">${esc(x.label)} <small>· ${esc(zoneLabel(x.label, x))}</small></button>`,
+              )
               .join("");
             sugg.hidden = false;
             sugg.querySelectorAll<HTMLElement>("button[data-a]").forEach((b) =>
-              on(b, "click", () => { const x = list[Number(b.dataset.a)]; setAddr(x.label, { lat: x.lat, lon: x.lon }); }),
+              on(b, "click", () => {
+                const x = list[Number(b.dataset.a)];
+                setAddr(x.label, { lat: x.lat, lon: x.lon });
+              }),
             );
           })
           .catch(() => {});
@@ -595,16 +1020,31 @@ export function openCheckoutPopup(item: PopupItem, ctx: PopupContext) {
     }
     if (qq.length < 3) return void (sugg.hidden = true);
     // Instant suggestions: towns of the delivery block named in the text (the prototype's city list).
-    const ws = foldText(qq).split(/[\s,]+/).filter((w) => w.length > 2);
-    let towns = data.places.filter((p) => ws.some((w) => foldText(p.name).startsWith(w)));
+    const ws = foldText(qq)
+      .split(/[\s,]+/)
+      .filter((w) => w.length > 2);
+    let towns = data.places.filter((p) =>
+      ws.some((w) => foldText(p.name).startsWith(w)),
+    );
     const street = towns.length
-      ? qq.replace(new RegExp(`[,\\s]*(${towns.map((c) => c.name.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")).join("|")})\\s*$`, "i"), "").trim() || qq
+      ? qq
+          .replace(
+            new RegExp(
+              `[,\\s]*(${towns.map((c) => c.name.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")).join("|")})\\s*$`,
+              "i",
+            ),
+            "",
+          )
+          .trim() || qq
       : qq;
     if (!towns.length) towns = data.places.slice(0, 4);
     if (!towns.length) return void (sugg.hidden = true);
     sugg.innerHTML = towns
       .slice(0, 5)
-      .map((c) => `<button type="button" data-c="${esc(c.name)}" data-s="${esc(street)}">${esc(street)}, <b>${esc(c.name)}</b> <small>· ${esc(zoneName(c.zone))}</small></button>`)
+      .map(
+        (c) =>
+          `<button type="button" data-c="${esc(c.name)}" data-s="${esc(street)}">${esc(street)}, <b>${esc(c.name)}</b> <small>· ${esc(zoneName(c.zone))}</small></button>`,
+      )
       .join("");
     sugg.hidden = false;
   });
@@ -634,21 +1074,40 @@ export function openCheckoutPopup(item: PopupItem, ctx: PopupContext) {
   const go = q<HTMLButtonElement>(".hco-go");
   on(f, "submit", async (e) => {
     e.preventDefault();
+    if (go.disabled) return;
     save();
     const bad: HTMLInputElement[] = [];
     const mk = f.querySelector<HTMLInputElement>('[name="mkacc"]');
     const pass = f.querySelector<HTMLInputElement>('[name="pass"]');
     if (mk?.checked && pass && pass.value.length < 6) bad.push(pass);
     if (!field("name").value.trim()) bad.push(field("name"));
-    if (field("phone").value.replace(/\D/g, "").length < 8) bad.push(field("phone"));
-    if (!/^\S+@\S+\.\S+$/.test(field("email").value.trim())) bad.push(field("email"));
+    if (
+      (data.settings?.checkout.phoneRequired !== false ||
+        field("phone").value.trim()) &&
+      field("phone").value.replace(/\D/g, "").length < 6
+    )
+      bad.push(field("phone"));
+    if (
+      (field("email").required ||
+        data.settings?.checkout.emailRequired ||
+        mk?.checked ||
+        field("email").value.trim()) &&
+      !/^\S+@\S+\.\S+$/.test(field("email").value.trim())
+    )
+      bad.push(field("email"));
     if (st.who === "company" && !st.company) bad.push(reg);
-    if (st.how === "delivery" && (data.zones.length ? st.zone < 0 : !addr.value.trim())) bad.push(addr);
+    if (
+      st.how === "delivery" &&
+      (data.zones.length ? st.zone < 0 : !addr.value.trim())
+    )
+      bad.push(addr);
     f.querySelectorAll("input").forEach((i) => i.classList.remove("is-bad"));
     bad.forEach((i) => i.classList.add("is-bad"));
     if (bad.length) {
       bad[0].focus();
-      return toast(bad[0] === addr ? t.errAddr : bad[0] === reg ? t.errReg : t.err);
+      return toast(
+        bad[0] === addr ? t.errAddr : bad[0] === reg ? t.errReg : t.err,
+      );
     }
     go.disabled = true;
     go.textContent = t.sending;
@@ -659,7 +1118,14 @@ export function openCheckoutPopup(item: PopupItem, ctx: PopupContext) {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           signal,
-          body: JSON.stringify({ action: "register", site: ctx.siteId, name: st.name.trim(), email: st.email.trim(), phone: st.phone.trim(), password: pass.value }),
+          body: JSON.stringify({
+            action: "register",
+            site: ctx.siteId,
+            name: st.name.trim(),
+            email: st.email.trim(),
+            phone: st.phone.trim(),
+            password: pass.value,
+          }),
         });
         const j = await r.json().catch(() => ({}));
         if (j.customer) {
@@ -670,28 +1136,47 @@ export function openCheckoutPopup(item: PopupItem, ctx: PopupContext) {
       const tk = await token;
       const wait = 1100 - (Date.now() - tokenAt);
       if (wait > 0) await new Promise((r) => setTimeout(r, wait));
-      const ntf = field("ntf").checked ? f.querySelector<HTMLInputElement>('[name="ch"]:checked')?.value || "whatsapp" : "";
+      const ntf = field("ntf").checked
+        ? f.querySelector<HTMLInputElement>('[name="ch"]:checked')?.value ||
+          "whatsapp"
+        : "";
       const consents = [
-        ntf ? `${t.notify} ${ntf === "telegram" ? "Telegram" : "WhatsApp"} · ${t.notifyP}` : "",
+        ntf
+          ? `${t.notify} ${ntf === "telegram" ? "Telegram" : "WhatsApp"} · ${t.notifyP}`
+          : "",
         st.news ? t.news.replace("{shop}", data.shop || "") : "",
       ].filter(Boolean);
       const response = await fetch("/api/shop/orders", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         signal,
-        body: JSON.stringify({
+        body: await checkoutBody(ctx.siteId, ctx.pageId, {
+          paymentMethod: payment?.value() || "on_receipt",
           site: ctx.siteId,
           pageId: ctx.pageId,
           token: tk,
           locale: ctx.locale,
           via: "popup",
-          items: [{ pageId: item.line.pageId, sectionId: item.line.sectionId, name: item.line.name, options: item.line.options, qty: 1 }],
+          items: [
+            {
+              productId: item.line.productId,
+              variantId: item.line.variantId,
+              expectedPrice: item.line.price,
+              pageId: item.line.pageId,
+              sectionId: item.line.sectionId,
+              name: item.line.name,
+              options: item.line.options,
+              qty: 1,
+            },
+          ],
           customer: {
             type: st.who === "company" ? "company" : "private",
             name: st.name.trim(),
             phone: st.phone.trim(),
             email: st.email.trim(),
-            ...(st.who === "company" && st.company ? { reg: st.company.reg } : {}),
+            ...(st.who === "company" && st.company
+              ? { reg: st.company.reg }
+              : {}),
           },
           delivery: {
             method: st.how,
@@ -705,9 +1190,18 @@ export function openCheckoutPopup(item: PopupItem, ctx: PopupContext) {
       });
       const result = await response.json().catch(() => ({}));
       if (!response.ok) throw new Error(result.error || t.err);
-      try { sessionStorage.removeItem(draftKey); } catch {}
-      window.dispatchEvent(new CustomEvent("cms:track", { detail: { e: "order" } }));
+      checkoutComplete(ctx.siteId, ctx.pageId);
+      try {
+        sessionStorage.removeItem(draftKey);
+      } catch {}
+      window.dispatchEvent(
+        new CustomEvent("cms:track", { detail: { e: "order" } }),
+      );
       if (customer) window.dispatchEvent(new CustomEvent("cms:account-change"));
+      if (result.resultUrl) {
+        location.assign(result.resultUrl);
+        return;
+      }
       done(result);
     } catch (error) {
       if (signal.aborted) return;
@@ -718,18 +1212,25 @@ export function openCheckoutPopup(item: PopupItem, ctx: PopupContext) {
   });
 
   // ---- "thank you" with the order number, in the same popup
-  function done(r: { number: number; delivery: number; zone?: string; total: number }) {
+  function done(r: {
+    number: number;
+    delivery: number;
+    zone?: string;
+    total: number;
+  }) {
     sheet.classList.remove("is-co");
     const first = st.name.trim().split(" ")[0];
     const cab = customer && cabinetUrl ? `${cabinetUrl}#order-${r.number}` : "";
     body.innerHTML = `<div class="hco-done"><div class="hco-ok">${ICON.check}</div><h2 id="hco-title">${esc(t.doneH)}</h2><span class="hco-num">${esc(r.number)}</span>
       <p class="hco-msg">${esc(t.doneP.replace("{n}", first).replace("{w}", st.how === "pickup" ? t.doneWp : t.doneWd))}</p>
       <div class="hco-lines"><div><span>${esc(item.title)}</span><span>${eur(price)}</span></div><div><span>${esc(st.how === "pickup" ? t.pkH : t.dlH)}${r.zone ? ` · ${esc(r.zone)}` : ""}</span><span>${r.delivery ? eur(r.delivery) : esc(t.free)}</span></div>
-        <div><span>${esc(t.readyAt)}</span><span>${esc(ready)}</span></div><div><span>${esc(t.pay)}</span><span>${esc(t.payV)}</span></div><div class="is-tot"><span>${esc(t.doneTot)}</span><span>${eur(r.total)}</span></div></div>
+        <div><span>${esc(t.pay)}</span><span>${esc(t.payV)}</span></div><div class="is-tot"><span>${esc(t.doneTot)}</span><span>${eur(r.total)}</span></div></div>
       ${cab ? `<a class="hco-btn hco-btn-p" href="${esc(cab)}">${esc(t.cab)}</a>` : ""}<button type="button" class="hco-btn hco-btn-s" data-done>${esc(t.ok)}</button></div>`;
     sheet.scrollTop = 0;
     body.querySelector("[data-done]")!.addEventListener("click", close);
-    body.querySelector<HTMLAnchorElement>(".hco-btn-p")?.addEventListener("click", () => close());
+    body
+      .querySelector<HTMLAnchorElement>(".hco-btn-p")
+      ?.addEventListener("click", () => close());
   }
   return close;
 }

@@ -1,4 +1,5 @@
 "use client";
+import { Select, SelectOption } from "@/components/ui/select";
 import { useEffect, useState } from "react";
 import { useAccess } from "@/components/admin/access-context";
 import { useWorkspace } from "@/components/admin/site-context";
@@ -9,7 +10,6 @@ import { cn } from "@/lib/utils";
 import { Toolbar, chip, rowLine, subPanel } from "@/components/admin/admin-panel";
 import {
   api,
-  field,
   formatDate,
   money,
   requestLabel,
@@ -194,26 +194,25 @@ export function RequestsAdmin({
                     </Button>
                   )}
                 {isOwner && (
-                  <select
+                  <Select
                     aria-label="Assigned designer"
-                    className={cn(field, "h-7 w-auto max-w-full text-xs")}
-                    value={item.designerId || ""}
+                    className="h-9 w-auto max-w-full"
+                    value={String(item.designerId || "")}
                     disabled={busy === item.id}
-                    onChange={(e) =>
+                    onValueChange={(selectedValue) =>
                       update({
                         id: item.id,
                         action: "assign",
-                        designerId: e.target.value || null,
-                      })
-                    }
+                        designerId: selectedValue || null,
+                      })}
                   >
-                    <option value="">No designer</option>
+                    <SelectOption value="">No designer</SelectOption>
                     {designers.map((d) => (
-                      <option key={d.id} value={d.id}>
+                      <SelectOption key={d.id} value={String(d.id)}>
                         {d.name || d.email}
-                      </option>
+                      </SelectOption>
                     ))}
-                  </select>
+                  </Select>
                 )}
                 {item.status !== "done" && item.status !== "declined" && (
                   <Button

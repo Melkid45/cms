@@ -1,4 +1,5 @@
 "use client";
+import { Select, SelectOption } from "@/components/ui/select";
 import Link from "next/link";
 import { useMemo, useState } from "react";
 import {
@@ -82,14 +83,14 @@ export function Pipeline() {
               </span>
             )}
             {data && data.team.length > 1 && (
-              <select aria-label="Owner" className="h-9 rounded-lg bg-white px-3 text-sm shadow-[0_0_0_1px_rgb(0_0_0/0.06)]" value={owner} onChange={(e) => setOwner(e.target.value)}>
-                <option value="">Everyone</option>
+              <Select aria-label="Owner" className="h-9 " value={String(owner)} onValueChange={(selectedValue) => setOwner(selectedValue)}>
+                <SelectOption value="">Everyone</SelectOption>
                 {data.team.map((m) => (
-                  <option key={m.id} value={m.id}>
+                  <SelectOption key={m.id} value={String(m.id)}>
                     {m.name}
-                  </option>
+                  </SelectOption>
                 ))}
-              </select>
+              </Select>
             )}
             <Button disabled={!data?.contacts.length} onClick={() => setAdding("")}>
               <Plus /> New deal

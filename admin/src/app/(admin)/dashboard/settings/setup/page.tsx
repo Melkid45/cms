@@ -1,13 +1,4 @@
-import { AdminPanel } from "@/components/admin/admin-panel";
-import { BrandEditor } from "@/components/builder/brand-editor";
-
+import { redirect } from "next/navigation";
 export default function Page() {
-  return (
-    <AdminPanel
-      title="Brand setup"
-      className="w-full"
-    >
-      <BrandEditor />
-    </AdminPanel>
-  );
+  redirect("/dashboard/settings/client");
 }

@@ -1,7 +1,7 @@
 import type { CSSProperties, ReactNode } from "react";
 import { SectionRenderer, mainHeadingIsEmpty } from "./section-renderer";
 import type { Project, Section } from "@/lib/builder/types";
-import { fontPairVars } from "@/lib/builder/font-pairs";
+import { fontPairVars, websiteFontVars } from "@/lib/builder/font-pairs";
 import { buttonAttrs, styleVars } from "@/lib/builder/style-presets";
 import { localizedLayoutValues } from "@/lib/builder/i18n";
 import { connectedContent } from "@/lib/builder/inline-content";
@@ -41,12 +41,14 @@ export function canvasRootProps(project: Project, locale?: string) {
     "--color-button": b.primary,
     "--color-button-text": readableOn(b.primary),
     ...fontPairVars(project.fonts),
+    ...websiteFontVars(project.brand),
     // Style preset values (radius, spacing, buttons, surface/muted); custom CSS still wins.
     ...styleVars(project.style, b.secondary),
   } as CSSProperties;
   return {
     // Font variables: next/font classes in the editor (SiteCanvas), public/fonts/site-fonts.*.css on public pages.
     className: "site-canvas",
+    "data-store-currency": project.commerce?.revision ? project.commerce.currency : "EUR",
     // Websites with a style preset opt in to the preset-only library rules (button shape, tone spacing).
     "data-site-style": project.style
       ? project.style.preset || "custom"

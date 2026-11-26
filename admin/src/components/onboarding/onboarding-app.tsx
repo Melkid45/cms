@@ -1,4 +1,5 @@
 "use client";
+import { Select, SelectOption } from "@/components/ui/select";
 // Onboarding autopilot UI (lib/builder/onboarding): one screen for the client (private link,
 // /onboarding/[id]) and for the team or the website's client account (/dashboard/onboarding/[id]).
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
@@ -498,13 +499,13 @@ function BriefEditor({ view, act, busy }: { view: View; act: Act; busy: string }
         {area(t("Business name"), "business", 1)}
         <label className="grid gap-1.5 text-sm">
           <span className="font-medium">{t("Type of business")}</span>
-          <select value={brief.niche} onChange={(e) => set("niche", e.target.value as Brief["niche"])} className="h-10 rounded-lg bg-white px-3 shadow-[0_0_0_1px_rgb(0_0_0/0.12)]">
+          <Select value={String(brief.niche)} onValueChange={(selectedValue) => set("niche", selectedValue as Brief["niche"])} className="h-9 ">
             {Object.entries(NICHES).map(([id, n]) => (
-              <option key={id} value={id}>
+              <SelectOption key={id} value={String(id)}>
                 {optionLabel(view.lang ?? "en", n.label)}
-              </option>
+              </SelectOption>
             ))}
-          </select>
+          </Select>
         </label>
       </div>
       {area(t("About the business"), "summary", 3)}

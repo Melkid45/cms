@@ -219,7 +219,7 @@ export async function contactDetail(site: Site, contactId: string): Promise<Cont
             kind: "order",
             title: `Order #${o.number} · ${(o.total ?? o.subtotal).toFixed(2).replace(/\.00$/, "")} ${o.currency} · ${o.status}`,
             text: o.items.map((i) => `${i.qty} × ${i.name}`).join("\n"),
-            href: "/dashboard/shop-orders",
+            href: "/dashboard/shop/orders",
           });
       }
       for (const e of contact.events)
@@ -585,7 +585,7 @@ export async function crmOverview(site: Site): Promise<OverviewData> {
             kind: "order" as const,
             title: `Order #${o.number} · ${(o.total ?? o.subtotal).toFixed(2).replace(/\.00$/, "")} ${o.currency}`,
             text: o.customer.name,
-            href: c ? `/dashboard/crm/${c.id}` : "/dashboard/shop-orders",
+            href: c ? `/dashboard/crm/${c.id}` : "/dashboard/shop/orders",
           };
         }),
         ...data.contacts

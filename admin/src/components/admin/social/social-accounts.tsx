@@ -1,4 +1,5 @@
 "use client";
+import { Select, SelectOption } from "@/components/ui/select";
 import { useEffect, useState } from "react";
 import { withSite } from "@/lib/builder/site-client";
 import type { ConnectionStatus } from "@/lib/builder/social/shared";
@@ -85,26 +86,25 @@ export function SocialAccounts() {
                   <>
                     <label className="grid gap-1.5 text-sm">
                       Facebook Page
-                      <select
-                        className="h-9 rounded-lg bg-white px-3 text-sm shadow-[0_0_0_1px_rgb(0_0_0/0.1)]"
-                        value={data.meta.pageId || ""}
-                        onChange={(e) =>
+                      <Select
+                        className="h-9 "
+                        value={String(data.meta.pageId || "")}
+                        onValueChange={(selectedValue) =>
                           change({
                             method: "PATCH",
-                            body: JSON.stringify({ pageId: e.target.value, instagram: data.meta.instagram }),
-                          })
-                        }
+                            body: JSON.stringify({ pageId: selectedValue, instagram: data.meta.instagram }),
+                          })}
                       >
-                        <option value="" disabled>
+                        <SelectOption value="" disabled>
                           Choose a Page
-                        </option>
+                        </SelectOption>
                         {data.meta.pages.map((p) => (
-                          <option key={p.id} value={p.id}>
+                          <SelectOption key={p.id} value={String(p.id)}>
                             {p.name}
                             {p.instagram ? ` (Instagram @${p.instagram})` : " (no Instagram)"}
-                          </option>
+                          </SelectOption>
                         ))}
-                      </select>
+                      </Select>
                     </label>
                     {data.meta.pageId && (
                       <label className="flex items-center gap-3 text-sm">

@@ -1,6 +1,11 @@
 "use client";
 // Website style preset picker + the values it fills (library agent, 2026-11-19).
 // Applying a preset only fills the draft; every value stays editable before saving.
+import type { ReactNode } from "react";
+import { Select, SelectOption } from "@/components/ui/select";
+import { Slider } from "@/components/ui/slider";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
 import { Check } from "lucide-react";
 import { Label } from "@/components/ui/label";
 import type { Project } from "@/lib/builder/types";
@@ -85,245 +90,426 @@ export function applyLook(project: Project, look: Look): Project {
 
 // Drops undefined keys (the style keeps only values that were chosen).
 function defined<T extends object>(value: T): Partial<T> {
-  return Object.fromEntries(Object.entries(value).filter(([, v]) => v !== undefined)) as Partial<T>;
+  return Object.fromEntries(
+    Object.entries(value).filter(([, v]) => v !== undefined),
+  ) as Partial<T>;
 }
-const title = (s: string | number) => (typeof s === "number" ? `${s} px` : s[0].toUpperCase() + s.slice(1));
-const selectClass =
-  "h-10 w-full rounded-xl bg-white px-3 text-sm shadow-[0_0_0_1px_rgb(0_0_0/0.06)] outline-none focus-visible:shadow-[0_0_0_2px_rgb(0_0_0/0.5)]";
-
+export function DesignSection({
+  title,
+  children,
+  preview,
+}: {
+  title: string;
+  children: ReactNode;
+  preview?: ReactNode;
+}) {
+  return (
+    <section className="overflow-hidden rounded-xl border bg-white">
+      <h2 className="border-b px-6 py-4 text-base font-semibold">{title}</h2>
+      <div className={preview ? "grid lg:grid-cols-2" : ""}>
+        <div className="space-y-5 p-6">{children}</div>
+        {preview && (
+          <div className="flex min-w-0 items-center justify-center border-t bg-neutral-50 p-6 lg:border-t-0 lg:border-l">
+            {preview}
+          </div>
+        )}
+      </div>
+    </section>
+  );
+}
+function Choice<T extends string | number>({
+  label,
+  value,
+  options,
+  onChange,
+}: {
+  label: string;
+  value?: T;
+  options: readonly T[];
+  onChange: (value: T | undefined) => void;
+}) {
+  return (
+    <div className="grid gap-2">
+      <Label>{label}</Label>
+      <Select
+        aria-label={label}
+        value={value === undefined ? "default" : String(value)}
+        onValueChange={(raw) =>
+          onChange(options.find((item) => String(item) === raw))
+        }
+      >
+        <SelectOption value="default">Library default</SelectOption>
+        {options.map((item) => (
+          <SelectOption key={item} value={String(item)}>
+            {typeof item === "number"
+              ? `${item} px`
+              : item[0].toUpperCase() + item.slice(1)}
+          </SelectOption>
+        ))}
+      </Select>
+    </div>
+  );
+}
+function ColorField({
+  label,
+  value,
+  onChange,
+}: {
+  label: string;
+  value: string;
+  onChange: (value: string) => void;
+}) {
+  return (
+    <div className="space-y-2">
+      <Label>{label}</Label>
+      <div className="flex items-center gap-3">
+        <span
+          className="relative size-8 shrink-0 overflow-hidden rounded-full border shadow-sm"
+          style={{ background: value }}
+        >
+          <Input
+            type="color"
+            aria-label={`${label} color`}
+            value={value}
+            onChange={(e) => onChange(e.target.value)}
+            className="absolute inset-0 size-full cursor-pointer opacity-0"
+          />
+        </span>
+        <Input
+          aria-label={`${label} HEX`}
+          value={value}
+          maxLength={7}
+          pattern="#[0-9a-fA-F]{6}"
+          required
+          onChange={(e) => onChange(e.target.value)}
+          className="font-mono"
+        />
+      </div>
+    </div>
+  );
+}
 export function StylePresetFields({
   look,
   onChange,
+  typography,
+  buttonPreview,
 }: {
   look: Look;
   onChange: (look: Look, fonts?: string) => void;
+  typography?: ReactNode;
+  buttonPreview?: ReactNode;
 }) {
-  const set = (patch: Partial<Look>) => onChange({ ...look, ...patch });
+  const buttonRadius =
+    look.style.buttonRadius ??
+    (look.style.buttons === "pill"
+      ? 100
+      : look.style.buttons === "square"
+        ? 0
+        : look.style.buttons === "rounded"
+          ? 10
+          : 8);
   const setStyle = (patch: Partial<SiteStyle>) =>
     onChange({ ...look, style: { ...look.style, ...patch } });
-  const colors: [keyof Look, string][] = [
+  const colors = [
     ["bg", "Background"],
     ["surface", "Cards and panels"],
     ["ink", "Text"],
     ["muted", "Secondary text"],
     ["accent", "Accent"],
-  ];
+  ] as const;
   return (
-    <div className="space-y-5">
-      <div className="grid gap-2">
-        <Label>Style preset</Label>
-        <p className="text-sm text-neutral-500">
-          One click sets colours, fonts, corners, spacing and buttons. You can
-          change any value below before saving.
-        </p>
+    <div className="space-y-6">
+      <DesignSection title="Starting style">
         <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
-          {STYLE_PRESETS.map((preset) => {
-            const active = look.style.preset === preset.id;
-            return (
-              <button
-                key={preset.id}
-                type="button"
-                aria-pressed={active}
-                onClick={() => {
-                  // A preset sets colours, corners, spacing and button shape; the button look,
-                  // heading size and width chosen below stay.
-                  const next = lookFromPreset(preset);
-                  const { buttonColor, buttonStyle, buttonMotion, secondaryButtonStyle, secondaryButtonMotion, headingScale, containerWidth } = look.style;
-                  onChange(
-                    { ...next, style: { ...next.style, ...defined({ buttonColor, buttonStyle, buttonMotion, secondaryButtonStyle, secondaryButtonMotion, headingScale, containerWidth }) } },
-                    preset.fonts,
-                  );
-                }}
-                className={`relative rounded-xl bg-white p-4 text-left shadow-[0_0_0_1px_rgb(0_0_0/0.06)] transition-colors hover:bg-neutral-50 ${active ? "shadow-[0_0_0_2px_rgb(0_0_0/0.8)]" : ""}`}
-              >
-                <span
-                  className="mb-3 flex h-12 overflow-hidden"
-                  style={{ borderRadius: Math.min(preset.radius, 16) }}
-                  aria-hidden="true"
-                >
-                  {Object.values(preset.colors).map((c) => (
-                    <span key={c} className="flex-1" style={{ background: c }} />
-                  ))}
-                </span>
-                <span className="block text-sm font-semibold">
-                  {preset.label}
-                </span>
-                <span className="mt-1 block text-xs leading-5 text-neutral-500">
-                  {preset.description}
-                </span>
-                {active && (
-                  <Check className="absolute right-3 top-3 size-5 rounded-full bg-white p-0.5" />
-                )}
-              </button>
-            );
-          })}
+          {STYLE_PRESETS.map((preset) => (
+            <Button
+              key={preset.id}
+              type="button"
+              variant="outline"
+              aria-pressed={look.style.preset === preset.id}
+              onClick={() => {
+                const next = lookFromPreset(preset);
+                const {
+                  buttonColor,
+                  buttonStyle,
+                  buttonMotion,
+                  secondaryButtonStyle,
+                  secondaryButtonMotion,
+                  headingScale,
+                  containerWidth,
+                } = look.style;
+                onChange(
+                  {
+                    ...next,
+                    style: {
+                      ...next.style,
+                      ...defined({
+                        buttonColor,
+                        buttonStyle,
+                        buttonMotion,
+                        secondaryButtonStyle,
+                        secondaryButtonMotion,
+                        headingScale,
+                        containerWidth,
+                      }),
+                    },
+                  },
+                  preset.fonts,
+                );
+              }}
+              className="relative h-auto flex-col items-stretch gap-3 p-4 text-left whitespace-normal"
+            >
+              <span className="flex h-10 overflow-hidden rounded-md">
+                {Object.entries(preset.colors).map(([key, c]) => (
+                  <span
+                    key={key}
+                    className="flex-1"
+                    style={{ background: c }}
+                  />
+                ))}
+              </span>
+              <span>{preset.label}</span>
+              {look.style.preset === preset.id && (
+                <Check className="absolute right-2 top-2 size-4 rounded-full bg-white" />
+              )}
+            </Button>
+          ))}
         </div>
-      </div>
-      <div className="grid gap-4 sm:grid-cols-3 lg:grid-cols-5">
-        {colors.map(([key, label]) => (
-          <label key={key} className="grid gap-2 text-sm font-medium">
-            {label}
-            <span className="flex items-center gap-2">
-              <input
-                type="color"
-                value={String(look[key])}
-                onChange={(e) => set({ [key]: e.target.value } as Partial<Look>)}
-                className="h-10 w-12 cursor-pointer rounded-lg bg-white p-1 shadow-[0_0_0_1px_rgb(0_0_0/0.06)]"
-              />
-              <code className="text-xs text-neutral-500">{String(look[key])}</code>
+      </DesignSection>
+      <DesignSection
+        title="Colors"
+        preview={
+          <div
+            className="w-full space-y-4 p-6"
+            style={{
+              background: look.bg,
+              color: look.ink,
+              borderRadius: look.style.radius ?? 16,
+            }}
+          >
+            <span
+              className="text-xs uppercase tracking-widest"
+              style={{ color: look.accent }}
+            >
+              A considered approach
             </span>
-          </label>
-        ))}
-      </div>
-      <div className="grid gap-4 sm:grid-cols-3">
-        <label className="grid gap-2 text-sm font-medium">
-          Corner radius: {look.style.radius ?? 16}px
-          <input
-            type="range"
+            <h3 className="text-3xl font-semibold">Make room for better.</h3>
+            <p style={{ color: look.muted }}>
+              Clear ideas. Thoughtful details. A website that feels like you.
+            </p>
+            <div
+              className="p-4"
+              style={{
+                background: look.surface,
+                borderRadius: look.style.radius ?? 16,
+              }}
+            >
+              A card on your website
+            </div>
+          </div>
+        }
+      >
+        <div className="grid gap-4 sm:grid-cols-2">
+          {colors.map(([key, label]) => (
+            <ColorField
+              key={key}
+              label={label}
+              value={look[key]}
+              onChange={(value) => onChange({ ...look, [key]: value })}
+            />
+          ))}
+        </div>
+      </DesignSection>
+      {typography}
+      <DesignSection title="Buttons" preview={buttonPreview}>
+        <ColorField
+          label="Button"
+          value={look.style.buttonColor || look.ink}
+          onChange={(buttonColor) => setStyle({ buttonColor })}
+        />
+        {look.style.buttonColor && (
+          <Button
+            type="button"
+            variant="ghost"
+            size="sm"
+            onClick={() => setStyle({ buttonColor: undefined })}
+          >
+            Use text color
+          </Button>
+        )}
+        <Choice
+          label="Button shape"
+          value={look.style.buttons}
+          options={BUTTON_SHAPES}
+          onChange={(buttons) => setStyle({ buttons, buttonRadius: undefined })}
+        />
+        <div className="space-y-2">
+          <div className="flex items-center justify-between gap-4">
+            <Label htmlFor="button-radius">Button radius</Label>
+            <div className="flex items-center gap-2">
+              <Input
+                aria-label="Button radius in pixels"
+                type="number"
+                min={0}
+                max={100}
+                step={1}
+                value={
+                  look.style.buttonRadius ??
+                  (look.style.buttons === "pill"
+                    ? 100
+                    : look.style.buttons === "square"
+                      ? 0
+                      : look.style.buttons === "rounded"
+                        ? 10
+                        : 8)
+                }
+                onChange={(e) => {
+                  if (e.target.value !== "" && e.target.validity.valid)
+                    setStyle({ buttonRadius: Number(e.target.value) });
+                }}
+                className="w-20"
+              />
+              <span className="text-xs text-neutral-500">px</span>
+            </div>
+          </div>
+          <Slider
+            id="button-radius"
+            aria-label="Button radius"
+            min={0}
+            max={100}
+            value={buttonRadius}
+            onValueChange={(buttonRadius) => setStyle({ buttonRadius })}
+          />
+          {look.style.buttonRadius !== undefined && (
+            <Button
+              type="button"
+              variant="ghost"
+              size="sm"
+              onClick={() => setStyle({ buttonRadius: undefined })}
+            >
+              Use button shape
+            </Button>
+          )}
+        </div>
+        <div className="grid gap-4 sm:grid-cols-2">
+          <Choice
+            label="Primary button"
+            value={look.style.buttonStyle}
+            options={BUTTON_STYLES}
+            onChange={(buttonStyle) => setStyle({ buttonStyle })}
+          />
+          <Choice
+            label="Primary hover"
+            value={look.style.buttonMotion}
+            options={BUTTON_MOTIONS}
+            onChange={(buttonMotion) => setStyle({ buttonMotion })}
+          />
+          <Choice
+            label="Secondary button"
+            value={look.style.secondaryButtonStyle}
+            options={BUTTON_STYLES}
+            onChange={(secondaryButtonStyle) =>
+              setStyle({ secondaryButtonStyle })
+            }
+          />
+          <Choice
+            label="Secondary hover"
+            value={look.style.secondaryButtonMotion}
+            options={BUTTON_MOTIONS}
+            onChange={(secondaryButtonMotion) =>
+              setStyle({ secondaryButtonMotion })
+            }
+          />
+        </div>
+      </DesignSection>
+      <DesignSection
+        title="Layout"
+        preview={
+          <div className="w-full rounded-lg border bg-white p-3">
+            <div
+              className="mx-auto space-y-4 transition-all"
+              style={{
+                width: `${((look.style.containerWidth || 1820) / 1920) * 100}%`,
+              }}
+            >
+              <div className="h-4 rounded bg-neutral-200" />
+              <div className="grid grid-cols-3 gap-2">
+                {[1, 2, 3].map((n) => (
+                  <div
+                    key={n}
+                    className="h-20"
+                    style={{
+                      background: look.surface,
+                      borderRadius: look.style.radius ?? 16,
+                    }}
+                  />
+                ))}
+              </div>
+              <div
+                style={{
+                  height:
+                    look.style.spacing === "compact"
+                      ? 16
+                      : look.style.spacing === "airy"
+                        ? 48
+                        : 32,
+                }}
+              />
+              <div
+                className="h-14 bg-neutral-100"
+                style={{ borderRadius: look.style.radius ?? 16 }}
+              />
+            </div>
+          </div>
+        }
+      >
+        <Choice
+          label="Content width"
+          value={look.style.containerWidth}
+          options={CONTAINER_WIDTHS}
+          onChange={(containerWidth) => setStyle({ containerWidth })}
+        />
+        <Choice
+          label="Space between sections"
+          value={look.style.spacing}
+          options={SPACINGS}
+          onChange={(spacing) => setStyle({ spacing })}
+        />
+        <div className="space-y-2">
+          <Label htmlFor="corner-radius">
+            Corner radius{" "}
+            <span className="float-right text-neutral-500">
+              {look.style.radius ?? 16} px
+            </span>
+          </Label>
+          <Slider
+            id="corner-radius"
+            aria-label="Corner radius"
             min={0}
             max={40}
-            step={1}
             value={look.style.radius ?? 16}
-            onChange={(e) => setStyle({ radius: Number(e.target.value) })}
+            onValueChange={(radius) => setStyle({ radius })}
           />
-        </label>
-        <label className="grid gap-2 text-sm font-medium">
-          Space between sections
-          <select
-            className={selectClass}
-            value={look.style.spacing || "normal"}
-            onChange={(e) =>
-              setStyle({ spacing: e.target.value as SiteStyle["spacing"] })
-            }
-          >
-            {SPACINGS.map((s) => (
-              <option key={s} value={s}>
-                {s[0].toUpperCase() + s.slice(1)}
-              </option>
-            ))}
-          </select>
-        </label>
-        <label className="grid gap-2 text-sm font-medium">
-          Button shape
-          <select
-            className={selectClass}
-            value={look.style.buttons || "rounded"}
-            onChange={(e) =>
-              setStyle({ buttons: e.target.value as SiteStyle["buttons"] })
-            }
-          >
-            {BUTTON_SHAPES.map((s) => (
-              <option key={s} value={s}>
-                {s[0].toUpperCase() + s.slice(1)}
-              </option>
-            ))}
-          </select>
-        </label>
-      </div>
-      <ButtonLayoutFields look={look} setStyle={setStyle} />
+        </div>
+      </DesignSection>
     </div>
   );
 }
-
-// Button colour, look and hover motion, heading size and content width (merged from the
-// origin/main Site design screen). "Library default" leaves the value unset: the website keeps
-// the look of its blocks (button-theme.scss switches on only when a value is chosen).
-function ButtonLayoutFields({
+export function HeadingSizeField({
   look,
-  setStyle,
+  onChange,
 }: {
   look: Look;
-  setStyle: (patch: Partial<SiteStyle>) => void;
+  onChange: (look: Look) => void;
 }) {
-  const style = look.style;
-  const choice = <T extends string | number>(
-    label: string,
-    value: T | undefined,
-    options: readonly T[],
-    onPick: (value: T | undefined) => void,
-  ) => (
-    <label className="grid gap-2 text-sm font-medium">
-      {label}
-      <select
-        className={selectClass}
-        value={value === undefined ? "" : String(value)}
-        onChange={(e) => {
-          const raw = e.target.value;
-          onPick(
-            raw === ""
-              ? undefined
-              : (options.find((o) => String(o) === raw) as T | undefined),
-          );
-        }}
-      >
-        <option value="">Library default</option>
-        {options.map((o) => (
-          <option key={String(o)} value={String(o)}>
-            {title(o)}
-          </option>
-        ))}
-      </select>
-    </label>
-  );
-  const buttonColor = style.buttonColor || look.ink;
   return (
-    <div className="grid gap-4">
-      <div>
-        <Label>Buttons, headings and width</Label>
-        <p className="mt-1 text-sm text-neutral-500">
-          Colour, look and hover effect of the main and secondary buttons,
-          heading size and the maximum content width.
-        </p>
-      </div>
-      <div className="grid gap-4 sm:grid-cols-3">
-        <label className="grid gap-2 text-sm font-medium">
-          Button colour
-          <span className="flex items-center gap-2">
-            <input
-              type="color"
-              value={buttonColor}
-              onChange={(e) => setStyle({ buttonColor: e.target.value })}
-              className="h-10 w-12 cursor-pointer rounded-lg bg-white p-1 shadow-[0_0_0_1px_rgb(0_0_0/0.06)]"
-            />
-            <code className="text-xs text-neutral-500">
-              {style.buttonColor || "Text colour"}
-            </code>
-            {style.buttonColor && (
-              <button
-                type="button"
-                className="text-xs text-neutral-500 underline"
-                onClick={() => setStyle({ buttonColor: undefined })}
-              >
-                Reset
-              </button>
-            )}
-          </span>
-        </label>
-        {choice("Main button", style.buttonStyle, BUTTON_STYLES, (v) =>
-          setStyle({ buttonStyle: v }),
-        )}
-        {choice("Main button hover", style.buttonMotion, BUTTON_MOTIONS, (v) =>
-          setStyle({ buttonMotion: v }),
-        )}
-        {choice(
-          "Secondary button",
-          style.secondaryButtonStyle,
-          BUTTON_STYLES,
-          (v) => setStyle({ secondaryButtonStyle: v }),
-        )}
-        {choice(
-          "Secondary button hover",
-          style.secondaryButtonMotion,
-          BUTTON_MOTIONS,
-          (v) => setStyle({ secondaryButtonMotion: v }),
-        )}
-        {choice("Heading size", style.headingScale, HEADING_SCALES, (v) =>
-          setStyle({ headingScale: v }),
-        )}
-        {choice("Content width", style.containerWidth, CONTAINER_WIDTHS, (v) =>
-          setStyle({ containerWidth: v }),
-        )}
-      </div>
-    </div>
+    <Choice
+      label="Heading size"
+      value={look.style.headingScale}
+      options={HEADING_SCALES}
+      onChange={(headingScale) =>
+        onChange({ ...look, style: { ...look.style, headingScale } })
+      }
+    />
   );
 }

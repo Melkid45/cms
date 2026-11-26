@@ -1,0 +1,24 @@
+// Shared shadcn controls inherit the website theme, independently of admin Tailwind.
+.store-control { display: block; min-width: 0; width: 100%; }
+.store-control[hidden], [data-store-native] { display: none !important; }
+.store-select {
+  &__trigger { display: flex; align-items: center; justify-content: space-between; gap: 20px; width: 100%; min-height: 48px; padding: 12px 16px; border: 1px solid var(--color-border); border-radius: var(--button-radius, 8px); background: var(--color-bg); color: var(--color-ink); font: inherit; font-size: 14px; cursor: pointer; text-align: left; }
+  &__trigger:focus-visible, &__trigger[data-popup-open] { outline: none; border-color: var(--color-ink); }
+  &__value { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  &__icon { display: flex; flex-shrink: 0; }
+  &__icon svg, &__check svg { width: 16px; height: 16px; }
+  &__positioner { z-index: 250; outline: none; }
+  &__popup { min-width: 180px; width: var(--anchor-width); max-width: var(--available-width); padding: 6px; border: 1px solid var(--color-border); border-radius: var(--button-radius, 8px); background: var(--color-bg); color: var(--color-ink); box-shadow: 0 12px 36px #00000012; font: 14px/1.5 var(--font-body, sans-serif); outline: none; transform-origin: var(--transform-origin); transition: opacity .15s, transform .15s; }
+  &__popup[data-starting-style], &__popup[data-ending-style] { opacity: 0; transform: translateY(-4px); }
+  &__list { max-height: min(280px, var(--available-height)); overflow-y: auto; }
+  &__item { position: relative; display: flex; align-items: center; min-height: 42px; padding: 10px 36px 10px 12px; border-radius: 4px; cursor: pointer; outline: none; user-select: none; }
+  &__item[data-highlighted] { background: var(--color-surface); }
+  &__item[data-disabled] { opacity: .4; pointer-events: none; }
+  &__check { position: absolute; right: 10px; display: flex; }
+}
+.store-range { display: flex; align-items: center; width: 100%; padding-block: 12px;
+  &__control { position: relative; display: flex; align-items: center; width: 100%; height: 24px; touch-action: none; user-select: none; }
+  &__track { position: relative; width: 100%; height: 2px; border-radius: 2px; background: var(--color-border); }
+  &__indicator { height: 100%; background: var(--color-ink); }
+  &__thumb { width: 16px; height: 16px; border: 1px solid var(--color-ink); border-radius: 50%; background: var(--color-bg); outline-offset: 4px; }
+}

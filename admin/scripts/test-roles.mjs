@@ -1,3 +1,5 @@
+import {smtpSink} from "./smtp-test-server.mjs";
+import { checkShopInventory } from "./check-shop-inventory.mjs";
 import assert from "node:assert/strict";
 import { spawn } from "node:child_process";
 import {
@@ -23,6 +25,8 @@ import sharp from "sharp";
 import http from "node:http";
 import { checkProductWorkflows } from "./check-product-workflows.mjs";
 const directory = await mkdtemp(join(tmpdir(), "harbstone-role-check-"));
+// Simulate a process interruption after a journal was committed, before document writes.
+await writeFile(join(directory,".doc-transaction.json"),JSON.stringify({"recovery-check":{completed:true}}));
 const port = Number(process.env.CMS_ROLE_TEST_PORT || 3101),
   base = `http://localhost:${port}`;
 const ownerPassword = randomBytes(24).toString("hex"),
@@ -32,9 +36,10 @@ const ownerEmail = "owner@example.test",
   clientEmail = "client@example.test";
 const { privateKey, publicKey } = generateKeyPairSync("ed25519");
 const log = await open(join(directory, "server.log"), "w");
+const mailSink=await smtpSink();
 const server = spawn(
   process.execPath,
-  ["node_modules/next/dist/bin/next", "start", "-p", String(port)],
+  ["--import",new URL("./payment-test-fetch.mjs",import.meta.url).pathname,"node_modules/next/dist/bin/next", "start", "-p", String(port)],
   {
     cwd: resolve(import.meta.dirname, ".."),
     stdio: ["ignore", log.fd, log.fd],
@@ -45,7 +50,10 @@ const server = spawn(
       BLOB_READ_WRITE_TOKEN: "",
       VERCEL: "",
       CRON_SECRET: cronSecret,
-      SMTP_HOST: "",
+      SMTP_HOST: "127.0.0.1",
+      SMTP_FROM: "shop@example.test",
+      SMTP_PORT: String(mailSink.port),
+      SMTP_SECURE: "false",
       SMTP_USER: "",
       SMTP_PASSWORD: "",
       CMS_DATA_DIRECTORY: directory,
@@ -597,6 +605,7 @@ try {
     200,
   );
   await checkProductWorkflows({ base, owner, client, directory, cronSecret });
+  await checkShopInventory({base,owner,client,directory,mailSink});
   await checkCompaniesAndSites({ owner, client, account });
   await checkCustomDomains({ owner, client });
   // Admin pages are never indexed (merged from origin/main).
@@ -756,6 +765,7 @@ try {
   }
 } finally {
   if (!keep) {
+    mailSink.close();
     server.kill("SIGTERM");
     await new Promise((resolve) => server.once("exit", resolve));
     await log.close();
@@ -1078,6 +1088,20 @@ async function checkCompaniesAndSites({ owner, client, account }) {
     403,
     "Catalogue settings are for the design team",
   );
+  for (const path of ["/dashboard/shop/products", "/dashboard/shop/orders", "/dashboard/shop/settings"])
+    assert.equal((await request(path, "GET", null, client)).status, 200, `Client opens unified shop: ${path}`);
+  assert.equal((await request("/dashboard/catalog", "GET", null, client)).headers.get("location"), "/dashboard/shop/products", "Old catalogue link leads to unified shop");
+  const clientCatalog = await request(siteUrl("/api/builder/catalog", first.id), "GET", null, client);
+  const clientCatalogData = await clientCatalog.json();
+  const originalSettings = clientCatalogData.catalog.settings;
+  const catalogRevision = clientCatalogData.catalog.revision;
+  const categoriesUpdate = await request(siteUrl("/api/builder/catalog/settings", first.id), "PATCH", {categories:["Lighting", "Furniture"], revision:catalogRevision}, client);
+  assert.equal(categoriesUpdate.status, 200, "Client maintains its own shop categories");
+  const categoriesUpdated = await categoriesUpdate.json();
+  assert.deepEqual(categoriesUpdated.settings, {...originalSettings, categories:["Lighting", "Furniture"]}, "Category update preserves every design setting");
+  assert.equal((await request(siteUrl("/api/builder/catalog/settings", first.id), "PATCH", {categories:[],revision:catalogRevision}, client)).status, 409, "Stale category edits cannot overwrite newer changes");
+  assert.equal((await request(siteUrl("/api/builder/catalog/settings", first.id), "PATCH", {categories:[],revision:categoriesUpdated.revision,filters:[]}, client)).status, 400, "Category endpoint rejects design changes");
+  assert.equal((await request(siteUrl("/api/builder/catalog/settings"), "PATCH", {categories:[],revision:0}, client)).status, 403, "Client cannot change another shop's categories");
   const clientUpload = new FormData();
   clientUpload.set("file", new Blob([image], { type: "image/png" }), "x.png");
   assert.equal(
@@ -1224,6 +1248,13 @@ async function checkCustomDomains({ owner, client }) {
   );
   assert.equal(r.status, 201, "Owner creates a designer");
   const designer = await login(designerEmail, designerPassword);
+  assert.equal((await request(`/api/builder/payments?site=${second.id}`,"GET",null,designer)).status,403,"Designer cannot read merchant payment configuration");
+  assert.equal((await request(`/api/builder/payments?site=${second.id}`,"PUT",{},designer)).status,403,"Designer cannot change merchant keys");
+  assert.equal((await request(`/api/builder/payments?site=${second.id}`,"GET",null,client)).status,403,"Client cannot read another website payment configuration");
+  const designerShopOrders = await request("/dashboard/shop/orders", "GET", null, designer);
+  const designerShopHtml = await designerShopOrders.text();
+  assert(designerShopOrders.headers.get("location") === "/dashboard/shop/products" || (designerShopHtml.includes("NEXT_REDIRECT") && designerShopHtml.includes("/dashboard/shop/products")), "Designer cannot open customer orders in the unified shop");
+
   r = await request(domains(second.id), "POST", { action: "add", domain: "designer-check.test" }, designer);
   assert.equal(r.status, 201, "Designer connects a domain");
   assert.equal((await request(domains(first.id), "GET", null, designer)).status, 403, "Designer: other website");

@@ -20,7 +20,6 @@ import {
   LogOut,
   Megaphone,
   LayoutGrid,
-  Package,
   PanelLeftClose,
   PanelLeftOpen,
   PanelsTopLeft,
@@ -198,17 +197,9 @@ const navGroups: NavGroup[] = [
         roles: ownerOnly,
       },
       {
-        // Orders from a shop website's checkout (not the Harbstone website orders).
-        label: "Shop orders",
-        href: "/dashboard/shop-orders",
+        label: "Shop",
+        href: "/dashboard/shop",
         icon: ShoppingCart,
-        roles: ["super-admin", "client"],
-      },
-      {
-        // Products of a shop website: product pages, catalogue grid and cards (lib/builder/products).
-        label: "Catalog",
-        href: "/dashboard/catalog",
-        icon: Package,
         roles: everyone,
       },
       {
@@ -307,6 +298,11 @@ const pageNames: Record<string, string> = {
   "/dashboard/shop-orders": "Shop orders",
   "/dashboard/catalog": "Catalog",
   "/dashboard/catalog/new": "New product",
+  "/dashboard/shop": "Shop",
+  "/dashboard/shop/products": "Products",
+  "/dashboard/shop/orders": "Shop orders",
+  "/dashboard/shop/settings": "Shop settings",
+  "/dashboard/shop/products/new": "New product",
   "/dashboard/analytics": "Analytics",
   "/dashboard/social": "Social posts",
   "/dashboard/approvals": "Approvals",
@@ -317,11 +313,11 @@ const pageNames: Record<string, string> = {
   "/dashboard/crm/tasks": "Tasks",
   "/dashboard/settings/crm": "CRM settings",
   "/dashboard/settings/social": "Social accounts",
-  "/dashboard/settings/forms": "Forms & hosting",
+  "/dashboard/settings/forms": "Website settings",
   "/dashboard/settings": "Settings",
   "/dashboard/settings/profile": "Profile",
-  "/dashboard/settings/setup": "Brand setup",
-  "/dashboard/settings/project": "Project settings",
+  "/dashboard/settings/setup": "Website settings",
+  "/dashboard/settings/project": "Website settings",
   "/dashboard/settings/client": "Website settings",
   "/dashboard/settings/backups": "Backups",
   "/dashboard/settings/domain": "Domain",
@@ -441,7 +437,7 @@ export function AdminShell({
     pageNames[pathname] ??
     (pathname.startsWith("/dashboard/pages/")
       ? "Edit page"
-      : pathname.startsWith("/dashboard/catalog/")
+      : (pathname.startsWith("/dashboard/catalog/") || pathname.startsWith("/dashboard/shop/products/"))
         ? "Product"
       : pathname.startsWith("/dashboard/orders/")
         ? "Order"

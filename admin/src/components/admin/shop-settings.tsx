@@ -78,7 +78,7 @@ export function ShopSettings() {
       <div className="flex flex-wrap items-center justify-between gap-3">
         <p className="max-w-2xl text-sm leading-6 text-neutral-600">
           How the shopping cart opens on the website. Products and orders are
-          managed in Sales → Catalog and Shop orders.
+          managed in the Products and Orders tabs.
           {!hasCheckout && (
             <> The cart appears once the website has a checkout page.</>
           )}

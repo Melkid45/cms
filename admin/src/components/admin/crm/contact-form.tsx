@@ -1,4 +1,5 @@
 "use client";
+import { Select, SelectOption } from "@/components/ui/select";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { CONTACT_STATUSES, STATUS_LABELS, type ContactRow, type ContactStatus } from "@/lib/builder/crm/shared";
@@ -71,23 +72,23 @@ export function ContactForm({
         </div>
         <div>
           <label className={label} htmlFor="crm-language">Language</label>
-          <select id="crm-language" className={field} value={value.language} onChange={set("language")}>
+          <Select id="crm-language" className="h-9 " value={String(value.language)} onValueChange={(selectedValue) => setValue(current => ({ ...current, ["language"]: selectedValue }))}>
             {[...new Set([...LANGUAGES, value.language])].map((l) => (
-              <option key={l} value={l}>
+              <SelectOption key={l} value={String(l)}>
                 {l ? l.toUpperCase() : "—"}
-              </option>
+              </SelectOption>
             ))}
-          </select>
+          </Select>
         </div>
         <div>
           <label className={label} htmlFor="crm-status">Status</label>
-          <select id="crm-status" className={field} value={value.status} onChange={set("status")}>
+          <Select id="crm-status" className="h-9 " value={String(value.status)} onValueChange={(selectedValue) => setValue(current => ({ ...current, ["status"]: CONTACT_STATUSES.find(status => status === selectedValue) || current.status }))}>
             {CONTACT_STATUSES.map((s) => (
-              <option key={s} value={s}>
+              <SelectOption key={s} value={String(s)}>
                 {STATUS_LABELS[s]}
-              </option>
+              </SelectOption>
             ))}
-          </select>
+          </Select>
         </div>
         <div>
           <label className={label} htmlFor="crm-tags">Tags (comma separated)</label>

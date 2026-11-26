@@ -352,6 +352,7 @@ const schema = z.object({
       radius: z.number().int().min(0).max(40).optional(),
       spacing: z.enum(SPACINGS).optional(),
       buttons: z.enum(BUTTON_SHAPES).optional(),
+      buttonRadius: z.number().int().min(0).max(100).optional(),
       // Button colour, look and hover motion; heading size; content width (merged from origin/main Site design).
       buttonColor: z.union([z.literal(""), z.string().regex(/^#[0-9a-f]{6}$/i)]).optional(),
       buttonStyle: z.enum(BUTTON_STYLES).optional(),
@@ -790,8 +791,9 @@ export function assertSameOrigin(request: Request) {
   const origin = request.headers.get("origin");
   if (
     origin &&
-    new URL(origin).host !==
-      (request.headers.get("host") || new URL(request.url).host)
+    (origin === "null" ||
+      URL.parse(origin)?.host !==
+        (request.headers.get("host") || new URL(request.url).host))
   )
     throw new StoreError("Invalid origin.", 403);
 }
