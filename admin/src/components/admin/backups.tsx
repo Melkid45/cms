@@ -1,4 +1,5 @@
 "use client";
+import { withSite } from "@/lib/builder/site-client";
 import { useEffect, useState } from "react";
 import {
   DatabaseBackup,
@@ -8,7 +9,7 @@ import {
   Trash2,
 } from "lucide-react";
 import { useProject } from "@/lib/builder/client";
-import { PageHeader } from "./page-header";
+import { AdminPanel } from "@/components/admin/admin-panel";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Dialog } from "@base-ui/react/dialog";
@@ -27,14 +28,14 @@ export function Backups() {
     [selected, setSelected] = useState<Backup | null>(null),
     [confirmation, setConfirmation] = useState("");
   async function load() {
-    const response = await fetch("/api/builder/backups", { cache: "no-store" });
+    const response = await fetch(withSite("/api/builder/backups"), { cache: "no-store" });
     const data = await response.json();
     if (!response.ok) throw Error(data.error);
     setItems(data);
   }
   useEffect(() => {
     let active = true;
-    fetch("/api/builder/backups", { cache: "no-store" })
+    fetch(withSite("/api/builder/backups"), { cache: "no-store" })
       .then(async (response) => {
         const data = await response.json();
         if (!response.ok) throw Error(data.error);
@@ -51,7 +52,7 @@ export function Backups() {
     setBusy(true);
     setNotice("");
     try {
-      const response = await fetch("/api/builder/backups", {
+      const response = await fetch(withSite("/api/builder/backups"), {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(value),
@@ -76,11 +77,9 @@ export function Backups() {
     }
   }
   return (
-    <div>
-      <PageHeader
-        title="Backups"
-        description="Verified copies of pages, website settings and image files."
-        action={
+    <AdminPanel
+      title="Backups"
+      toolbar={<div className="ml-auto flex flex-wrap items-center gap-2.5">{
           <Button
             disabled={busy}
             onClick={() => void action({ action: "create" })}
@@ -88,8 +87,8 @@ export function Backups() {
             <DatabaseBackup />
             {busy ? "Working…" : "Create full backup"}
           </Button>
-        }
-      />
+        }</div>}
+    >
       <div className="mb-6 rounded-xl border bg-white p-5 text-sm leading-6 text-neutral-500">
         Store up to five full copies, including independent image data (up to 32
         MB of media per copy). Copies expire after seven days and are removed
@@ -127,7 +126,7 @@ export function Backups() {
             <Button
               nativeButton={false}
               render={
-                <a href={`/api/builder/backups?download=${item.id}`} download />
+                <a href={withSite(`/api/builder/backups?download=${item.id}`)} download />
               }
               variant="outline"
               size="sm"
@@ -160,7 +159,7 @@ export function Backups() {
                 setBusy(true);
                 try {
                   const response = await fetch(
-                    `/api/builder/backups?id=${item.id}`,
+                    withSite(`/api/builder/backups?id=${item.id}`),
                     { method: "DELETE" },
                   );
                   if (!response.ok) throw Error((await response.json()).error);
@@ -244,6 +243,6 @@ export function Backups() {
           </Dialog.Popup>
         </Dialog.Portal>
       </Dialog.Root>
-    </div>
+    </AdminPanel>
   );
 }

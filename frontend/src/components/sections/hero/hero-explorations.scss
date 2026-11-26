@@ -15,7 +15,7 @@
 }
 .hero {
   &__stay-canvas { position: relative; isolation: isolate; display: flex; flex: 1; min-height: 0; flex-direction: column; justify-content: space-between; gap: 80px; overflow: hidden; border-radius: var(--radius); padding: clamp(28px, 4vw, 72px); color: white; }
-  &__backdrop { position: absolute; inset: 0; z-index: -2; }
+  &--stay &__backdrop { position: absolute; inset: 0; z-index: -2; }
   &__stay-canvas::after { content: ''; position: absolute; inset: 0; z-index: -1; background: linear-gradient(90deg, #161c19a6, transparent 85%), linear-gradient(0deg, #161c1980, transparent 40%); }
   &__stay-intro { display: grid; gap: 36px; }
   &__stay-intro .heading { max-width: 1000px; }

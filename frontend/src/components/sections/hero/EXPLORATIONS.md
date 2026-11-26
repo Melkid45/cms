@@ -1,8 +1,8 @@
 # Hero explorations
 Local review page: `/hero-explorations.html`. Four compositions with actual header variants; no CMS registration or existing collection changes.
 
-- v9: hospitality, continuous photographic canvas with separated headline and action.
-- v10: B2B, introductory row and image/capabilities composition.
+- v13 (was v9 before the merge; v9 is taken by the Harbstone library): hospitality, continuous photographic canvas with separated headline and action.
+- v14 (was v10): B2B, introductory row and image/capabilities composition.
 - v11: furniture, product-focused surface with supporting information.
 - v12: fitness/wellness, centered content between staggered portrait photographs.
 

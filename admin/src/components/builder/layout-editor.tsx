@@ -1,5 +1,12 @@
 "use client";
 /* eslint-disable @next/next/no-img-element */
+import { useSiteKey } from "@/components/admin/site-context";
+import {
+  LOCALES,
+  LOCALE_NAMES,
+  pageHref,
+  siteLanguages,
+} from "@/lib/builder/i18n";
 import { useState } from "react";
 import { Dialog } from "@base-ui/react/dialog";
 import {
@@ -15,7 +22,7 @@ import { definitions, createSection } from "@/lib/builder/catalog";
 import { separateLayoutMenus } from "@/lib/builder/menus";
 import { useProject } from "@/lib/builder/client";
 import type { Project, Menu, MenuItem } from "@/lib/builder/types";
-import { PageHeader } from "@/components/admin/page-header";
+import { AdminPanel } from "@/components/admin/admin-panel";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -39,14 +46,50 @@ export function LayoutEditor() {
 }
 function Editor({ project }: { project: Project }) {
   const { save } = useProject();
+  const siteKey = useSiteKey();
   const [layout, setLayout] = useState(project.layout),
     [menus, setMenus] = useState(project.menus),
     [notice, setNotice] = useState(""),
     [busy, setBusy] = useState(false),
     [target, setTarget] = useState<string | null>(null),
     [chosen, setChosen] = useState<string[]>([]),
-    [edit, setEdit] = useState("");
-  const draft = { ...project, layout, menus };
+    [edit, setEdit] = useState(""),
+    [languages, setLanguages] = useState(project.languages),
+    [textLocale, setTextLocale] = useState("");
+  const draft = { ...project, layout, menus, languages };
+  const multilingual = siteLanguages(draft);
+  const defaultLocale = languages?.default || "";
+  // Header/footer text being edited: default values or one language's overrides.
+  const layoutSection = (type: "header" | "footer") =>
+    !textLocale || textLocale === defaultLocale
+      ? layout[type]
+      : {
+          ...layout[type],
+          values: {
+            ...layout[type].values,
+            ...layout.localized?.[textLocale]?.[type],
+          },
+        };
+  const setLayoutSection = (
+    type: "header" | "footer",
+    section: Project["layout"]["header"],
+  ) => {
+    if (!textLocale || textLocale === defaultLocale)
+      return setLayout({ ...layout, [type]: section });
+    // Store only the values that differ from the default language.
+    const override = Object.fromEntries(
+      Object.entries(section.values).filter(
+        ([key, value]) => layout[type].values[key] !== value,
+      ),
+    );
+    setLayout({
+      ...layout,
+      localized: {
+        ...layout.localized,
+        [textLocale]: { ...layout.localized?.[textLocale], [type]: override },
+      },
+    });
+  };
   const patchMenu = (id: string, items: MenuItem[]) =>
     setMenus(menus.map((m) => (m.id === id ? { ...m, items } : m)));
   function renderItems(
@@ -163,11 +206,9 @@ function Editor({ project }: { project: Project }) {
     ));
   }
   return (
-    <div>
-      <PageHeader
-        title="Site layout"
-        description="Shared headers, footers and menus for every page."
-        action={
+    <AdminPanel
+      title="Site layout"
+      toolbar={<div className="ml-auto flex flex-wrap items-center gap-2.5">{
           <div className="flex gap-3">
             <PreviewDialog
               project={draft}
@@ -193,11 +234,68 @@ function Editor({ project }: { project: Project }) {
               {busy ? "Saving…" : "Save layout"}
             </Button>
           </div>
-        }
-      />
+        }</div>}
+    >
       <p role="status" className="mb-5 text-sm">
         {notice}
       </p>
+      <div className="mb-6 space-y-3 rounded-xl border bg-white p-5">
+        <p className="text-sm font-medium">Languages</p>
+        <div className="flex flex-wrap gap-3">
+          {LOCALES.map((code) => {
+            const enabled = languages?.enabled || [];
+            return (
+              <label
+                key={code}
+                className="flex items-center gap-2 rounded-lg border px-3 py-2 text-sm"
+              >
+                <input
+                  type="checkbox"
+                  checked={enabled.includes(code)}
+                  onChange={(e) => {
+                    const next = e.target.checked
+                      ? [...enabled, code]
+                      : enabled.filter((c) => c !== code);
+                    setLanguages(
+                      next.length
+                        ? {
+                            enabled: next,
+                            default: next.includes(languages?.default || "")
+                              ? languages!.default
+                              : next[0],
+                          }
+                        : undefined,
+                    );
+                  }}
+                />
+                {LOCALE_NAMES[code]}
+              </label>
+            );
+          })}
+        </div>
+        {languages && (
+          <label className="grid max-w-md gap-2 text-sm">
+            Default language (addresses without a language prefix)
+            <Select
+              value={languages.default}
+              onValueChange={(value) =>
+                setLanguages({ ...languages, default: value })
+              }
+            >
+              {languages.enabled.map((code) => (
+                <SelectOption key={code} value={code}>
+                  {LOCALE_NAMES[code]}
+                </SelectOption>
+              ))}
+            </Select>
+          </label>
+        )}
+        <p className="text-xs leading-5 text-neutral-400">
+          With two or more languages, pages in other languages open at
+          /site/…/ru/page, headers show a language switcher, and each page links
+          its translations (page editor → Language & translations).
+        </p>
+      </div>
       <div className="mb-6 rounded-xl border bg-white p-5">
         <label className="grid max-w-md gap-2 text-sm font-medium">
           Home page
@@ -287,12 +385,27 @@ function Editor({ project }: { project: Project }) {
             >
               {edit === type ? "Hide" : "Edit"} {type} content
             </Button>
+            {edit === type && multilingual && (
+              <label className="grid max-w-xs gap-2 text-sm">
+                Texts for language
+                <Select
+                  value={textLocale || defaultLocale}
+                  onValueChange={setTextLocale}
+                >
+                  {multilingual.enabled.map((code) => (
+                    <SelectOption key={code} value={code}>
+                      {LOCALE_NAMES[code]}
+                      {code === defaultLocale ? " (default)" : ""}
+                    </SelectOption>
+                  ))}
+                </Select>
+              </label>
+            )}
             {edit === type && (
               <SectionEditor
-                section={layout[type]}
-                onChange={(section) =>
-                  setLayout({ ...layout, [type]: section })
-                }
+                key={textLocale}
+                section={layoutSection(type)}
+                onChange={(section) => setLayoutSection(type, section)}
               />
             )}
           </CardContent>
@@ -354,6 +467,28 @@ function Editor({ project }: { project: Project }) {
                         )
                       }
                     />
+                    {multilingual && (
+                      <Select
+                        aria-label="Menu language"
+                        value={menu.locale || ""}
+                        onValueChange={(locale) =>
+                          setMenus(
+                            menus.map((m) =>
+                              m.id === menu.id
+                                ? { ...m, locale: locale || undefined }
+                                : m,
+                            ),
+                          )
+                        }
+                      >
+                        <SelectOption value="">All languages</SelectOption>
+                        {multilingual.enabled.map((code) => (
+                          <SelectOption key={code} value={code}>
+                            {LOCALE_NAMES[code]}
+                          </SelectOption>
+                        ))}
+                      </Select>
+                    )}
                     <Button
                       variant="outline"
                       onClick={() => {
@@ -477,7 +612,7 @@ function Editor({ project }: { project: Project }) {
                     />
                     <span className="flex-1 text-sm">{page.title}</span>
                     <span className="text-xs text-neutral-400">
-                      /site/{page.slug}
+                      {pageHref(draft, siteKey, page)}
                     </span>
                   </label>
                 ))}
@@ -516,6 +651,6 @@ function Editor({ project }: { project: Project }) {
           </Dialog.Popup>
         </Dialog.Portal>
       </Dialog.Root>
-    </div>
+    </AdminPanel>
   );
 }

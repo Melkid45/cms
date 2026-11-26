@@ -2,10 +2,11 @@ import { z } from "zod";
 import {
   authorizeWrite,
   errorResponse,
+  readJson,
   StoreError,
 } from "@/lib/builder/server";
 import { changeOwnPassword } from "@/lib/builder/accounts";
-import { createSession } from "@/lib/builder/auth";
+import { createSession, sessionCookie } from "@/lib/builder/auth";
 import { accountPassword } from "@/lib/builder/account-input";
 import { limitPasswordChange } from "@/lib/builder/submissions";
 const input = z
@@ -23,7 +24,7 @@ export async function POST(request: Request) {
         403,
       );
     await limitPasswordChange(user.id);
-    const parsed = input.safeParse(await request.json());
+    const parsed = input.safeParse(await readJson(request, 4000));
     if (!parsed.success)
       throw new StoreError(
         "Enter your current password and a new password of at least 12 characters.",
@@ -39,7 +40,11 @@ export async function POST(request: Request) {
       {
         headers: {
           "Cache-Control": "no-store",
-          "Set-Cookie": `cms_session=${createSession(Date.now(), updated)}; HttpOnly; SameSite=Strict; Path=/; Max-Age=43200${process.env.NODE_ENV === "production" ? "; Secure" : ""}`,
+          "Set-Cookie": sessionCookie(
+            request,
+            createSession(Date.now(), updated),
+            43200,
+          ),
         },
       },
     );

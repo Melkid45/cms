@@ -10,6 +10,7 @@ import { mkdir, readFile, writeFile, rename } from "node:fs/promises";
 import path from "node:path";
 import { database, dataDirectory, StoreError } from "./server";
 import type { Identity } from "./permissions";
+import { legacyScope, type AccessScope } from "./access";
 const scrypt = promisify(derive);
 interface Account extends Identity {
   hash: string;
@@ -65,7 +66,17 @@ const publicAccount = ({
   role,
   version,
   disabled,
-}: Account) => ({ id, email, name, role, version, disabled });
+  scope,
+}: Account) => ({
+  id,
+  email,
+  name,
+  role,
+  version,
+  disabled,
+  // Accounts created before multi-site support keep access to the first website only.
+  scope: scope ?? legacyScope(),
+});
 export const listAccounts = () => accounts((items) => items.map(publicAccount));
 export const accountIdentity = (id: string, version: number) =>
   accounts((items) => {
@@ -104,6 +115,8 @@ export async function saveAccount(input: {
   email?: string;
   password?: string;
   disabled?: boolean;
+  scope?: AccessScope;
+  role?: "client" | "designer";
 }) {
   const credentials = input.password
     ? { salt: randomBytes(24).toString("hex"), hash: "" }
@@ -116,6 +129,10 @@ export async function saveAccount(input: {
     if (input.id) {
       const item = items.find((a) => a.id === input.id);
       if (!item) throw new StoreError("Account not found.", 404);
+      if (input.scope) item.scope = input.scope;
+      // Scopes are re-read on every request, so changing them keeps sessions valid.
+      if (!credentials && input.disabled === undefined)
+        return publicAccount(item);
       if (credentials) Object.assign(item, credentials);
       if (input.disabled !== undefined) item.disabled = input.disabled;
       item.version++;
@@ -132,10 +149,11 @@ export async function saveAccount(input: {
       id: randomUUID(),
       email,
       name: input.name!,
-      role: "client",
+      role: input.role ?? "client",
       version: 1,
       disabled: false,
       ...credentials!,
+      ...(input.scope ? { scope: input.scope } : {}),
     };
     items.push(item);
     return publicAccount(item);

@@ -21,11 +21,11 @@
       "secondaryButtonMotion": "fade"
     },
     "sections": [
-      "hero-v10",
+      "hero-v14",
       "about-v9",
       "services-v10",
       "advantages-v9",
-      "projects-v9",
+      "projects-v11",
       "contact-v5"
     ]
   },
@@ -82,10 +82,10 @@
       "secondaryButtonMotion": "fade"
     },
     "sections": [
-      "hero-v9",
+      "hero-v13",
       "about-v8",
       "services-v10",
-      "projects-v9",
+      "projects-v11",
       "advantages-v9",
       "faq-v6",
       "contact-v8"

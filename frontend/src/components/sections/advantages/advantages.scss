@@ -88,3 +88,90 @@
 @media (max-width: 380px) {
   .advantages__facts { grid-template-columns: 1fr; }
 }
+
+// advantages-v40 Figures + advantages-v41 Plain Columns (anselat agent)
+.advantages--figures {
+  container-type: inline-size;
+  .advantages__figures { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 60px; }
+  .advantages__figure { flex: 0 1 auto; display: flex; flex-direction: column; gap: 24px; }
+  .advantages__figure-value { font-family: var(--font-body); font-weight: 400; letter-spacing: -0.03em; line-height: 1; font-variant-numeric: lining-nums tabular-nums; }
+  @container (max-width: 600px) { .advantages__figures { display: grid; grid-template-columns: minmax(0, 1fr); } .advantages__figure { align-items: center; text-align: center; } .advantages__figure-value { font-weight: 500; } }
+}
+.advantages--columns {
+  container-type: inline-size;
+  .advantages__columns { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8%; padding-inline: clamp(0px, 5vw, 100px); }
+  .advantages__column { display: flex; flex-direction: column; gap: 40px; }
+  .advantages__column .section__description { font-weight: 300; line-height: 1.4; }
+  @container (max-width: 1000px) { .advantages__columns { grid-template-columns: minmax(0, 1fr); gap: 50px; padding-inline: 0; } .advantages__column { gap: 28px; } }
+}
+
+// advantages-v30 (Counters): a row of big numbers with a short label, no intro.
+.advantages--counters {
+  container-type: inline-size;
+  .advantages__counters { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 40px; }
+  .advantages__item { display: flex; flex-direction: column; gap: 16px; padding: 0; background: none; box-shadow: none; }
+  .advantages__count { font-weight: 700; line-height: 1; }
+}
+@container (max-width: 600px) {
+  .advantages--counters .advantages__counters { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; }
+}
+
+// advantages-v20 (terms): a card of titled terms (repeatable) + four figure tiles on the side (empty tiles hidden).
+.advantages--terms {
+  container-type: inline-size;
+  .advantages__terms { display: grid; grid-template-columns: minmax(0, 1fr) 340px; align-items: start; gap: 20px; }
+  .advantages__terms-card { display: flex; flex-direction: column; gap: 22px; padding: 32px 26px; border-radius: var(--radius); background: var(--color-bg); box-shadow: 0 1px 2px rgb(0 0 0 / 0.05), 0 6px 20px rgb(0 0 0 / 0.05); }
+  .advantages__term { display: flex; flex-direction: column; gap: 8px; }
+  .advantages__term .heading { font-size: 19px; }
+  .advantages__facts-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+  .advantages__fact-tile { display: flex; flex-direction: column; gap: 6px; padding: 18px 16px; border-radius: var(--radius); background: var(--color-bg); box-shadow: 0 1px 2px rgb(0 0 0 / 0.05), 0 6px 20px rgb(0 0 0 / 0.05); }
+  .advantages__fact-tile:has(.heading:empty) { display: none; }
+  .advantages__fact-tile .text { color: var(--color-muted); }
+  @container (max-width: 860px) { .advantages__terms { grid-template-columns: minmax(0, 1fr); } }
+}
+// advantages-v21 (strip): a dark band of 2–6 big figures with a short label each.
+.advantages--strip {
+  container-type: inline-size;
+  .advantages__strip { display: grid; grid-auto-columns: minmax(0, 1fr); grid-auto-flow: column; overflow: hidden; border-radius: calc(var(--radius) + 4px); background: var(--color-ink); color: var(--color-bg); }
+  .advantages__stat { display: flex; flex-direction: column; gap: 6px; padding: 28px 26px; }
+  .advantages__stat + .advantages__stat { box-shadow: inset 1px 0 0 color-mix(in srgb, var(--color-bg) 14%, transparent); }
+  .advantages__stat .heading { font-family: var(--font-heading); font-size: clamp(40px, 5vw, 64px); line-height: 1; letter-spacing: -0.04em; }
+  .advantages__stat .text { opacity: .7; }
+  @container (max-width: 760px) {
+    .advantages__strip { grid-template-columns: repeat(2, minmax(0, 1fr)); grid-auto-flow: row; }
+    .advantages__stat + .advantages__stat { box-shadow: none; }
+  }
+}
+
+// advantages-v22 (tiles): heading + row of soft tiles with a small icon square (six icon templates: check, pin,
+// truck, shield, clock, heart — pick per card), title and text. Four per row, two on tablets, one on phones.
+.advantages--tiles {
+  container-type: inline-size;
+  .advantages__tiles-title { margin-bottom: 20px; }
+  .advantages__tiles-title:empty { display: none; }
+  .advantages__tiles { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; }
+  .advantages__tile { display: flex; flex-direction: column; align-items: flex-start; gap: 8px; padding: 20px; border-radius: var(--radius); background: var(--color-surface); }
+  .advantages__tile-icon { display: grid; place-items: center; width: 40px; height: 40px; margin-bottom: 8px; border-radius: 10px; background: var(--color-bg); }
+  .advantages__tile .heading { font-size: 18px; letter-spacing: -0.01em; }
+  .advantages__tile .text { color: var(--color-muted); }
+  @container (max-width: 900px) { .advantages__tiles { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+  @container (max-width: 520px) { .advantages__tiles { grid-template-columns: minmax(0, 1fr); } }
+}
+
+// advantages-v70 Panels (landing agent, 2026-11-20): title + lead stacked on top, then calm panels
+// (title + text) in a 4/2/1-column grid. No icons, numbers or dividers.
+.advantages.advantages--panels {
+  container-type: inline-size;
+  .advantages__wrap { --container-width: 1400px; }
+  .advantages__intro { display: flex; flex-direction: column; gap: 20px; max-width: 760px; margin-bottom: clamp(40px, 5vw, 72px); }
+  .advantages__intro .heading { line-height: 1.04; letter-spacing: -0.035em; }
+  .advantages__intro .section__description { max-width: 600px; color: var(--color-muted); }
+  .advantages__intro .section__description:empty { display: none; }
+  .advantages__panels { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: clamp(16px, 1.6vw, 24px); }
+  .advantages__point { display: flex; flex-direction: column; gap: 14px; min-width: 0; padding: clamp(24px, 2.4vw, 36px); border-radius: 14px; background: var(--color-surface); transition: box-shadow .35s ease; }
+  .advantages__point:hover { box-shadow: 0 18px 48px -26px rgb(0 0 0 / 24%); }
+  .advantages__point .heading { letter-spacing: -0.02em; }
+  .advantages__point .text { color: var(--color-muted); }
+  @container (max-width: 1100px) { .advantages__panels { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+  @container (max-width: 600px) { .advantages__panels { grid-template-columns: minmax(0, 1fr); } }
+}

@@ -2,19 +2,28 @@
 /* eslint-disable @next/next/no-img-element */
 import { useState, useId, useEffect, useRef } from "react";
 import type { CmsForm } from "@/lib/builder/types";
-import { safeUrl } from "@/lib/builder/catalog";
+import { safeUrl } from "@/lib/builder/safe-url";
 import { validateFormValues } from "@/lib/builder/form-values";
+import { formMessage, uiText } from "@/lib/builder/i18n";
+const tokenUrl = (page: string, siteId?: string) =>
+  `/api/forms/token?pageId=${encodeURIComponent(page)}${siteId ? `&site=${encodeURIComponent(siteId)}` : ""}`;
 export function SchemaForm({
   definition: form,
   pageId,
   sectionId,
   serviceId,
+  siteId,
+  locale,
 }: {
   definition: CmsForm;
   pageId?: string;
   sectionId?: string;
   serviceId?: string;
+  // Website (multi-site enquiries) and page language (sent with the enquiry, used for replies).
+  siteId?: string;
+  locale?: string;
 }) {
+  const t = uiText(locale);
   const tokenRef = useRef<{ pageId: string; promise: Promise<string> } | null>(
     null,
   );
@@ -23,7 +32,7 @@ export function SchemaForm({
     if (tokenRef.current?.pageId === pageId) return tokenRef.current.promise;
     const promise = (async () => {
       const response = await fetch(
-        `/api/forms/token?pageId=${encodeURIComponent(pageId)}`,
+        tokenUrl(pageId, siteId),
         { cache: "no-store" },
       );
       const result = await response.json();
@@ -41,7 +50,7 @@ export function SchemaForm({
     if (pageId) {
       const promise = (async () => {
         const response = await fetch(
-          `/api/forms/token?pageId=${encodeURIComponent(pageId)}`,
+          tokenUrl(pageId, siteId),
           { cache: "no-store" },
         );
         const result = await response.json();
@@ -54,7 +63,7 @@ export function SchemaForm({
         tokenRef.current = null;
       });
     }
-  }, [pageId]);
+  }, [pageId, siteId]);
   const prefix = useId();
   const [notice, setNotice] = useState("");
   const [busy, setBusy] = useState(false);
@@ -86,7 +95,7 @@ export function SchemaForm({
             return;
           }
           setBusy(true);
-          setNotice("Sending…");
+          setNotice(t.sending);
           try {
             const data = new FormData(element);
             const input = Object.fromEntries(
@@ -98,6 +107,8 @@ export function SchemaForm({
               method: "POST",
               headers: { "Content-Type": "application/json" },
               body: JSON.stringify({
+                ...(siteId ? { site: siteId } : {}),
+                locale,
                 pageId,
                 sectionId,
                 formId: form.id,
@@ -113,11 +124,7 @@ export function SchemaForm({
             element.reset();
             element.classList.remove("cms-form--attempted");
           } catch (e) {
-            setNotice(
-              e instanceof Error
-                ? e.message
-                : "Could not send. Please try again.",
-            );
+            setNotice(e instanceof Error ? formMessage(locale, e.message) : t.failed);
           } finally {
             setBusy(false);
           }
@@ -205,7 +212,7 @@ export function SchemaForm({
           aria-hidden="true"
         />
         <button className="button button--dark" type="submit" disabled={busy}>
-          {busy ? "Sending…" : form.buttonLabel}
+          {busy ? t.sending : form.buttonLabel}
         </button>
         <p className="text text--sm" role="status" aria-live="polite">
           {notice}

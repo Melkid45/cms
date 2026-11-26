@@ -1,0 +1,44 @@
+// calculator-v40 Price Modal (anselat agent). Hidden on the public page until a link to #calc opens it;
+// shown inline inside the page editor so its texts stay editable.
+.calculator--modal {
+  container-type: inline-size;
+  .calculator__dialog { width: 100%; max-width: 1200px; margin-inline: auto; padding: clamp(24px, 3vw, 50px); border-radius: calc(var(--radius) * 2); background: var(--color-bg); color: var(--color-ink); }
+  .calculator__head { display: flex; align-items: center; justify-content: space-between; gap: 24px; margin-bottom: clamp(24px, 3vw, 40px); }
+  .calculator__close { display: grid; place-items: center; width: 48px; height: 48px; padding: 0; border: 0; border-radius: 50%; background: transparent; color: inherit; cursor: pointer; }
+  .calculator__close:hover { background: var(--color-surface); }
+  .calculator__form { gap: clamp(24px, 3vw, 40px); }
+  .calculator__group { display: flex; flex-direction: column; gap: 24px; margin: 0; padding: 0; border: 0; min-width: 0; }
+  .calculator__legend { padding: 0; margin-bottom: 24px; }
+  .calculator__choices { display: flex; flex-wrap: wrap; gap: 20px; }
+  .calculator__choice { position: relative; padding: 22px 36px; border-radius: 999px; background: var(--color-surface); color: var(--color-muted); cursor: pointer; transition: background .2s, color .2s; }
+  .calculator__choice:hover { color: var(--color-ink); }
+  .calculator__choice:has(input:checked) { background: var(--color-accent); color: var(--brand-on-accent, #111111); }
+  .calculator__choice:has(input:focus-visible) { outline: 3px solid var(--color-interactive); outline-offset: 3px; }
+  .calculator__choice input { position: absolute; inset: 0; width: 100%; height: 100%; margin: 0; opacity: 0; cursor: pointer; }
+  .calculator__fields { display: grid; gap: 20px; }
+  .calculator__fields--three { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .calculator__fields--two { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .calculator__field { min-width: 0; }
+  .calculator__field--wide { grid-column: 1 / -1; }
+  .calculator__input { width: 100%; padding: 22px 28px; border: 1px solid color-mix(in srgb, var(--color-ink) 20%, transparent); border-radius: 999px; background: var(--color-bg); color: var(--color-ink); font: inherit; font-size: clamp(16px, 1.3vw, 20px); outline: none; }
+  .calculator__input:focus { border-color: var(--color-ink); }
+  .calculator__input[aria-invalid="true"], .calculator__input:user-invalid { border-color: #d92d20; background: #fff1f0; }
+  .calculator__sr { position: absolute; width: 1px; height: 1px; margin: -1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+  .calculator__price { display: flex; align-items: center; justify-content: space-between; gap: 24px; }
+  .calculator__total { font-family: var(--font-body); font-weight: 500; white-space: nowrap; }
+  .calculator__submit { width: 100%; border-radius: 999px; min-height: 64px; color: var(--brand-on-accent, #111111); }
+  .calculator__note { text-align: center; opacity: 0.8; }
+  .calculator__success { display: flex; flex-direction: column; align-items: center; gap: 24px; padding: 40px 0; text-align: center; }
+  .calculator__success[hidden] { display: none; }
+  .calculator__success .button { border-radius: 999px; padding: 20px 34px; color: var(--brand-on-accent, #111111); }
+  @container (max-width: 900px) { .calculator__fields--three, .calculator__fields--two { grid-template-columns: minmax(0, 1fr); } }
+  @container (max-width: 520px) { .calculator__choices { display: grid; grid-template-columns: minmax(0, 1fr); } .calculator__choice { text-align: center; } .calculator__price { flex-direction: column; align-items: flex-start; gap: 8px; } }
+}
+// Public page: a pop-up window over a blurred backdrop.
+.site-canvas:not([data-select-sections]) [data-modal] { display: none; }
+.site-canvas:not([data-select-sections]) [data-modal].is-open {
+  position: fixed; inset: 0; z-index: 200; display: flex; align-items: center; justify-content: center;
+  padding: clamp(12px, 3vw, 40px); background: rgb(0 0 0 / 35%); backdrop-filter: blur(10px);
+}
+.site-canvas:not([data-select-sections]) [data-modal].is-open .calculator__dialog { max-height: 100%; overflow-y: auto; overscroll-behavior: contain; }
+html[data-modal-open] { overflow: hidden; }

@@ -1,0 +1,950 @@
+{
+ "css": "/fonts/site-fonts.6cddac0f41.css",
+ "vars": {
+  "--font-inter": "Inter",
+  "--font-playfair": "Playfair Display",
+  "--font-cormorant": "Cormorant Garamond",
+  "--font-montserrat": "Montserrat",
+  "--font-lora": "Lora",
+  "--font-source-sans": "Source Sans 3",
+  "--font-pt-serif": "PT Serif",
+  "--font-pt-sans": "PT Sans",
+  "--font-manrope": "Manrope",
+  "--font-nunito": "Nunito",
+  "--font-oswald": "Oswald",
+  "--font-roboto": "Roboto",
+  "--font-unbounded": "Unbounded",
+  "--font-inter-opsz": "Inter",
+  "--font-dm-serif": "DM Serif Text",
+  "--font-jakarta": "Plus Jakarta Sans",
+  "--font-raleway": "Raleway",
+  "--font-open-sans": "Open Sans",
+  "--font-inter-tight": "Inter Tight"
+ },
+ "faces": [
+  {
+   "family": "Inter",
+   "file": "/fonts/46a9e2f250689b4a-s.0-dom-5bn10r2.woff2",
+   "weight": "100 900",
+   "style": "normal",
+   "range": "U+460-52F,U+1C80-1C8A,U+20B4,U+2DE0-2DFF,U+A640-A69F,U+FE2E-FE2F"
+  },
+  {
+   "family": "Inter",
+   "file": "/fonts/76b70a1dbe058eb5-s.1y4-pdgsjb-pw.woff2",
+   "weight": "100 900",
+   "style": "normal",
+   "range": "U+301,U+400-45F,U+490-491,U+4B0-4B1,U+2116"
+  },
+  {
+   "family": "Inter",
+   "file": "/fonts/2fb76073e23fd9e4-s.3lvt2whj97whp.woff2",
+   "weight": "100 900",
+   "style": "normal",
+   "range": "U+1F??"
+  },
+  {
+   "family": "Inter",
+   "file": "/fonts/6131cbbf5549afa2-s.2uwcyprjm3xu3.woff2",
+   "weight": "100 900",
+   "style": "normal",
+   "range": "U+370-377,U+37A-37F,U+384-38A,U+38C,U+38E-3A1,U+3A3-3FF"
+  },
+  {
+   "family": "Inter",
+   "file": "/fonts/45462fd7b7c12654-s.0k62hbripvv8p.woff2",
+   "weight": "100 900",
+   "style": "normal",
+   "range": "U+102-103,U+110-111,U+128-129,U+168-169,U+1A0-1A1,U+1AF-1B0,U+300-301,U+303-304,U+308-309,U+323,U+329,U+1EA0-1EF9,U+20AB"
+  },
+  {
+   "family": "Inter",
+   "file": "/fonts/ba63f6a0e436df8e-s.3-6t-g6q0vh0a.woff2",
+   "weight": "100 900",
+   "style": "normal",
+   "range": "U+100-2BA,U+2BD-2C5,U+2C7-2CC,U+2CE-2D7,U+2DD-2FF,U+304,U+308,U+329,U+1D00-1DBF,U+1E00-1E9F,U+1EF2-1EFF,U+2020,U+20A0-20AB,U+20AD-20C4,U+2113,U+2C60-2C7F,U+A720-A7FF"
+  },
+  {
+   "family": "Inter",
+   "file": "/fonts/07c7676b89ed2778-s.2bn3s6zvc0dyp.woff2",
+   "weight": "100 900",
+   "style": "normal",
+   "range": "U+??,U+131,U+152-153,U+2BB-2BC,U+2C6,U+2DA,U+2DC,U+304,U+308,U+329,U+2000-206F,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD"
+  },
+  {
+   "family": "Playfair Display",
+   "file": "/fonts/be0844c0dd808a0e-s.1mej3isbywumt.woff2",
+   "weight": "700",
+   "style": "normal",
+   "range": "U+301,U+400-45F,U+490-491,U+4B0-4B1,U+2116"
+  },
+  {
+   "family": "Playfair Display",
+   "file": "/fonts/d3e6c758e41b4c78-s.0lw6-z2c1j148.woff2",
+   "weight": "700",
+   "style": "normal",
+   "range": "U+102-103,U+110-111,U+128-129,U+168-169,U+1A0-1A1,U+1AF-1B0,U+300-301,U+303-304,U+308-309,U+323,U+329,U+1EA0-1EF9,U+20AB"
+  },
+  {
+   "family": "Playfair Display",
+   "file": "/fonts/5ab3e2aec517c01b-s.0twrkrfokloam.woff2",
+   "weight": "700",
+   "style": "normal",
+   "range": "U+100-2BA,U+2BD-2C5,U+2C7-2CC,U+2CE-2D7,U+2DD-2FF,U+304,U+308,U+329,U+1D00-1DBF,U+1E00-1E9F,U+1EF2-1EFF,U+2020,U+20A0-20AB,U+20AD-20C4,U+2113,U+2C60-2C7F,U+A720-A7FF"
+  },
+  {
+   "family": "Playfair Display",
+   "file": "/fonts/ba98627ec74fa645-s.0hcpo7hwkj_b3.woff2",
+   "weight": "700",
+   "style": "normal",
+   "range": "U+??,U+131,U+152-153,U+2BB-2BC,U+2C6,U+2DA,U+2DC,U+304,U+308,U+329,U+2000-206F,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD"
+  },
+  {
+   "family": "Cormorant Garamond",
+   "file": "/fonts/74ee47c2b6a928ac-s.0888xg7ps4tjz.woff2",
+   "weight": "600",
+   "style": "normal",
+   "range": "U+460-52F,U+1C80-1C8A,U+20B4,U+2DE0-2DFF,U+A640-A69F,U+FE2E-FE2F"
+  },
+  {
+   "family": "Cormorant Garamond",
+   "file": "/fonts/1c854f34112e7ae4-s.1sq7s-u68dts7.woff2",
+   "weight": "600",
+   "style": "normal",
+   "range": "U+301,U+400-45F,U+490-491,U+4B0-4B1,U+2116"
+  },
+  {
+   "family": "Cormorant Garamond",
+   "file": "/fonts/f35d0a466c377feb-s.2ypd8hlwb4pt3.woff2",
+   "weight": "600",
+   "style": "normal",
+   "range": "U+102-103,U+110-111,U+128-129,U+168-169,U+1A0-1A1,U+1AF-1B0,U+300-301,U+303-304,U+308-309,U+323,U+329,U+1EA0-1EF9,U+20AB"
+  },
+  {
+   "family": "Cormorant Garamond",
+   "file": "/fonts/7177264209877925-s.3d7jz5b7vsrv4.woff2",
+   "weight": "600",
+   "style": "normal",
+   "range": "U+100-2BA,U+2BD-2C5,U+2C7-2CC,U+2CE-2D7,U+2DD-2FF,U+304,U+308,U+329,U+1D00-1DBF,U+1E00-1E9F,U+1EF2-1EFF,U+2020,U+20A0-20AB,U+20AD-20C4,U+2113,U+2C60-2C7F,U+A720-A7FF"
+  },
+  {
+   "family": "Cormorant Garamond",
+   "file": "/fonts/80099d840e1750ba-s.23ep72p29q6zo.woff2",
+   "weight": "600",
+   "style": "normal",
+   "range": "U+??,U+131,U+152-153,U+2BB-2BC,U+2C6,U+2DA,U+2DC,U+304,U+308,U+329,U+2000-206F,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD"
+  },
+  {
+   "family": "Montserrat",
+   "file": "/fonts/ca55bb71b529573f-s.3q4n78m6muld7.woff2",
+   "weight": "100 900",
+   "style": "normal",
+   "range": "U+460-52F,U+1C80-1C8A,U+20B4,U+2DE0-2DFF,U+A640-A69F,U+FE2E-FE2F"
+  },
+  {
+   "family": "Montserrat",
+   "file": "/fonts/1361b9baaefe9807-s.1d_6dtvtn9g3_.woff2",
+   "weight": "100 900",
+   "style": "normal",
+   "range": "U+301,U+400-45F,U+490-491,U+4B0-4B1,U+2116"
+  },
+  {
+   "family": "Montserrat",
+   "file": "/fonts/92eb00116dd31e6a-s.16nfeub7ja6ze.woff2",
+   "weight": "100 900",
+   "style": "normal",
+   "range": "U+102-103,U+110-111,U+128-129,U+168-169,U+1A0-1A1,U+1AF-1B0,U+300-301,U+303-304,U+308-309,U+323,U+329,U+1EA0-1EF9,U+20AB"
+  },
+  {
+   "family": "Montserrat",
+   "file": "/fonts/e1f600cb732239d9-s.1mvr14jy3vxq7.woff2",
+   "weight": "100 900",
+   "style": "normal",
+   "range": "U+100-2BA,U+2BD-2C5,U+2C7-2CC,U+2CE-2D7,U+2DD-2FF,U+304,U+308,U+329,U+1D00-1DBF,U+1E00-1E9F,U+1EF2-1EFF,U+2020,U+20A0-20AB,U+20AD-20C4,U+2113,U+2C60-2C7F,U+A720-A7FF"
+  },
+  {
+   "family": "Montserrat",
+   "file": "/fonts/65341aea9fb91af5-s.1dqa_6e_ad4sj.woff2",
+   "weight": "100 900",
+   "style": "normal",
+   "range": "U+??,U+131,U+152-153,U+2BB-2BC,U+2C6,U+2DA,U+2DC,U+304,U+308,U+329,U+2000-206F,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD"
+  },
+  {
+   "family": "Lora",
+   "file": "/fonts/c713a0aab7a8ca36-s.0mybutugvu-lq.woff2",
+   "weight": "400 700",
+   "style": "normal",
+   "range": "U+460-52F,U+1C80-1C8A,U+20B4,U+2DE0-2DFF,U+A640-A69F,U+FE2E-FE2F"
+  },
+  {
+   "family": "Lora",
+   "file": "/fonts/2c6bb81ef2959eb3-s.2fpqrm51ez0iq.woff2",
+   "weight": "400 700",
+   "style": "normal",
+   "range": "U+301,U+400-45F,U+490-491,U+4B0-4B1,U+2116"
+  },
+  {
+   "family": "Lora",
+   "file": "/fonts/e929b158eb81aae9-s.02frcczqg7k-8.woff2",
+   "weight": "400 700",
+   "style": "normal",
+   "range": "U+302-303,U+305,U+307-308,U+310,U+312,U+315,U+31A,U+326-327,U+32C,U+32F-330,U+332-333,U+338,U+33A,U+346,U+34D,U+391-3A1,U+3A3-3A9,U+3B1-3C9,U+3D1,U+3D5-3D6,U+3F0-3F1,U+3F4-3F5,U+2016-2017,U+2034-2038,U+203C,U+2040,U+2043,U+2047,U+2050,U+2057,U+205F,U+2070-2071,U+2074-209F,U+20D0-20DC,U+20E1,U+20E5-20EF,U+2100-2112,U+2114-2115,U+2117-2121,U+2123-214F,U+2190,U+2192,U+2194-21AE,U+21B0-21E5,U+21F1-21F2,U+21F4-2211,U+2213-2214,U+2216-22FF,U+2308-230B,U+2310,U+2319,U+231C-2321,U+2336-237A,U+237C,U+2395,U+239B-23B7,U+23D0,U+23DC-23E1,U+2474-2475,U+25AF,U+25B3,U+25B7,U+25BD,U+25C1,U+25CA,U+25CC,U+25FB,U+266D-266F,U+27C0-27FF,U+2900-2AFF,U+2B0E-2B11,U+2B30-2B4C,U+2BFE,U+3030,U+FF5B,U+FF5D,U+1D400-1D7FF,U+1EE??"
+  },
+  {
+   "family": "Lora",
+   "file": "/fonts/02ee680d6f7b72e4-s.2936i88_6qsfd.woff2",
+   "weight": "400 700",
+   "style": "normal",
+   "range": "U+1-C,U+E-1F,U+7F-9F,U+20DD-20E0,U+20E2-20E4,U+2150-218F,U+2190,U+2192,U+2194-2199,U+21AF,U+21E6-21F0,U+21F3,U+2218-2219,U+2299,U+22C4-22C6,U+2300-243F,U+2440-244A,U+2460-24FF,U+25A0-27BF,U+28??,U+2921-2922,U+2981,U+29BF,U+29EB,U+2B??,U+4DC0-4DFF,U+FFF9-FFFB,U+10140-1018E,U+10190-1019C,U+101A0,U+101D0-101FD,U+102E0-102FB,U+10E60-10E7E,U+1D2C0-1D2D3,U+1D2E0-1D37F,U+1F0??,U+1F100-1F1AE,U+1F1E6-1F1FF,U+1F30D-1F30F,U+1F315,U+1F31C,U+1F31E,U+1F320-1F32C,U+1F336,U+1F378,U+1F37D,U+1F382,U+1F393-1F39F,U+1F3A7-1F3A8,U+1F3AC-1F3AF,U+1F3C2,U+1F3C4-1F3C6,U+1F3CA-1F3CE,U+1F3D4-1F3E0,U+1F3ED,U+1F3F1-1F3F3,U+1F3F5-1F3F7,U+1F408,U+1F415,U+1F41F,U+1F426,U+1F43F,U+1F441-1F442,U+1F444,U+1F446-1F449,U+1F44C-1F44E,U+1F453,U+1F46A,U+1F47D,U+1F4A3,U+1F4B0,U+1F4B3,U+1F4B9,U+1F4BB,U+1F4BF,U+1F4C8-1F4CB,U+1F4D6,U+1F4DA,U+1F4DF,U+1F4E3-1F4E6,U+1F4EA-1F4ED,U+1F4F7,U+1F4F9-1F4FB,U+1F4FD-1F4FE,U+1F503,U+1F507-1F50B,U+1F50D,U+1F512-1F513,U+1F53E-1F54A,U+1F54F-1F5FA,U+1F610,U+1F650-1F67F,U+1F687,U+1F68D,U+1F691,U+1F694,U+1F698,U+1F6AD,U+1F6B2,U+1F6B9-1F6BA,U+1F6BC,U+1F6C6-1F6CF,U+1F6D3-1F6D7,U+1F6E0-1F6EA,U+1F6F0-1F6F3,U+1F6F7-1F6FC,U+1F700-1F80B,U+1F810-1F847,U+1F850-1F859,U+1F860-1F887,U+1F890-1F8AD,U+1F8B0-1F8BB,U+1F8C0-1F8C1,U+1F8D0-1F8D8,U+1F900-1F90B,U+1F93B,U+1F946,U+1F984,U+1F996,U+1F9E9,U+1FA00-1FA6F,U+1FA70-1FA7C,U+1FA80-1FAC6,U+1FAC8,U+1FACC-1FADD,U+1FADF-1FAEB,U+1FAEF-1FAFA,U+1FB??"
+  },
+  {
+   "family": "Lora",
+   "file": "/fonts/80aaaae4466959af-s.15gdzqknx46iu.woff2",
+   "weight": "400 700",
+   "style": "normal",
+   "range": "U+102-103,U+110-111,U+128-129,U+168-169,U+1A0-1A1,U+1AF-1B0,U+300-301,U+303-304,U+308-309,U+323,U+329,U+1EA0-1EF9,U+20AB"
+  },
+  {
+   "family": "Lora",
+   "file": "/fonts/1854c6960aa5e9fd-s.2qdkzeru_ecot.woff2",
+   "weight": "400 700",
+   "style": "normal",
+   "range": "U+100-2BA,U+2BD-2C5,U+2C7-2CC,U+2CE-2D7,U+2DD-2FF,U+304,U+308,U+329,U+1D00-1DBF,U+1E00-1E9F,U+1EF2-1EFF,U+2020,U+20A0-20AB,U+20AD-20C4,U+2113,U+2C60-2C7F,U+A720-A7FF"
+  },
+  {
+   "family": "Lora",
+   "file": "/fonts/c3d9c74ef0d9c07b-s.23aeddxv5enbo.woff2",
+   "weight": "400 700",
+   "style": "normal",
+   "range": "U+??,U+131,U+152-153,U+2BB-2BC,U+2C6,U+2DA,U+2DC,U+304,U+308,U+329,U+2000-206F,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD"
+  },
+  {
+   "family": "Source Sans 3",
+   "file": "/fonts/9a8ab2e4d444e231-s.3tc7otjauzr1s.woff2",
+   "weight": "200 900",
+   "style": "normal",
+   "range": "U+460-52F,U+1C80-1C8A,U+20B4,U+2DE0-2DFF,U+A640-A69F,U+FE2E-FE2F"
+  },
+  {
+   "family": "Source Sans 3",
+   "file": "/fonts/315a5857c5982773-s.3wm_n5jv1to7s.woff2",
+   "weight": "200 900",
+   "style": "normal",
+   "range": "U+301,U+400-45F,U+490-491,U+4B0-4B1,U+2116"
+  },
+  {
+   "family": "Source Sans 3",
+   "file": "/fonts/d7f70ffb4230c570-s.16ho2af8siaoz.woff2",
+   "weight": "200 900",
+   "style": "normal",
+   "range": "U+1F??"
+  },
+  {
+   "family": "Source Sans 3",
+   "file": "/fonts/c61b8f0e3b227b29-s.18qy1692brv69.woff2",
+   "weight": "200 900",
+   "style": "normal",
+   "range": "U+370-377,U+37A-37F,U+384-38A,U+38C,U+38E-3A1,U+3A3-3FF"
+  },
+  {
+   "family": "Source Sans 3",
+   "file": "/fonts/7972ad5647803fd9-s.19qxib7n2l0kn.woff2",
+   "weight": "200 900",
+   "style": "normal",
+   "range": "U+102-103,U+110-111,U+128-129,U+168-169,U+1A0-1A1,U+1AF-1B0,U+300-301,U+303-304,U+308-309,U+323,U+329,U+1EA0-1EF9,U+20AB"
+  },
+  {
+   "family": "Source Sans 3",
+   "file": "/fonts/f8ce1f1dfe1de081-s.15241mr5-1s6i.woff2",
+   "weight": "200 900",
+   "style": "normal",
+   "range": "U+100-2BA,U+2BD-2C5,U+2C7-2CC,U+2CE-2D7,U+2DD-2FF,U+304,U+308,U+329,U+1D00-1DBF,U+1E00-1E9F,U+1EF2-1EFF,U+2020,U+20A0-20AB,U+20AD-20C4,U+2113,U+2C60-2C7F,U+A720-A7FF"
+  },
+  {
+   "family": "Source Sans 3",
+   "file": "/fonts/6873f4f49904bdbd-s.2adce56gso3ku.woff2",
+   "weight": "200 900",
+   "style": "normal",
+   "range": "U+??,U+131,U+152-153,U+2BB-2BC,U+2C6,U+2DA,U+2DC,U+304,U+308,U+329,U+2000-206F,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD"
+  },
+  {
+   "family": "PT Serif",
+   "file": "/fonts/5af74758204256bf-s.2o66go2_90jnc.woff2",
+   "weight": "400",
+   "style": "normal",
+   "range": "U+460-52F,U+1C80-1C8A,U+20B4,U+2DE0-2DFF,U+A640-A69F,U+FE2E-FE2F"
+  },
+  {
+   "family": "PT Serif",
+   "file": "/fonts/dafbd9439ca9c871-s.0u9hc_fqg-qvm.woff2",
+   "weight": "400",
+   "style": "normal",
+   "range": "U+301,U+400-45F,U+490-491,U+4B0-4B1,U+2116"
+  },
+  {
+   "family": "PT Serif",
+   "file": "/fonts/d2d66cf2c8bd0a84-s.3-wuczr-njsez.woff2",
+   "weight": "400",
+   "style": "normal",
+   "range": "U+100-2BA,U+2BD-2C5,U+2C7-2CC,U+2CE-2D7,U+2DD-2FF,U+304,U+308,U+329,U+1D00-1DBF,U+1E00-1E9F,U+1EF2-1EFF,U+2020,U+20A0-20AB,U+20AD-20C4,U+2113,U+2C60-2C7F,U+A720-A7FF"
+  },
+  {
+   "family": "PT Serif",
+   "file": "/fonts/82f10de28ac653a6-s.2eihtoujcoclr.woff2",
+   "weight": "400",
+   "style": "normal",
+   "range": "U+??,U+131,U+152-153,U+2BB-2BC,U+2C6,U+2DA,U+2DC,U+304,U+308,U+329,U+2000-206F,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD"
+  },
+  {
+   "family": "PT Serif",
+   "file": "/fonts/d00528fe15b121d0-s.1ht_rhgwo8zdn.woff2",
+   "weight": "700",
+   "style": "normal",
+   "range": "U+460-52F,U+1C80-1C8A,U+20B4,U+2DE0-2DFF,U+A640-A69F,U+FE2E-FE2F"
+  },
+  {
+   "family": "PT Serif",
+   "file": "/fonts/5e5e1f213ce9c417-s.15jyn9s6-kaki.woff2",
+   "weight": "700",
+   "style": "normal",
+   "range": "U+301,U+400-45F,U+490-491,U+4B0-4B1,U+2116"
+  },
+  {
+   "family": "PT Serif",
+   "file": "/fonts/609f99c26c902c13-s.227lsm-i-u5c5.woff2",
+   "weight": "700",
+   "style": "normal",
+   "range": "U+100-2BA,U+2BD-2C5,U+2C7-2CC,U+2CE-2D7,U+2DD-2FF,U+304,U+308,U+329,U+1D00-1DBF,U+1E00-1E9F,U+1EF2-1EFF,U+2020,U+20A0-20AB,U+20AD-20C4,U+2113,U+2C60-2C7F,U+A720-A7FF"
+  },
+  {
+   "family": "PT Serif",
+   "file": "/fonts/841cf768f2e531bc-s.3axch3fp2h9wp.woff2",
+   "weight": "700",
+   "style": "normal",
+   "range": "U+??,U+131,U+152-153,U+2BB-2BC,U+2C6,U+2DA,U+2DC,U+304,U+308,U+329,U+2000-206F,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD"
+  },
+  {
+   "family": "PT Sans",
+   "file": "/fonts/36759e4de12a1159-s.4533bvve4s6a4.woff2",
+   "weight": "400",
+   "style": "normal",
+   "range": "U+460-52F,U+1C80-1C8A,U+20B4,U+2DE0-2DFF,U+A640-A69F,U+FE2E-FE2F"
+  },
+  {
+   "family": "PT Sans",
+   "file": "/fonts/e82684ae1f15cf05-s.3ls_3_aoj0ebm.woff2",
+   "weight": "400",
+   "style": "normal",
+   "range": "U+301,U+400-45F,U+490-491,U+4B0-4B1,U+2116"
+  },
+  {
+   "family": "PT Sans",
+   "file": "/fonts/0313e8b67d032c97-s.0i9j7-y4t3ijp.woff2",
+   "weight": "400",
+   "style": "normal",
+   "range": "U+100-2BA,U+2BD-2C5,U+2C7-2CC,U+2CE-2D7,U+2DD-2FF,U+304,U+308,U+329,U+1D00-1DBF,U+1E00-1E9F,U+1EF2-1EFF,U+2020,U+20A0-20AB,U+20AD-20C4,U+2113,U+2C60-2C7F,U+A720-A7FF"
+  },
+  {
+   "family": "PT Sans",
+   "file": "/fonts/29eb7afb0cb53341-s.3kxgs-7nixrf6.woff2",
+   "weight": "400",
+   "style": "normal",
+   "range": "U+??,U+131,U+152-153,U+2BB-2BC,U+2C6,U+2DA,U+2DC,U+304,U+308,U+329,U+2000-206F,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD"
+  },
+  {
+   "family": "PT Sans",
+   "file": "/fonts/8e48221dda13d410-s.3-knllbbx5za1.woff2",
+   "weight": "700",
+   "style": "normal",
+   "range": "U+460-52F,U+1C80-1C8A,U+20B4,U+2DE0-2DFF,U+A640-A69F,U+FE2E-FE2F"
+  },
+  {
+   "family": "PT Sans",
+   "file": "/fonts/f4ec5c3b94d43c8e-s.3prmnh56md9ao.woff2",
+   "weight": "700",
+   "style": "normal",
+   "range": "U+301,U+400-45F,U+490-491,U+4B0-4B1,U+2116"
+  },
+  {
+   "family": "PT Sans",
+   "file": "/fonts/99b125c8f99bc477-s.2xq-bk2b34x28.woff2",
+   "weight": "700",
+   "style": "normal",
+   "range": "U+100-2BA,U+2BD-2C5,U+2C7-2CC,U+2CE-2D7,U+2DD-2FF,U+304,U+308,U+329,U+1D00-1DBF,U+1E00-1E9F,U+1EF2-1EFF,U+2020,U+20A0-20AB,U+20AD-20C4,U+2113,U+2C60-2C7F,U+A720-A7FF"
+  },
+  {
+   "family": "PT Sans",
+   "file": "/fonts/6cf6a2491439aced-s.27c8-9qx-v7kc.woff2",
+   "weight": "700",
+   "style": "normal",
+   "range": "U+??,U+131,U+152-153,U+2BB-2BC,U+2C6,U+2DA,U+2DC,U+304,U+308,U+329,U+2000-206F,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD"
+  },
+  {
+   "family": "Manrope",
+   "file": "/fonts/ffc7b595a48b6846-s.3q9gh2jvntrwt.woff2",
+   "weight": "200 800",
+   "style": "normal",
+   "range": "U+460-52F,U+1C80-1C8A,U+20B4,U+2DE0-2DFF,U+A640-A69F,U+FE2E-FE2F"
+  },
+  {
+   "family": "Manrope",
+   "file": "/fonts/276a8f4fe816cb6b-s.2v2sz4qlut9s1.woff2",
+   "weight": "200 800",
+   "style": "normal",
+   "range": "U+301,U+400-45F,U+490-491,U+4B0-4B1,U+2116"
+  },
+  {
+   "family": "Manrope",
+   "file": "/fonts/82b67ad56d243b47-s.09bkcrcuv-0po.woff2",
+   "weight": "200 800",
+   "style": "normal",
+   "range": "U+370-377,U+37A-37F,U+384-38A,U+38C,U+38E-3A1,U+3A3-3FF"
+  },
+  {
+   "family": "Manrope",
+   "file": "/fonts/33ee198db9637ef4-s.23qr8woi9ij9e.woff2",
+   "weight": "200 800",
+   "style": "normal",
+   "range": "U+102-103,U+110-111,U+128-129,U+168-169,U+1A0-1A1,U+1AF-1B0,U+300-301,U+303-304,U+308-309,U+323,U+329,U+1EA0-1EF9,U+20AB"
+  },
+  {
+   "family": "Manrope",
+   "file": "/fonts/fbb7028efdf70529-s.1_0gbi-gsbqmd.woff2",
+   "weight": "200 800",
+   "style": "normal",
+   "range": "U+100-2BA,U+2BD-2C5,U+2C7-2CC,U+2CE-2D7,U+2DD-2FF,U+304,U+308,U+329,U+1D00-1DBF,U+1E00-1E9F,U+1EF2-1EFF,U+2020,U+20A0-20AB,U+20AD-20C4,U+2113,U+2C60-2C7F,U+A720-A7FF"
+  },
+  {
+   "family": "Manrope",
+   "file": "/fonts/82450a180bcad83c-s.0p-wng2nn8o-p.woff2",
+   "weight": "200 800",
+   "style": "normal",
+   "range": "U+??,U+131,U+152-153,U+2BB-2BC,U+2C6,U+2DA,U+2DC,U+304,U+308,U+329,U+2000-206F,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD"
+  },
+  {
+   "family": "Nunito",
+   "file": "/fonts/e27b85d01cb4b1af-s.1zkvd_innyig_.woff2",
+   "weight": "200 1000",
+   "style": "normal",
+   "range": "U+460-52F,U+1C80-1C8A,U+20B4,U+2DE0-2DFF,U+A640-A69F,U+FE2E-FE2F"
+  },
+  {
+   "family": "Nunito",
+   "file": "/fonts/10e5db483fb7b6ef-s.2c8-7nzo1jf9r.woff2",
+   "weight": "200 1000",
+   "style": "normal",
+   "range": "U+301,U+400-45F,U+490-491,U+4B0-4B1,U+2116"
+  },
+  {
+   "family": "Nunito",
+   "file": "/fonts/01a1b57b2e0cef27-s.1vcas2uk12q5a.woff2",
+   "weight": "200 1000",
+   "style": "normal",
+   "range": "U+102-103,U+110-111,U+128-129,U+168-169,U+1A0-1A1,U+1AF-1B0,U+300-301,U+303-304,U+308-309,U+323,U+329,U+1EA0-1EF9,U+20AB"
+  },
+  {
+   "family": "Nunito",
+   "file": "/fonts/648e19a466ec92f1-s.2demiz2t05dx4.woff2",
+   "weight": "200 1000",
+   "style": "normal",
+   "range": "U+100-2BA,U+2BD-2C5,U+2C7-2CC,U+2CE-2D7,U+2DD-2FF,U+304,U+308,U+329,U+1D00-1DBF,U+1E00-1E9F,U+1EF2-1EFF,U+2020,U+20A0-20AB,U+20AD-20C4,U+2113,U+2C60-2C7F,U+A720-A7FF"
+  },
+  {
+   "family": "Nunito",
+   "file": "/fonts/29e2a75af8e45044-s.2kjei9psvcorz.woff2",
+   "weight": "200 1000",
+   "style": "normal",
+   "range": "U+??,U+131,U+152-153,U+2BB-2BC,U+2C6,U+2DA,U+2DC,U+304,U+308,U+329,U+2000-206F,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD"
+  },
+  {
+   "family": "Oswald",
+   "file": "/fonts/f8121d030447d80e-s.2dw4wc11szodo.woff2",
+   "weight": "200 700",
+   "style": "normal",
+   "range": "U+460-52F,U+1C80-1C8A,U+20B4,U+2DE0-2DFF,U+A640-A69F,U+FE2E-FE2F"
+  },
+  {
+   "family": "Oswald",
+   "file": "/fonts/4d67d490d92a6baf-s.2888ryxa0751p.woff2",
+   "weight": "200 700",
+   "style": "normal",
+   "range": "U+301,U+400-45F,U+490-491,U+4B0-4B1,U+2116"
+  },
+  {
+   "family": "Oswald",
+   "file": "/fonts/df04fd3b90ce4840-s.081af6y49e67w.woff2",
+   "weight": "200 700",
+   "style": "normal",
+   "range": "U+102-103,U+110-111,U+128-129,U+168-169,U+1A0-1A1,U+1AF-1B0,U+300-301,U+303-304,U+308-309,U+323,U+329,U+1EA0-1EF9,U+20AB"
+  },
+  {
+   "family": "Oswald",
+   "file": "/fonts/5ae7380d7a1df7f9-s.0evsli58wo2lo.woff2",
+   "weight": "200 700",
+   "style": "normal",
+   "range": "U+100-2BA,U+2BD-2C5,U+2C7-2CC,U+2CE-2D7,U+2DD-2FF,U+304,U+308,U+329,U+1D00-1DBF,U+1E00-1E9F,U+1EF2-1EFF,U+2020,U+20A0-20AB,U+20AD-20C4,U+2113,U+2C60-2C7F,U+A720-A7FF"
+  },
+  {
+   "family": "Oswald",
+   "file": "/fonts/47bc4ee240b788ba-s.3nglv5iys3s0a.woff2",
+   "weight": "200 700",
+   "style": "normal",
+   "range": "U+??,U+131,U+152-153,U+2BB-2BC,U+2C6,U+2DA,U+2DC,U+304,U+308,U+329,U+2000-206F,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD"
+  },
+  {
+   "family": "Roboto",
+   "file": "/fonts/a3ad4672c526c1cc-s.1rlxnzisjz_e1.woff2",
+   "weight": "100 900",
+   "style": "normal",
+   "range": "U+460-52F,U+1C80-1C8A,U+20B4,U+2DE0-2DFF,U+A640-A69F,U+FE2E-FE2F"
+  },
+  {
+   "family": "Roboto",
+   "file": "/fonts/d6011c29c416d5c4-s.1lnyw1zsxhp0r.woff2",
+   "weight": "100 900",
+   "style": "normal",
+   "range": "U+301,U+400-45F,U+490-491,U+4B0-4B1,U+2116"
+  },
+  {
+   "family": "Roboto",
+   "file": "/fonts/194ba805cef72e7e-s.0lvk2smlqz3yc.woff2",
+   "weight": "100 900",
+   "style": "normal",
+   "range": "U+1F??"
+  },
+  {
+   "family": "Roboto",
+   "file": "/fonts/a5a75dae7d876226-s.2dzaija1uhw5g.woff2",
+   "weight": "100 900",
+   "style": "normal",
+   "range": "U+370-377,U+37A-37F,U+384-38A,U+38C,U+38E-3A1,U+3A3-3FF"
+  },
+  {
+   "family": "Roboto",
+   "file": "/fonts/2443b96ca66c6483-s.0fd-fjxmcxcjd.woff2",
+   "weight": "100 900",
+   "style": "normal",
+   "range": "U+302-303,U+305,U+307-308,U+310,U+312,U+315,U+31A,U+326-327,U+32C,U+32F-330,U+332-333,U+338,U+33A,U+346,U+34D,U+391-3A1,U+3A3-3A9,U+3B1-3C9,U+3D1,U+3D5-3D6,U+3F0-3F1,U+3F4-3F5,U+2016-2017,U+2034-2038,U+203C,U+2040,U+2043,U+2047,U+2050,U+2057,U+205F,U+2070-2071,U+2074-209F,U+20D0-20DC,U+20E1,U+20E5-20EF,U+2100-2112,U+2114-2115,U+2117-2121,U+2123-214F,U+2190,U+2192,U+2194-21AE,U+21B0-21E5,U+21F1-21F2,U+21F4-2211,U+2213-2214,U+2216-22FF,U+2308-230B,U+2310,U+2319,U+231C-2321,U+2336-237A,U+237C,U+2395,U+239B-23B7,U+23D0,U+23DC-23E1,U+2474-2475,U+25AF,U+25B3,U+25B7,U+25BD,U+25C1,U+25CA,U+25CC,U+25FB,U+266D-266F,U+27C0-27FF,U+2900-2AFF,U+2B0E-2B11,U+2B30-2B4C,U+2BFE,U+3030,U+FF5B,U+FF5D,U+1D400-1D7FF,U+1EE??"
+  },
+  {
+   "family": "Roboto",
+   "file": "/fonts/2617c56fc138c6bf-s.42l_3z3944ji5.woff2",
+   "weight": "100 900",
+   "style": "normal",
+   "range": "U+1-C,U+E-1F,U+7F-9F,U+20DD-20E0,U+20E2-20E4,U+2150-218F,U+2190,U+2192,U+2194-2199,U+21AF,U+21E6-21F0,U+21F3,U+2218-2219,U+2299,U+22C4-22C6,U+2300-243F,U+2440-244A,U+2460-24FF,U+25A0-27BF,U+28??,U+2921-2922,U+2981,U+29BF,U+29EB,U+2B??,U+4DC0-4DFF,U+FFF9-FFFB,U+10140-1018E,U+10190-1019C,U+101A0,U+101D0-101FD,U+102E0-102FB,U+10E60-10E7E,U+1D2C0-1D2D3,U+1D2E0-1D37F,U+1F0??,U+1F100-1F1AE,U+1F1E6-1F1FF,U+1F30D-1F30F,U+1F315,U+1F31C,U+1F31E,U+1F320-1F32C,U+1F336,U+1F378,U+1F37D,U+1F382,U+1F393-1F39F,U+1F3A7-1F3A8,U+1F3AC-1F3AF,U+1F3C2,U+1F3C4-1F3C6,U+1F3CA-1F3CE,U+1F3D4-1F3E0,U+1F3ED,U+1F3F1-1F3F3,U+1F3F5-1F3F7,U+1F408,U+1F415,U+1F41F,U+1F426,U+1F43F,U+1F441-1F442,U+1F444,U+1F446-1F449,U+1F44C-1F44E,U+1F453,U+1F46A,U+1F47D,U+1F4A3,U+1F4B0,U+1F4B3,U+1F4B9,U+1F4BB,U+1F4BF,U+1F4C8-1F4CB,U+1F4D6,U+1F4DA,U+1F4DF,U+1F4E3-1F4E6,U+1F4EA-1F4ED,U+1F4F7,U+1F4F9-1F4FB,U+1F4FD-1F4FE,U+1F503,U+1F507-1F50B,U+1F50D,U+1F512-1F513,U+1F53E-1F54A,U+1F54F-1F5FA,U+1F610,U+1F650-1F67F,U+1F687,U+1F68D,U+1F691,U+1F694,U+1F698,U+1F6AD,U+1F6B2,U+1F6B9-1F6BA,U+1F6BC,U+1F6C6-1F6CF,U+1F6D3-1F6D7,U+1F6E0-1F6EA,U+1F6F0-1F6F3,U+1F6F7-1F6FC,U+1F700-1F80B,U+1F810-1F847,U+1F850-1F859,U+1F860-1F887,U+1F890-1F8AD,U+1F8B0-1F8BB,U+1F8C0-1F8C1,U+1F8D0-1F8D8,U+1F900-1F90B,U+1F93B,U+1F946,U+1F984,U+1F996,U+1F9E9,U+1FA00-1FA6F,U+1FA70-1FA7C,U+1FA80-1FAC6,U+1FAC8,U+1FACC-1FADD,U+1FADF-1FAEB,U+1FAEF-1FAFA,U+1FB??"
+  },
+  {
+   "family": "Roboto",
+   "file": "/fonts/e91a3f372062aa7f-s.1szw2e8s5ktgm.woff2",
+   "weight": "100 900",
+   "style": "normal",
+   "range": "U+102-103,U+110-111,U+128-129,U+168-169,U+1A0-1A1,U+1AF-1B0,U+300-301,U+303-304,U+308-309,U+323,U+329,U+1EA0-1EF9,U+20AB"
+  },
+  {
+   "family": "Roboto",
+   "file": "/fonts/d4349f340f06b775-s.026ae5sgholss.woff2",
+   "weight": "100 900",
+   "style": "normal",
+   "range": "U+100-2BA,U+2BD-2C5,U+2C7-2CC,U+2CE-2D7,U+2DD-2FF,U+304,U+308,U+329,U+1D00-1DBF,U+1E00-1E9F,U+1EF2-1EFF,U+2020,U+20A0-20AB,U+20AD-20C4,U+2113,U+2C60-2C7F,U+A720-A7FF"
+  },
+  {
+   "family": "Roboto",
+   "file": "/fonts/c5f006ccf96c15fe-s.0a0h245ktd4x0.woff2",
+   "weight": "100 900",
+   "style": "normal",
+   "range": "U+??,U+131,U+152-153,U+2BB-2BC,U+2C6,U+2DA,U+2DC,U+304,U+308,U+329,U+2000-206F,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD"
+  },
+  {
+   "family": "Unbounded",
+   "file": "/fonts/9a5bda4b84d685f8-s.3h31fjnwrfycc.woff2",
+   "weight": "200 900",
+   "style": "normal",
+   "range": "U+460-52F,U+1C80-1C8A,U+20B4,U+2DE0-2DFF,U+A640-A69F,U+FE2E-FE2F"
+  },
+  {
+   "family": "Unbounded",
+   "file": "/fonts/3383ca8b946b84c9-s.3o02-8iknf6dl.woff2",
+   "weight": "200 900",
+   "style": "normal",
+   "range": "U+301,U+400-45F,U+490-491,U+4B0-4B1,U+2116"
+  },
+  {
+   "family": "Unbounded",
+   "file": "/fonts/056b57ca797dfa24-s.42u1-lj4buy61.woff2",
+   "weight": "200 900",
+   "style": "normal",
+   "range": "U+102-103,U+110-111,U+128-129,U+168-169,U+1A0-1A1,U+1AF-1B0,U+300-301,U+303-304,U+308-309,U+323,U+329,U+1EA0-1EF9,U+20AB"
+  },
+  {
+   "family": "Unbounded",
+   "file": "/fonts/acc52fee236b8039-s.0kda-l-rfpyyq.woff2",
+   "weight": "200 900",
+   "style": "normal",
+   "range": "U+100-2BA,U+2BD-2C5,U+2C7-2CC,U+2CE-2D7,U+2DD-2FF,U+304,U+308,U+329,U+1D00-1DBF,U+1E00-1E9F,U+1EF2-1EFF,U+2020,U+20A0-20AB,U+20AD-20C4,U+2113,U+2C60-2C7F,U+A720-A7FF"
+  },
+  {
+   "family": "Unbounded",
+   "file": "/fonts/9d9d8fde33b299ed-s.1bk8_xp319hr4.woff2",
+   "weight": "200 900",
+   "style": "normal",
+   "range": "U+??,U+131,U+152-153,U+2BB-2BC,U+2C6,U+2DA,U+2DC,U+304,U+308,U+329,U+2000-206F,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD"
+  },
+  {
+   "family": "Inter",
+   "file": "/fonts/51d71ccf7e7a6b96-s.0do-s6vn362zr.woff2",
+   "weight": "100 900",
+   "style": "normal",
+   "range": "U+460-52F,U+1C80-1C8A,U+20B4,U+2DE0-2DFF,U+A640-A69F,U+FE2E-FE2F"
+  },
+  {
+   "family": "Inter",
+   "file": "/fonts/5db8d62ed8a64533-s.1-ayfg4wg0qfm.woff2",
+   "weight": "100 900",
+   "style": "normal",
+   "range": "U+301,U+400-45F,U+490-491,U+4B0-4B1,U+2116"
+  },
+  {
+   "family": "Inter",
+   "file": "/fonts/b99b044bab870276-s.0i-yae4-dyls3.woff2",
+   "weight": "100 900",
+   "style": "normal",
+   "range": "U+1F??"
+  },
+  {
+   "family": "Inter",
+   "file": "/fonts/5279b17ec43a69cf-s.19lle6lbse9av.woff2",
+   "weight": "100 900",
+   "style": "normal",
+   "range": "U+370-377,U+37A-37F,U+384-38A,U+38C,U+38E-3A1,U+3A3-3FF"
+  },
+  {
+   "family": "Inter",
+   "file": "/fonts/5156c6828f034d5d-s.1oksl_d3k3jrm.woff2",
+   "weight": "100 900",
+   "style": "normal",
+   "range": "U+102-103,U+110-111,U+128-129,U+168-169,U+1A0-1A1,U+1AF-1B0,U+300-301,U+303-304,U+308-309,U+323,U+329,U+1EA0-1EF9,U+20AB"
+  },
+  {
+   "family": "Inter",
+   "file": "/fonts/0aa11383f7507f90-s.15c5kk-3im2ev.woff2",
+   "weight": "100 900",
+   "style": "normal",
+   "range": "U+100-2BA,U+2BD-2C5,U+2C7-2CC,U+2CE-2D7,U+2DD-2FF,U+304,U+308,U+329,U+1D00-1DBF,U+1E00-1E9F,U+1EF2-1EFF,U+2020,U+20A0-20AB,U+20AD-20C4,U+2113,U+2C60-2C7F,U+A720-A7FF"
+  },
+  {
+   "family": "Inter",
+   "file": "/fonts/12489100264acd6f-s.33gca1im1ku45.woff2",
+   "weight": "100 900",
+   "style": "normal",
+   "range": "U+??,U+131,U+152-153,U+2BB-2BC,U+2C6,U+2DA,U+2DC,U+304,U+308,U+329,U+2000-206F,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD"
+  },
+  {
+   "family": "DM Serif Text",
+   "file": "/fonts/3fb43b9fa5312750-s.1-_qg7wfb67kj.woff2",
+   "weight": "400",
+   "style": "italic",
+   "range": "U+100-2BA,U+2BD-2C5,U+2C7-2CC,U+2CE-2D7,U+2DD-2FF,U+304,U+308,U+329,U+1D00-1DBF,U+1E00-1E9F,U+1EF2-1EFF,U+2020,U+20A0-20AB,U+20AD-20C4,U+2113,U+2C60-2C7F,U+A720-A7FF"
+  },
+  {
+   "family": "DM Serif Text",
+   "file": "/fonts/baef6f6db77bb38b-s.2m6fe1jqxff77.woff2",
+   "weight": "400",
+   "style": "italic",
+   "range": "U+??,U+131,U+152-153,U+2BB-2BC,U+2C6,U+2DA,U+2DC,U+304,U+308,U+329,U+2000-206F,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD"
+  },
+  {
+   "family": "DM Serif Text",
+   "file": "/fonts/0f3d99ecf41555d9-s.3nd3skvw9mw41.woff2",
+   "weight": "400",
+   "style": "normal",
+   "range": "U+100-2BA,U+2BD-2C5,U+2C7-2CC,U+2CE-2D7,U+2DD-2FF,U+304,U+308,U+329,U+1D00-1DBF,U+1E00-1E9F,U+1EF2-1EFF,U+2020,U+20A0-20AB,U+20AD-20C4,U+2113,U+2C60-2C7F,U+A720-A7FF"
+  },
+  {
+   "family": "DM Serif Text",
+   "file": "/fonts/c166b237d4e32213-s.1-yexets919qm.woff2",
+   "weight": "400",
+   "style": "normal",
+   "range": "U+??,U+131,U+152-153,U+2BB-2BC,U+2C6,U+2DA,U+2DC,U+304,U+308,U+329,U+2000-206F,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD"
+  },
+  {
+   "family": "Plus Jakarta Sans",
+   "file": "/fonts/12d4e8c1f08b4a66-s.0e__wj8580tc5.woff2",
+   "weight": "200 800",
+   "style": "normal",
+   "range": "U+460-52F,U+1C80-1C8A,U+20B4,U+2DE0-2DFF,U+A640-A69F,U+FE2E-FE2F"
+  },
+  {
+   "family": "Plus Jakarta Sans",
+   "file": "/fonts/cabb10e1d7cbc7c1-s.10u7vx61f1ie7.woff2",
+   "weight": "200 800",
+   "style": "normal",
+   "range": "U+102-103,U+110-111,U+128-129,U+168-169,U+1A0-1A1,U+1AF-1B0,U+300-301,U+303-304,U+308-309,U+323,U+329,U+1EA0-1EF9,U+20AB"
+  },
+  {
+   "family": "Plus Jakarta Sans",
+   "file": "/fonts/9f5a2b9f13a4ecbb-s.35a5cae5tspm2.woff2",
+   "weight": "200 800",
+   "style": "normal",
+   "range": "U+100-2BA,U+2BD-2C5,U+2C7-2CC,U+2CE-2D7,U+2DD-2FF,U+304,U+308,U+329,U+1D00-1DBF,U+1E00-1E9F,U+1EF2-1EFF,U+2020,U+20A0-20AB,U+20AD-20C4,U+2113,U+2C60-2C7F,U+A720-A7FF"
+  },
+  {
+   "family": "Plus Jakarta Sans",
+   "file": "/fonts/d8aeca813a9ab546-s.18rizl4rsrl42.woff2",
+   "weight": "200 800",
+   "style": "normal",
+   "range": "U+??,U+131,U+152-153,U+2BB-2BC,U+2C6,U+2DA,U+2DC,U+304,U+308,U+329,U+2000-206F,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD"
+  },
+  {
+   "family": "Raleway",
+   "file": "/fonts/ce7bef1ad41d9aa0-s.3ln4cacw7vm32.woff2",
+   "weight": "100 900",
+   "style": "normal",
+   "range": "U+460-52F,U+1C80-1C8A,U+20B4,U+2DE0-2DFF,U+A640-A69F,U+FE2E-FE2F"
+  },
+  {
+   "family": "Raleway",
+   "file": "/fonts/77125fb34501a553-s.0_i4fxg1pnle5.woff2",
+   "weight": "100 900",
+   "style": "normal",
+   "range": "U+301,U+400-45F,U+490-491,U+4B0-4B1,U+2116"
+  },
+  {
+   "family": "Raleway",
+   "file": "/fonts/3e099b59e265ed27-s.02co4hodosnv0.woff2",
+   "weight": "100 900",
+   "style": "normal",
+   "range": "U+102-103,U+110-111,U+128-129,U+168-169,U+1A0-1A1,U+1AF-1B0,U+300-301,U+303-304,U+308-309,U+323,U+329,U+1EA0-1EF9,U+20AB"
+  },
+  {
+   "family": "Raleway",
+   "file": "/fonts/96c93e432f1d767d-s.15vlspr5uap8d.woff2",
+   "weight": "100 900",
+   "style": "normal",
+   "range": "U+100-2BA,U+2BD-2C5,U+2C7-2CC,U+2CE-2D7,U+2DD-2FF,U+304,U+308,U+329,U+1D00-1DBF,U+1E00-1E9F,U+1EF2-1EFF,U+2020,U+20A0-20AB,U+20AD-20C4,U+2113,U+2C60-2C7F,U+A720-A7FF"
+  },
+  {
+   "family": "Raleway",
+   "file": "/fonts/4f87460e5ea55fa0-s.1q3-y3vmyf3p6.woff2",
+   "weight": "100 900",
+   "style": "normal",
+   "range": "U+??,U+131,U+152-153,U+2BB-2BC,U+2C6,U+2DA,U+2DC,U+304,U+308,U+329,U+2000-206F,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD"
+  },
+  {
+   "family": "Open Sans",
+   "file": "/fonts/72d7f09e5826e2de-s.1-9go8whdf-l6.woff2",
+   "weight": "300 800",
+   "style": "normal",
+   "range": "U+460-52F,U+1C80-1C8A,U+20B4,U+2DE0-2DFF,U+A640-A69F,U+FE2E-FE2F"
+  },
+  {
+   "family": "Open Sans",
+   "file": "/fonts/08fa6b27ca96ea82-s.1h6d36qg8q9eb.woff2",
+   "weight": "300 800",
+   "style": "normal",
+   "range": "U+301,U+400-45F,U+490-491,U+4B0-4B1,U+2116"
+  },
+  {
+   "family": "Open Sans",
+   "file": "/fonts/428ee4c448b0fe40-s.2z2_lz8ulsj_0.woff2",
+   "weight": "300 800",
+   "style": "normal",
+   "range": "U+1F??"
+  },
+  {
+   "family": "Open Sans",
+   "file": "/fonts/4f7269004501a12a-s.36lh57wvljuff.woff2",
+   "weight": "300 800",
+   "style": "normal",
+   "range": "U+370-377,U+37A-37F,U+384-38A,U+38C,U+38E-3A1,U+3A3-3FF"
+  },
+  {
+   "family": "Open Sans",
+   "file": "/fonts/3aa54e5e85b8cf55-s.1em1pp1frbjrf.woff2",
+   "weight": "300 800",
+   "style": "normal",
+   "range": "U+307-308,U+590-5FF,U+200C-2010,U+20AA,U+25CC,U+FB1D-FB4F"
+  },
+  {
+   "family": "Open Sans",
+   "file": "/fonts/9fcb6bb603b5731c-s.398ve1q5qj3un.woff2",
+   "weight": "300 800",
+   "style": "normal",
+   "range": "U+302-303,U+305,U+307-308,U+310,U+312,U+315,U+31A,U+326-327,U+32C,U+32F-330,U+332-333,U+338,U+33A,U+346,U+34D,U+391-3A1,U+3A3-3A9,U+3B1-3C9,U+3D1,U+3D5-3D6,U+3F0-3F1,U+3F4-3F5,U+2016-2017,U+2034-2038,U+203C,U+2040,U+2043,U+2047,U+2050,U+2057,U+205F,U+2070-2071,U+2074-209F,U+20D0-20DC,U+20E1,U+20E5-20EF,U+2100-2112,U+2114-2115,U+2117-2121,U+2123-214F,U+2190,U+2192,U+2194-21AE,U+21B0-21E5,U+21F1-21F2,U+21F4-2211,U+2213-2214,U+2216-22FF,U+2308-230B,U+2310,U+2319,U+231C-2321,U+2336-237A,U+237C,U+2395,U+239B-23B7,U+23D0,U+23DC-23E1,U+2474-2475,U+25AF,U+25B3,U+25B7,U+25BD,U+25C1,U+25CA,U+25CC,U+25FB,U+266D-266F,U+27C0-27FF,U+2900-2AFF,U+2B0E-2B11,U+2B30-2B4C,U+2BFE,U+3030,U+FF5B,U+FF5D,U+1D400-1D7FF,U+1EE??"
+  },
+  {
+   "family": "Open Sans",
+   "file": "/fonts/f4f4219bcd5e264c-s.3tlvbu8v6d928.woff2",
+   "weight": "300 800",
+   "style": "normal",
+   "range": "U+1-C,U+E-1F,U+7F-9F,U+20DD-20E0,U+20E2-20E4,U+2150-218F,U+2190,U+2192,U+2194-2199,U+21AF,U+21E6-21F0,U+21F3,U+2218-2219,U+2299,U+22C4-22C6,U+2300-243F,U+2440-244A,U+2460-24FF,U+25A0-27BF,U+28??,U+2921-2922,U+2981,U+29BF,U+29EB,U+2B??,U+4DC0-4DFF,U+FFF9-FFFB,U+10140-1018E,U+10190-1019C,U+101A0,U+101D0-101FD,U+102E0-102FB,U+10E60-10E7E,U+1D2C0-1D2D3,U+1D2E0-1D37F,U+1F0??,U+1F100-1F1AE,U+1F1E6-1F1FF,U+1F30D-1F30F,U+1F315,U+1F31C,U+1F31E,U+1F320-1F32C,U+1F336,U+1F378,U+1F37D,U+1F382,U+1F393-1F39F,U+1F3A7-1F3A8,U+1F3AC-1F3AF,U+1F3C2,U+1F3C4-1F3C6,U+1F3CA-1F3CE,U+1F3D4-1F3E0,U+1F3ED,U+1F3F1-1F3F3,U+1F3F5-1F3F7,U+1F408,U+1F415,U+1F41F,U+1F426,U+1F43F,U+1F441-1F442,U+1F444,U+1F446-1F449,U+1F44C-1F44E,U+1F453,U+1F46A,U+1F47D,U+1F4A3,U+1F4B0,U+1F4B3,U+1F4B9,U+1F4BB,U+1F4BF,U+1F4C8-1F4CB,U+1F4D6,U+1F4DA,U+1F4DF,U+1F4E3-1F4E6,U+1F4EA-1F4ED,U+1F4F7,U+1F4F9-1F4FB,U+1F4FD-1F4FE,U+1F503,U+1F507-1F50B,U+1F50D,U+1F512-1F513,U+1F53E-1F54A,U+1F54F-1F5FA,U+1F610,U+1F650-1F67F,U+1F687,U+1F68D,U+1F691,U+1F694,U+1F698,U+1F6AD,U+1F6B2,U+1F6B9-1F6BA,U+1F6BC,U+1F6C6-1F6CF,U+1F6D3-1F6D7,U+1F6E0-1F6EA,U+1F6F0-1F6F3,U+1F6F7-1F6FC,U+1F700-1F80B,U+1F810-1F847,U+1F850-1F859,U+1F860-1F887,U+1F890-1F8AD,U+1F8B0-1F8BB,U+1F8C0-1F8C1,U+1F8D0-1F8D8,U+1F900-1F90B,U+1F93B,U+1F946,U+1F984,U+1F996,U+1F9E9,U+1FA00-1FA6F,U+1FA70-1FA7C,U+1FA80-1FAC6,U+1FAC8,U+1FACC-1FADD,U+1FADF-1FAEB,U+1FAEF-1FAFA,U+1FB??"
+  },
+  {
+   "family": "Open Sans",
+   "file": "/fonts/f6263c8d598e03d2-s.2f6i6rjizi5dm.woff2",
+   "weight": "300 800",
+   "style": "normal",
+   "range": "U+102-103,U+110-111,U+128-129,U+168-169,U+1A0-1A1,U+1AF-1B0,U+300-301,U+303-304,U+308-309,U+323,U+329,U+1EA0-1EF9,U+20AB"
+  },
+  {
+   "family": "Open Sans",
+   "file": "/fonts/0d6d1bafa633d0b3-s.261mkozpp7zc7.woff2",
+   "weight": "300 800",
+   "style": "normal",
+   "range": "U+100-2BA,U+2BD-2C5,U+2C7-2CC,U+2CE-2D7,U+2DD-2FF,U+304,U+308,U+329,U+1D00-1DBF,U+1E00-1E9F,U+1EF2-1EFF,U+2020,U+20A0-20AB,U+20AD-20C4,U+2113,U+2C60-2C7F,U+A720-A7FF"
+  },
+  {
+   "family": "Open Sans",
+   "file": "/fonts/db4845a53d7a5ff7-s.1wc2mf9hp9pav.woff2",
+   "weight": "300 800",
+   "style": "normal",
+   "range": "U+??,U+131,U+152-153,U+2BB-2BC,U+2C6,U+2DA,U+2DC,U+304,U+308,U+329,U+2000-206F,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD"
+  },
+  {
+   "family": "Inter Tight",
+   "file": "/fonts/cef8ac2c062f1b0a-s.35p9_4tnsm_o4.woff2",
+   "weight": "600",
+   "style": "normal",
+   "range": "U+460-52F,U+1C80-1C8A,U+20B4,U+2DE0-2DFF,U+A640-A69F,U+FE2E-FE2F"
+  },
+  {
+   "family": "Inter Tight",
+   "file": "/fonts/c6e22b45cfe1c763-s.1q0qwmqzyniyk.woff2",
+   "weight": "600",
+   "style": "normal",
+   "range": "U+301,U+400-45F,U+490-491,U+4B0-4B1,U+2116"
+  },
+  {
+   "family": "Inter Tight",
+   "file": "/fonts/158ff596bf2cbebe-s.02gir8avbbwr_.woff2",
+   "weight": "600",
+   "style": "normal",
+   "range": "U+1F??"
+  },
+  {
+   "family": "Inter Tight",
+   "file": "/fonts/52e514cb9d030258-s.3hqxvms4e79hg.woff2",
+   "weight": "600",
+   "style": "normal",
+   "range": "U+370-377,U+37A-37F,U+384-38A,U+38C,U+38E-3A1,U+3A3-3FF"
+  },
+  {
+   "family": "Inter Tight",
+   "file": "/fonts/d66ba39e135c9aa7-s.1xbprfp_s2_ea.woff2",
+   "weight": "600",
+   "style": "normal",
+   "range": "U+102-103,U+110-111,U+128-129,U+168-169,U+1A0-1A1,U+1AF-1B0,U+300-301,U+303-304,U+308-309,U+323,U+329,U+1EA0-1EF9,U+20AB"
+  },
+  {
+   "family": "Inter Tight",
+   "file": "/fonts/f44e0976e40b7eea-s.1e3bxj0ebt1gg.woff2",
+   "weight": "600",
+   "style": "normal",
+   "range": "U+100-2BA,U+2BD-2C5,U+2C7-2CC,U+2CE-2D7,U+2DD-2FF,U+304,U+308,U+329,U+1D00-1DBF,U+1E00-1E9F,U+1EF2-1EFF,U+2020,U+20A0-20AB,U+20AD-20C4,U+2113,U+2C60-2C7F,U+A720-A7FF"
+  },
+  {
+   "family": "Inter Tight",
+   "file": "/fonts/4a0b7dd978568ff2-s.3fofz6dws3mg0.woff2",
+   "weight": "600",
+   "style": "normal",
+   "range": "U+??,U+131,U+152-153,U+2BB-2BC,U+2C6,U+2DA,U+2DC,U+304,U+308,U+329,U+2000-206F,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD"
+  },
+  {
+   "family": "Inter Tight",
+   "file": "/fonts/cef8ac2c062f1b0a-s.35p9_4tnsm_o4.woff2",
+   "weight": "700",
+   "style": "normal",
+   "range": "U+460-52F,U+1C80-1C8A,U+20B4,U+2DE0-2DFF,U+A640-A69F,U+FE2E-FE2F"
+  },
+  {
+   "family": "Inter Tight",
+   "file": "/fonts/c6e22b45cfe1c763-s.1q0qwmqzyniyk.woff2",
+   "weight": "700",
+   "style": "normal",
+   "range": "U+301,U+400-45F,U+490-491,U+4B0-4B1,U+2116"
+  },
+  {
+   "family": "Inter Tight",
+   "file": "/fonts/158ff596bf2cbebe-s.02gir8avbbwr_.woff2",
+   "weight": "700",
+   "style": "normal",
+   "range": "U+1F??"
+  },
+  {
+   "family": "Inter Tight",
+   "file": "/fonts/52e514cb9d030258-s.3hqxvms4e79hg.woff2",
+   "weight": "700",
+   "style": "normal",
+   "range": "U+370-377,U+37A-37F,U+384-38A,U+38C,U+38E-3A1,U+3A3-3FF"
+  },
+  {
+   "family": "Inter Tight",
+   "file": "/fonts/d66ba39e135c9aa7-s.1xbprfp_s2_ea.woff2",
+   "weight": "700",
+   "style": "normal",
+   "range": "U+102-103,U+110-111,U+128-129,U+168-169,U+1A0-1A1,U+1AF-1B0,U+300-301,U+303-304,U+308-309,U+323,U+329,U+1EA0-1EF9,U+20AB"
+  },
+  {
+   "family": "Inter Tight",
+   "file": "/fonts/f44e0976e40b7eea-s.1e3bxj0ebt1gg.woff2",
+   "weight": "700",
+   "style": "normal",
+   "range": "U+100-2BA,U+2BD-2C5,U+2C7-2CC,U+2CE-2D7,U+2DD-2FF,U+304,U+308,U+329,U+1D00-1DBF,U+1E00-1E9F,U+1EF2-1EFF,U+2020,U+20A0-20AB,U+20AD-20C4,U+2113,U+2C60-2C7F,U+A720-A7FF"
+  },
+  {
+   "family": "Inter Tight",
+   "file": "/fonts/4a0b7dd978568ff2-s.3fofz6dws3mg0.woff2",
+   "weight": "700",
+   "style": "normal",
+   "range": "U+??,U+131,U+152-153,U+2BB-2BC,U+2C6,U+2DA,U+2DC,U+304,U+308,U+329,U+2000-206F,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD"
+  },
+  {
+   "family": "Inter Tight",
+   "file": "/fonts/cef8ac2c062f1b0a-s.35p9_4tnsm_o4.woff2",
+   "weight": "800",
+   "style": "normal",
+   "range": "U+460-52F,U+1C80-1C8A,U+20B4,U+2DE0-2DFF,U+A640-A69F,U+FE2E-FE2F"
+  },
+  {
+   "family": "Inter Tight",
+   "file": "/fonts/c6e22b45cfe1c763-s.1q0qwmqzyniyk.woff2",
+   "weight": "800",
+   "style": "normal",
+   "range": "U+301,U+400-45F,U+490-491,U+4B0-4B1,U+2116"
+  },
+  {
+   "family": "Inter Tight",
+   "file": "/fonts/158ff596bf2cbebe-s.02gir8avbbwr_.woff2",
+   "weight": "800",
+   "style": "normal",
+   "range": "U+1F??"
+  },
+  {
+   "family": "Inter Tight",
+   "file": "/fonts/52e514cb9d030258-s.3hqxvms4e79hg.woff2",
+   "weight": "800",
+   "style": "normal",
+   "range": "U+370-377,U+37A-37F,U+384-38A,U+38C,U+38E-3A1,U+3A3-3FF"
+  },
+  {
+   "family": "Inter Tight",
+   "file": "/fonts/d66ba39e135c9aa7-s.1xbprfp_s2_ea.woff2",
+   "weight": "800",
+   "style": "normal",
+   "range": "U+102-103,U+110-111,U+128-129,U+168-169,U+1A0-1A1,U+1AF-1B0,U+300-301,U+303-304,U+308-309,U+323,U+329,U+1EA0-1EF9,U+20AB"
+  },
+  {
+   "family": "Inter Tight",
+   "file": "/fonts/f44e0976e40b7eea-s.1e3bxj0ebt1gg.woff2",
+   "weight": "800",
+   "style": "normal",
+   "range": "U+100-2BA,U+2BD-2C5,U+2C7-2CC,U+2CE-2D7,U+2DD-2FF,U+304,U+308,U+329,U+1D00-1DBF,U+1E00-1E9F,U+1EF2-1EFF,U+2020,U+20A0-20AB,U+20AD-20C4,U+2113,U+2C60-2C7F,U+A720-A7FF"
+  },
+  {
+   "family": "Inter Tight",
+   "file": "/fonts/4a0b7dd978568ff2-s.3fofz6dws3mg0.woff2",
+   "weight": "800",
+   "style": "normal",
+   "range": "U+??,U+131,U+152-153,U+2BB-2BC,U+2C6,U+2DA,U+2DC,U+304,U+308,U+329,U+2000-206F,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD"
+  }
+ ]
+}

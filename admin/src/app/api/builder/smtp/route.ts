@@ -1,8 +1,5 @@
-import {
-  authorizeWrite,
-  errorResponse,
-  StoreError,
-} from "@/lib/builder/server";
+import { errorResponse, readJson } from "@/lib/builder/server";
+import { authorizeSite } from "@/lib/builder/sites";
 import {
   readSmtpSettings,
   saveSmtpSettings,
@@ -12,8 +9,8 @@ import { limitSmtpVerification } from "@/lib/builder/submissions";
 export const runtime = "nodejs";
 export async function GET(request: Request) {
   try {
-    await authorizeWrite(request);
-    return Response.json(await readSmtpSettings(), {
+    const { site } = await authorizeSite(request);
+    return Response.json(await readSmtpSettings(site.id), {
       headers: { "Cache-Control": "no-store" },
     });
   } catch (e) {
@@ -22,19 +19,19 @@ export async function GET(request: Request) {
 }
 export async function PUT(request: Request) {
   try {
-    await authorizeWrite(request);
-    if (Number(request.headers.get("content-length") || 0) > 12000)
-      throw new StoreError("Settings are too large.", 413);
-    return Response.json(await saveSmtpSettings(await request.json()));
+    const { site } = await authorizeSite(request);
+    return Response.json(
+      await saveSmtpSettings(site.id, await readJson(request, 12000)),
+    );
   } catch (e) {
     return errorResponse(e);
   }
 }
 export async function POST(request: Request) {
   try {
-    const identity = await authorizeWrite(request);
+    const { identity, site } = await authorizeSite(request);
     await limitSmtpVerification(identity.id);
-    return Response.json(await verifySmtp());
+    return Response.json(await verifySmtp(site.id));
   } catch (e) {
     return errorResponse(e);
   }

@@ -45,3 +45,93 @@
     &__topic { padding-block: 24px; }
   }
 }
+
+// content-v30 (Article): narrow text column for inner pages — back link, share
+// icons, page title and formatted text (lists, bold, links via data-rich-text),
+// with an optional badge (logo + note, e.g. an insurance policy).
+.content--article {
+  container-type: inline-size;
+  .content__article { max-width: 880px; display: flex; flex-direction: column; gap: 24px; }
+  .content__article-bar { display: flex; align-items: center; justify-content: space-between; gap: 24px; }
+  .content__back { display: inline-flex; align-items: center; gap: 24px; color: var(--color-interactive); }
+  .content__back svg { color: var(--color-ink); }
+  .content__share { display: flex; gap: 8px; }
+  .content__share-link { display: grid; place-items: center; width: 36px; height: 36px; border-radius: 999px; }
+  .content__share-link:not([href]) { display: none; }
+  .content__share-link:hover { background: var(--color-surface); }
+  .content__article-body { display: flex; flex-direction: column; gap: 28px; padding-inline: 80px; }
+  .content__badge { display: inline-flex; align-self: flex-start; align-items: center; gap: 16px; padding: 12px 20px; border-radius: var(--radius); background: var(--color-surface); }
+  .content__badge-image { width: 56px; height: 56px; object-fit: contain; }
+  .content__badge:not(:has(img)):has(.content__badge-text:empty) { display: none; }
+}
+.rich-text { display: flex; flex-direction: column; gap: 16px; }
+.rich-text > * { margin: 0; }
+.rich-text ul, .rich-text ol { display: flex; flex-direction: column; gap: 8px; padding-left: 20px; }
+.rich-text ul { list-style: disc; }
+.rich-text ol { list-style: decimal; }
+.rich-text a { color: var(--color-interactive); text-decoration: underline; text-underline-offset: 3px; }
+@container (max-width: 760px) {
+  .content--article .content__article-body { padding-inline: 0; }
+}
+
+// content-v40 Split Statement + content-v41 Share (anselat agent)
+.content--split-statement {
+  container-type: inline-size;
+  .content__split-statement { display: grid; grid-template-columns: 1fr 1fr; align-items: end; gap: 50px; }
+  .content__split-statement .heading { line-height: 1; }
+  .content__split-statement p:empty { display: none; }
+  @container (max-width: 760px) { .content__split-statement { grid-template-columns: minmax(0, 1fr); gap: 32px; } }
+}
+.content--share {
+  .content__share { display: flex; flex-direction: column; align-items: center; gap: clamp(32px, 4vw, 60px); text-align: center; }
+  .content__share-buttons { display: flex; flex-wrap: wrap; justify-content: center; gap: 30px; }
+  .content__share-button { display: grid; place-items: center; width: clamp(70px, 6vw, 100px); height: clamp(70px, 6vw, 100px); padding: 0; border: 0; border-radius: 50%; background: var(--color-surface); color: var(--color-ink); cursor: pointer; transition: box-shadow .2s; }
+  .content__share-button:hover { box-shadow: 0 8px 24px rgb(0 0 0 / 10%); }
+  .content__share-status:empty { display: none; }
+}
+
+// content-v20 (card-aside): a text card (heading, lead, three paragraphs, six bullet lines, button — empty parts
+// hidden) next to an optional contact card (heading, status, four channel tiles, opening hours, address).
+.content--card-aside {
+  container-type: inline-size;
+  .content__card-layout { display: grid; grid-template-columns: minmax(0, 1fr) 340px; align-items: start; gap: 20px; }
+  .content__card-layout:not(:has(.content__aside .heading:not(:empty))) { grid-template-columns: minmax(0, 1fr); }
+  .content__card { display: flex; flex-direction: column; align-items: flex-start; gap: 12px; padding: 26px; border-radius: calc(var(--radius) + 4px); background: var(--color-surface); }
+  .content__card > :empty, .content__card-list li:has(> span:empty) { display: none; }
+  .content__card-lead, .content__card-text { max-width: 860px; }
+  .content__card-list { display: flex; flex-direction: column; gap: 6px; margin: 0; padding-left: 20px; list-style: disc; }
+  .content__card-list:not(:has(li > span:not(:empty))) { display: none; }
+  .content__card .button { margin-top: 4px; }
+  .content__aside { display: flex; flex-direction: column; gap: 12px; padding: 24px; border-radius: calc(var(--radius) + 4px); background: var(--color-surface); }
+  .content__aside:not(:has(.heading:not(:empty))) { display: none; }
+  .content__aside-head { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px; }
+  .content__status { display: inline-flex; align-items: center; gap: 7px; color: var(--color-muted); }
+  .content__status::before { content: ""; width: 7px; height: 7px; border-radius: 50%; background: #9ca3af; }
+  .content__status:empty { display: none; }
+  .content__tiles { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+  .content__tile { display: flex; flex-direction: column; align-items: flex-start; gap: 2px; padding: 14px; border-radius: 16px; background: var(--color-bg); transition: box-shadow .2s; }
+  .content__tile:hover { box-shadow: 0 8px 22px rgb(0 0 0 / 0.08); }
+  .content__tile:has(.content__tile-name:empty) { display: none; }
+  .content__tile-icon { display: grid; place-items: center; width: 40px; height: 40px; margin-bottom: 9px; border-radius: 10px; background: var(--color-ink); color: var(--color-bg); }
+  .content__tile-name { font-weight: 700; }
+  .content__tile-sub { color: var(--color-muted); }
+  .content__hours { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; margin: 0; padding: 12px 14px; border-radius: 16px; background: var(--color-bg); }
+  .content__hours dt { color: var(--color-muted); }
+  .content__hours dd { margin: 0; font-weight: 700; }
+  .content__hours > div:has(dd:empty) { display: none; }
+  .content__aside-line { display: flex; align-items: flex-start; gap: 8px; color: var(--color-muted); }
+  .content__aside-line > svg { flex: 0 0 17px; width: 17px; height: 17px; margin-top: 2px; }
+  .content__aside-line:has(> span:empty) { display: none; }
+  @container (max-width: 860px) { .content__card-layout { grid-template-columns: minmax(0, 1fr); } }
+}
+
+// content-v70 Quiet (landing agent, 2026-11-20): one centred open text block (no panel): title, lead,
+// a line of names in quiet print and a link. Empty lines hide.
+.content.content--quiet {
+  .content__quiet { --container-width: 980px; display: flex; flex-direction: column; align-items: center; gap: 24px; text-align: center; }
+  .heading { line-height: 1.04; letter-spacing: -0.035em; }
+  .content__lead { max-width: 720px; }
+  .content__names { max-width: 760px; color: var(--color-muted); }
+  .content__more .text-link { font-weight: 500; }
+  .content__lead:empty, .content__names:empty, .content__more:has(a:empty) { display: none; }
+}

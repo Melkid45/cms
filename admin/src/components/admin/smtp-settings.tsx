@@ -1,4 +1,5 @@
 "use client";
+import { withSite } from "@/lib/builder/site-client";
 import { useEffect, useState } from "react";
 import { Mail, ShieldCheck, LoaderCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -26,7 +27,7 @@ export function SmtpSettings() {
     [testing, setTesting] = useState(false);
   useEffect(() => {
     let active = true;
-    fetch("/api/builder/smtp", { cache: "no-store" })
+    fetch(withSite("/api/builder/smtp"), { cache: "no-store" })
       .then(async (r) => {
         const data = await r.json();
         if (!r.ok) throw Error(data.error);
@@ -85,7 +86,7 @@ export function SmtpSettings() {
               } = value;
               void _password;
               void _ready;
-              const response = await fetch("/api/builder/smtp", {
+              const response = await fetch(withSite("/api/builder/smtp"), {
                 method: "PUT",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({
@@ -252,7 +253,7 @@ export function SmtpSettings() {
                 setTesting(true);
                 setNotice("");
                 try {
-                  const response = await fetch("/api/builder/smtp", {
+                  const response = await fetch(withSite("/api/builder/smtp"), {
                     method: "POST",
                   });
                   const result = await response.json();

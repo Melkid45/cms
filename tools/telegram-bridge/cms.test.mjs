@@ -25,6 +25,10 @@ test('temporary local session rejects unauthenticated calls, signs remote writes
     assert.equal((await fetch(session.url+'/unknown',{headers})).status,404);
     assert.equal((await fetch(session.url+'/project?redirect=bad',{headers})).status,400);
     assert.equal((await fetch(session.url+'/project?actor=super-admin',{headers})).status,400);
+    assert.equal((await fetch(session.url+'/project?site=Bad%20Key',{headers})).status,400);
+    assert.equal((await fetch(session.url+'/project?publish=home&site=second-site',{method:'PUT',headers,body:'{"revision":1}'})).status,200);
+    assert.equal(session.activity.published.at(-1),'https://harbstone-admin.vercel.app/site/second-site/home');
+    assert.equal((await fetch(session.url+'/sites',{headers})).status,200);
   }finally{await session.close();}
   await assert.rejects(fetch(session.url+'/project',{headers:{Authorization:'Bearer '+session.token}}));
 });

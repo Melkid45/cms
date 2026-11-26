@@ -47,13 +47,13 @@ html[data-site-menu-open] { overflow: hidden; }
 
 // Floating variation uses shared typography and navigation behavior.
 .site-header--floating {
-  padding-block: 16px;
+  padding: 16px;
   background: transparent;
   .site-header__row {
     min-height: 88px;
     padding-inline: 24px;
     border: 1px solid var(--color-border);
-    border-radius: var(--radius);
+    border-radius: 20px;
     background: var(--color-bg);
     box-shadow: 0 8px 32px rgb(0 0 0 / 6%);
   }
@@ -61,7 +61,97 @@ html[data-site-menu-open] { overflow: hidden; }
 }
 @media (max-width: 600px) {
   .site-header--floating {
-    padding-block: 12px;
-    .site-header__row { min-height: 72px; padding: 8px 16px; }
+    padding: 12px;
+    .site-header__row { min-height: 72px; padding: 8px 16px; border-radius: 16px; }
+  }
+}
+
+// header-v40 Overlay (anselat agent): transparent header over an inset photo hero (hero-v40 / hero-v41).
+// Logo left, white pill menu, accent call-to-action; scrolls away with the page.
+.site-header--overlay {
+  position: absolute; background: transparent; color: #ffffff;
+  padding-top: calc(clamp(0px, 1.4vw, 20px) + clamp(12px, 2vw, 34px));
+  .site-header__row { width: auto; max-width: none; margin-inline: calc(clamp(0px, 1.4vw, 20px) + clamp(20px, 3vw, 50px)); min-height: 0; padding-block: 0; }
+  .site-header__brand { color: #ffffff; }
+  .site-header__nav { gap: clamp(20px, 2.4vw, 40px); padding: 22px 34px; border-radius: 999px; background: #ffffff; color: #111111; }
+  .site-header__nav a:hover { color: #111111; opacity: 0.6; }
+  .site-header__cta { min-height: 0; padding: 22px 34px; border-radius: 999px; color: #111111; }
+  .site-header__toggle { width: 56px; height: 56px; border-radius: 50%; background: #ffffff; color: #111111; }
+  .site-header__toggle:hover { background: #ffffff; }
+  .builder-logo { height: 56px; max-width: 240px; }
+}
+.site-menu--overlay {
+  background: rgb(0 0 0 / 55%); backdrop-filter: blur(10px); color: #ffffff;
+  .site-menu__body { justify-content: center; align-items: center; text-align: center; }
+  .site-menu__links { align-items: center; }
+  .site-menu__links .builder-menu-group { flex-direction: column; align-items: center; gap: 40px; }
+  .site-menu__links a:hover { color: var(--color-accent); }
+  .site-menu__contact { align-items: center; }
+  .button--accent { color: #111111; }
+}
+// The overlay header takes no space in the page flow.
+.builder-header-slot:has(.site-header--overlay) { height: 0 !important; min-height: 0; }
+@media (max-width: 1024px) { .site-header--overlay .site-header__cta { display: none; } }
+@media (max-width: 600px) {
+  .site-header--overlay { padding-top: 24px; }
+  .site-header--overlay .site-header__row { margin-inline: 24px; }
+  .site-header--overlay .builder-logo { height: 44px; }
+}
+
+// header-v30 (Mega): logo, language switcher and an always-visible menu button that
+// opens a full-screen panel: menu groups as columns (parent link + its sub-pages),
+// then phone/email with notes and social links.
+.site-header--mega {
+  .site-header__actions { gap: 16px; }
+}
+.site-menu--mega {
+  .site-menu__body { min-height: 0; display: grid; grid-template-columns: minmax(0, 1fr) minmax(240px, 320px); align-items: start; justify-content: stretch; gap: 48px; padding-block: 48px 64px; }
+  .site-menu__columns { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 64px 48px; }
+  .site-menu__columns > a { font-weight: 600; }
+  .site-menu__columns a:hover { color: var(--color-interactive); }
+  .site-menu__contact--mega { gap: 40px; }
+  .site-menu__reach { display: flex; flex-direction: column; gap: 6px; }
+  .site-menu__social { display: flex; gap: 12px; align-items: center; }
+  .site-menu__social-link { display: grid; place-items: center; width: 44px; height: 44px; border-radius: 999px; color: var(--color-interactive); }
+  .site-menu__social-link:not([href]) { display: none; }
+  .site-menu__social-link:hover { background: var(--color-surface); }
+}
+@media (max-width: 600px) {
+  .site-menu--mega {
+    .site-menu__body { grid-template-columns: 1fr; gap: 40px; padding-block: 24px 40px; }
+    .site-menu__columns { grid-template-columns: 1fr; gap: 28px; }
+  }
+}
+.site-menu--mega .site-menu__columns .builder-menu-group { display: contents; }
+
+// header-v20 (shop): logo, menu, two small pills (language — the switcher goes here — and currency), icon links
+// (WhatsApp, Telegram, phone, search, account). Empty links are hidden; on phones only the account icon and menu stay.
+.site-header--shop {
+  .site-header__row { gap: 20px; min-height: 72px; padding-block: 12px; }
+  .site-header__nav { gap: 4px; margin-right: auto; margin-left: 40px; }
+  .site-header__nav a { padding: 8px 12px; border-radius: 10px; }
+  .site-header__actions { gap: 6px; }
+  .site-header__pill { display: inline-flex; align-items: center; gap: 6px; height: 36px; padding: 0 10px; border-radius: 10px; box-shadow: inset 0 0 0 1px color-mix(in srgb, currentColor 18%, transparent); font-weight: 500; }
+  .site-header__pill:has(> span:last-child:empty) { display: none; }
+  .site-header__icon { display: grid; place-items: center; width: 36px; height: 36px; border-radius: 10px; transition: background .2s; }
+  .site-header__icon:hover { background: color-mix(in srgb, currentColor 10%, transparent); }
+  .site-header__icon:not([href]) { display: none; }
+  @media (max-width: 1024px) {
+    .site-header__icon:not(.site-header__icon--keep) { display: none; }
+  }
+  @media (max-width: 340px) { .site-header__pill { display: none; } }
+}
+@media (min-width: 601px) and (max-width: 1024px) {
+  .site-menu--mega .site-menu__body { grid-template-columns: 1fr; }
+}
+// header-v20: reserve the real header height before the canvas script measures it (no layout shift on load).
+.builder-header-slot:has(.site-header--shop) { min-height: 72px; }
+.site-header--shop .site-header__actions { min-height: 40px; }
+
+@media (max-width: 600px) {
+  .site-header--shop {
+    .site-header__pill { display: none; }
+    .site-header__row { gap: 12px; }
+    .site-header__actions { flex-shrink: 0; }
   }
 }

@@ -1,5 +1,6 @@
-import type { WebsiteFont } from "./fonts";
-export type FieldType = "heading" | "textarea" | "text" | "url" | "image";
+import type { SiteStyle } from "./style-presets";
+// "video": a video file of the website media (hero-v52 background video).
+export type FieldType = "heading" | "textarea" | "text" | "url" | "image" | "video";
 export interface Field {
   key: string;
   type: FieldType;
@@ -36,6 +37,8 @@ export interface Section {
   variant: string;
   values: Record<string, string>;
   hidden?: boolean;
+  // Section background for page rhythm: brand-tinted, dark (inverted) or accent colour.
+  tone?: "tint" | "dark" | "accent";
   collections?: Record<string, CollectionItem[]>;
 }
 export interface CollectionItem {
@@ -48,6 +51,8 @@ export interface CollectionItem {
 export interface Repeater {
   id: string;
   label: string;
+  // Upper limit of items in this group (default 30).
+  max?: number;
   items: { node: TemplateNode; fields: string[] }[];
 }
 export interface PageSnapshot {
@@ -71,6 +76,8 @@ export interface CmsPage {
   title: string;
   slug: string;
   locale: string;
+  // Pages sharing a group id are translations of each other (one page per locale).
+  translationGroup?: string;
   status: "Draft" | "Published";
   sections: Section[];
   seo: {
@@ -79,6 +86,10 @@ export interface CmsPage {
     keywords: string;
     image: string;
     noindex: boolean;
+    // Social card texts (empty = SEO title / description) and a canonical URL override.
+    ogTitle?: string;
+    ogDescription?: string;
+    canonical?: string;
   };
   updatedAt: string;
 }
@@ -101,8 +112,11 @@ export interface Menu {
   title: string;
   items: MenuItem[];
   placement?: "header" | "footer";
+  // Shown only on pages in this language; empty = every language.
+  locale?: string;
 }
 export interface Media {
+  // Legacy (origin/main thumbnails): kept so saving never drops it; previews use image-variants.
   thumbnailUrl?: string;
   id: string;
   name: string;
@@ -120,13 +134,15 @@ export interface Brand {
   primary: string;
   secondary: string;
   alternative: string;
+  // Legacy design fields from origin/main (Ilya's Site design). Kept so saving never drops them;
+  // the website design lives in project.style + project.fonts (style-presets.ts, font-pairs.ts).
   buttonColor?: string;
   secondaryButtonStyle?: "filled" | "outline" | "soft";
   secondaryButtonMotion?: "fade" | "lift" | "scale" | "shine" | "none";
   buttonStyle?: "filled" | "outline" | "soft";
   buttonMotion?: "fade" | "lift" | "scale" | "shine" | "none";
-  headingFont?: WebsiteFont;
-  bodyFont?: WebsiteFont;
+  headingFont?: string;
+  bodyFont?: string;
   headingScale?: "compact" | "standard" | "large";
   corners?: "square" | "subtle" | "rounded";
   containerWidth?: 1440 | 1600 | 1820 | 1920;
@@ -138,6 +154,11 @@ export interface Layout {
   headerMenus: string[];
   footerMenus: string[];
   homePageId: string;
+  // Per-language header/footer text overrides, merged over the default values.
+  localized?: Record<
+    string,
+    { header?: Record<string, string>; footer?: Record<string, string> }
+  >;
 }
 export const cartVariants = [
   "drawer",
@@ -155,6 +176,8 @@ export type CartButton = {
   label?: string;
 };
 
+// Legacy storefront settings of origin/main (its /site/catalog pages were not merged: the
+// catalogue is blocks on pages, lib/builder/products). Kept only so saving never drops them.
 export const catalogVariants = [
   "grid",
   "sidebar",
@@ -192,11 +215,18 @@ export interface CatalogSettings {
 }
 
 export interface Project {
+  // Public projection of operational settings, not editable through the project API.
+  commerce?:import("./commerce-settings").CommerceSettings;
   formDefinitions?: CmsForm[];
   services?: CmsService[];
+  // Shop cart look (cart.tsx): layout of the cart window and the header cart button. The cart
+  // itself is ours (cart-widgets.ts, real orders). enabled/catalog: legacy origin/main fields.
+  // checkout "popup": no cart at all — every order button opens the instant checkout popup for
+  // that one product (checkout-popup.ts, like the Zcena prototype); cart/button are then unused.
   store?: {
-    enabled: boolean;
-    cart: CartVariant;
+    enabled?: boolean;
+    cart?: CartVariant;
+    checkout?: "popup";
     button?: CartButton;
     catalog?: CatalogSettings;
   };
@@ -208,6 +238,61 @@ export interface Project {
   brand: Brand;
   forms?: FormSettings;
   website?: WebsiteSettings;
+  // Per-website stylesheet written by the design team (designer pack): same blocks,
+  // unique look. Applied inside .site-canvas on public pages and previews.
+  customCss?: string;
+  // Font pair id from lib/builder/font-pairs.ts; set by the design team.
+  fonts?: string;
+  // Style preset values (radius, spacing, button shape, surface/muted colours); see style-presets.ts.
+  style?: SiteStyle;
+  // Multilingual website: default language has unprefixed URLs, the others
+  // live under /site/{key}/{locale}/{slug}. Absent = single-language website.
+  languages?: Languages;
+  // Website-wide SEO: business details for structured data, verification tags,
+  // redirects from old addresses (lib/builder/seo). Design roles only.
+  seo?: SiteSeo;
+}
+export interface SiteSeo {
+  business?: SeoBusiness;
+  verification?: { google?: string; bing?: string };
+  redirects?: SeoRedirect[];
+  // Whole website out of search engines (test/demo websites, before launch).
+  hideSite?: boolean;
+  // Disallow AI crawlers that only collect training data (GPTBot, ClaudeBot, …); answer/search bots stay allowed.
+  blockAiTraining?: boolean;
+}
+export interface SeoBusiness {
+  // schema.org type: Organization, LocalBusiness or a LocalBusiness subtype.
+  type: string;
+  name: string;
+  legalName: string;
+  description: string;
+  street: string;
+  city: string;
+  region: string;
+  postalCode: string;
+  country: string;
+  phone: string;
+  email: string;
+  // One rule per line: "Mo-Fr 09:00-18:00", "Sa 10:00-14:00".
+  hours: string;
+  lat: string;
+  lng: string;
+  logo: string;
+  priceRange: string;
+  // Profile links (Facebook, Instagram, …), one per line.
+  sameAs: string;
+}
+export interface SeoRedirect {
+  id: string;
+  // Old path, e.g. "/lv/par-uznemumu/" (query and trailing slash ignored).
+  from: string;
+  // A page id (follows slug changes) or a path/URL.
+  to: string;
+}
+export interface Languages {
+  default: string;
+  enabled: string[];
 }
 export interface WebsiteSettings {
   url: string;
@@ -219,6 +304,8 @@ export interface WebsiteSettings {
 export interface FormSettings {
   recipient: string;
   successMessage: string;
+  // Success message per page language (multilingual websites); falls back to successMessage.
+  messages?: Record<string, string>;
   enabled: boolean;
 }
 

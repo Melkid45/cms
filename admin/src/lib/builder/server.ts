@@ -1,27 +1,40 @@
 import "server-only";
+import { FONT_PAIR_IDS } from "./font-pairs";
+import {
+  SPACINGS,
+  BUTTON_SHAPES,
+  BUTTON_STYLES,
+  BUTTON_MOTIONS,
+  HEADING_SCALES,
+  CONTAINER_WIDTHS,
+} from "./style-presets";
 import { connectedContent } from "./inline-content";
 import {
   actionsSchema,
   formDefinitionSchema,
   serviceSchema,
 } from "./content-schema";
-import { websiteFontIds } from "./fonts";
+
 import { readFile, writeFile, rename, mkdir } from "node:fs/promises";
 import path from "node:path";
 import {
   authConfigured,
   localAccess,
+  localRequest,
   sessionIdentity,
   ownerIdentity,
 } from "./auth";
 import { accountIdentity } from "./accounts";
 import { clientProjectError, type Role } from "./permissions";
+import { legacySiteId } from "./access";
 import postgres from "postgres";
 import { z } from "zod";
 import { seedProject } from "./seed";
 import { definition } from "./catalog";
 import { separateLayoutMenus } from "./menus";
 import { normalizeProject, preparePages } from "./workflows";
+import { LOCALES } from "./i18n";
+import { siteSeoSchema } from "./seo/schema";
 import type { Project } from "./types";
 
 export const dataDirectory =
@@ -52,6 +65,7 @@ const section = z.object({
     .record(z.string(), z.string().max(20000))
     .refine((v) => Object.keys(v).length <= 1000),
   hidden: z.boolean().optional(),
+  tone: z.enum(["tint", "dark", "accent"]).optional(),
   collections: z
     .record(
       z.string(),
@@ -72,10 +86,25 @@ const section = z.object({
           }),
         )
         .min(1)
-        .max(30),
+        // Per-group limits (default 30, catalogue grids more) are checked against the catalogue on save.
+        .max(80),
     )
     .optional(),
 });
+// Optional page SEO extras (social card texts, canonical override): lib/builder/seo.
+const seoExtras = {
+  ogTitle: z.string().max(300).optional(),
+  ogDescription: z.string().max(1000).optional(),
+  canonical: z
+    .union([
+      z.literal(""),
+      z
+        .url()
+        .max(2000)
+        .refine((value) => /^https?:\/\//i.test(value), "Use an http(s) address."),
+    ])
+    .optional(),
+};
 const snapshot = z.object({
   title: z.string().max(200),
   slug: z.string().max(120),
@@ -87,6 +116,7 @@ const snapshot = z.object({
     keywords: z.string().max(1000),
     image: z.string().max(2000),
     noindex: z.boolean(),
+    ...seoExtras,
   }),
   updatedAt: z.string().max(100),
 });
@@ -114,8 +144,16 @@ const schema = z.object({
         slug: z
           .string()
           .regex(/^[a-z0-9]+(-[a-z0-9]+)*$/)
-          .max(120),
-        locale: z.enum(["en", "ru", "de"]),
+          .max(120)
+          .refine(
+            (slug) => !(LOCALES as readonly string[]).includes(slug),
+            "A page URL cannot be a language code (lv, ru, en, de).",
+          ),
+        locale: z.enum(LOCALES),
+        translationGroup: z
+          .string()
+          .regex(/^[a-zA-Z0-9-]{1,100}$/)
+          .optional(),
         status: z.enum(["Draft", "Published"]),
         sections: z.array(section).max(100),
         seo: z.object({
@@ -124,6 +162,7 @@ const schema = z.object({
           keywords: z.string().max(1000),
           image: z.string().max(2000),
           noindex: z.boolean(),
+          ...seoExtras,
         }),
         updatedAt: z.string().max(100),
         published: snapshot.optional(),
@@ -166,6 +205,7 @@ const schema = z.object({
         id: z.string().max(100),
         title: z.string().max(100),
         placement: z.enum(["header", "footer"]).optional(),
+        locale: z.enum(LOCALES).optional(),
         items: z.array(item).max(100),
       }),
     )
@@ -173,9 +213,25 @@ const schema = z.object({
   layout: z.object({
     header: section,
     footer: section,
-    headerMenus: z.array(z.string()).max(6),
-    footerMenus: z.array(z.string()).max(6),
+    // Multilingual websites keep one set of menus per language (each menu shows on its language's pages).
+    headerMenus: z.array(z.string()).max(12),
+    footerMenus: z.array(z.string()).max(12),
     homePageId: z.string().max(100),
+    localized: z
+      .partialRecord(
+        z.enum(LOCALES),
+        z.object({
+          header: z
+            .record(z.string().max(100), z.string().max(20000))
+            .refine((v) => Object.keys(v).length <= 1000)
+            .optional(),
+          footer: z
+            .record(z.string().max(100), z.string().max(20000))
+            .refine((v) => Object.keys(v).length <= 1000)
+            .optional(),
+        }),
+      )
+      .optional(),
   }),
   brand: z.object({
     name: z.string().max(100),
@@ -184,6 +240,7 @@ const schema = z.object({
     primary: z.string().regex(/^#[0-9a-f]{6}$/i),
     secondary: z.string().regex(/^#[0-9a-f]{6}$/i),
     alternative: z.string().regex(/^#[0-9a-f]{6}$/i),
+    // Legacy design fields of origin/main (types.ts Brand): kept, not rendered (project.style is).
     buttonColor: z
       .string()
       .regex(/^#[0-9a-f]{6}$/i)
@@ -194,8 +251,8 @@ const schema = z.object({
       .optional(),
     buttonStyle: z.enum(["filled", "outline", "soft"]).optional(),
     buttonMotion: z.enum(["fade", "lift", "scale", "shine", "none"]).optional(),
-    headingFont: z.enum(websiteFontIds).optional(),
-    bodyFont: z.enum(websiteFontIds).optional(),
+    headingFont: z.string().max(60).optional(),
+    bodyFont: z.string().max(60).optional(),
     headingScale: z.enum(["compact", "standard", "large"]).optional(),
     corners: z.enum(["square", "subtle", "rounded"]).optional(),
     containerWidth: z
@@ -208,9 +265,10 @@ const schema = z.object({
       .optional(),
     density: z.enum(["compact", "standard", "spacious"]).optional(),
   }),
+  // Cart look (types.ts Project.store); enabled/catalog are legacy origin/main fields.
   store: z
     .object({
-      enabled: z.boolean(),
+      enabled: z.boolean().optional(),
       catalog: z
         .object({
           enabled: z.boolean(),
@@ -236,7 +294,8 @@ const schema = z.object({
           label: z.string().trim().max(24).optional(),
         })
         .optional(),
-      cart: z.enum(["drawer", "modal", "sheet", "wide", "full"]),
+      cart: z.enum(["drawer", "modal", "sheet", "wide", "full"]).optional(),
+      checkout: z.literal("popup").optional(),
     })
     .optional(),
   forms: z
@@ -244,6 +303,9 @@ const schema = z.object({
       enabled: z.boolean(),
       recipient: z.union([z.literal(""), z.email()]),
       successMessage: z.string().min(1).max(500),
+      messages: z
+        .partialRecord(z.enum(LOCALES), z.string().trim().max(500))
+        .optional(),
     })
     .optional(),
   website: z
@@ -280,6 +342,59 @@ const schema = z.object({
         }, "Choose a valid time zone"),
     })
     .optional(),
+  fonts: z.enum(FONT_PAIR_IDS).optional(),
+  // Style preset values (lib/builder/style-presets.ts), design roles only.
+  style: z
+    .object({
+      preset: z.string().max(40).optional(),
+      surface: z.union([z.literal(""), z.string().regex(/^#[0-9a-f]{6}$/i)]).optional(),
+      muted: z.union([z.literal(""), z.string().regex(/^#[0-9a-f]{6}$/i)]).optional(),
+      radius: z.number().int().min(0).max(40).optional(),
+      spacing: z.enum(SPACINGS).optional(),
+      buttons: z.enum(BUTTON_SHAPES).optional(),
+      buttonRadius: z.number().int().min(0).max(100).optional(),
+      // Button colour, look and hover motion; heading size; content width (merged from origin/main Site design).
+      buttonColor: z.union([z.literal(""), z.string().regex(/^#[0-9a-f]{6}$/i)]).optional(),
+      buttonStyle: z.enum(BUTTON_STYLES).optional(),
+      buttonMotion: z.enum(BUTTON_MOTIONS).optional(),
+      secondaryButtonStyle: z.enum(BUTTON_STYLES).optional(),
+      secondaryButtonMotion: z.enum(BUTTON_MOTIONS).optional(),
+      headingScale: z.enum(HEADING_SCALES).optional(),
+      containerWidth: z.union(CONTAINER_WIDTHS.map((w) => z.literal(w))).optional(),
+    })
+    .optional(),
+  languages: z
+    .object({
+      default: z.enum(LOCALES),
+      enabled: z.array(z.enum(LOCALES)).min(1).max(LOCALES.length),
+    })
+    .refine(
+      (l) =>
+        l.enabled.includes(l.default) &&
+        new Set(l.enabled).size === l.enabled.length,
+      "The default language must be one of the enabled languages.",
+    )
+    .optional(),
+  // Website-wide SEO (lib/builder/seo/schema.ts), design roles only.
+  seo: siteSeoSchema,
+  customCss: z
+    .string()
+    .max(100000)
+    .refine(
+      (css) =>
+        !/<\/?\s*style|@import|expression\s*\(|javascript:|behavior\s*:|-moz-binding/i.test(
+          css,
+        ),
+      "Custom CSS cannot contain @import, scripts or style tags.",
+    )
+    .refine(
+      (css) =>
+        [...css.matchAll(/url\(\s*['"]?([^'")\s]+)/gi)].every(
+          ([, url]) => url.startsWith("/") && !url.startsWith("//"),
+        ),
+      "Custom CSS may only use images from this website (url(/...)).",
+    )
+    .optional(),
 });
 export class StoreError extends Error {
   constructor(
@@ -311,23 +426,59 @@ export async function database() {
   await globalStore.cmsDatabaseReady;
   return sql;
 }
-export async function readProject(): Promise<Project> {
+export { legacySiteId };
+const siteIdPattern = /^[a-z0-9]{1,40}$/;
+function validSiteId(siteId: string) {
+  if (!siteIdPattern.test(siteId))
+    throw new StoreError("Website not found.", 404);
+  return siteId;
+}
+// The first website keeps the storage keys and files used before multi-site support,
+// so migrating an existing installation never moves or copies its data.
+export function siteDocumentId(
+  siteId: string,
+  kind: "project" | "submissions" | "smtp",
+) {
+  validSiteId(siteId);
+  if (siteId === legacySiteId) return kind === "project" ? "default" : kind;
+  return `${kind === "project" ? "site" : kind}:${siteId}`;
+}
+export function siteDirectory(siteId: string) {
+  validSiteId(siteId);
+  return siteId === legacySiteId
+    ? dataDirectory
+    : path.join(dataDirectory, "sites", siteId);
+}
+// Local media URL served by /api/builder/media; the first website keeps the legacy form.
+export const localMediaUrl = (siteId: string, mediaId: string) =>
+  siteId === legacySiteId
+    ? `/api/builder/media/${mediaId}`
+    : `/api/builder/media/${siteId}/${mediaId}`;
+export async function readProject(
+  siteId: string = legacySiteId,
+): Promise<Project> {
   const sql = await database();
   if (sql) {
     const [row] =
-      await sql`SELECT document FROM harbstone_project WHERE id='default'`;
+      await sql`SELECT document FROM harbstone_project WHERE id=${siteDocumentId(siteId, "project")}`;
+    if (!row) throw new StoreError("Website not found.", 404);
     return normalizeProject(separateLayoutMenus(row.document));
   }
   try {
     return normalizeProject(
       separateLayoutMenus(
         JSON.parse(
-          await readFile(path.join(dataDirectory, "project.json"), "utf8"),
+          await readFile(
+            path.join(siteDirectory(siteId), "project.json"),
+            "utf8",
+          ),
         ),
       ),
     );
   } catch (error) {
     if ((error as NodeJS.ErrnoException).code !== "ENOENT") throw error;
+    if (siteId !== legacySiteId)
+      throw new StoreError("Website not found.", 404);
     return normalizeProject(seedProject());
   }
 }
@@ -335,8 +486,10 @@ export async function writeProject(
   input: unknown,
   publishId?: string,
   role: Role = "super-admin",
-  options: { autosave?: boolean; restore?: boolean } = {},
+  options: { autosave?: boolean; restore?: boolean; siteId?: string } = {},
 ): Promise<Project> {
+  const siteId = options.siteId ?? legacySiteId;
+  const documentId = siteDocumentId(siteId, "project");
   const parsed = schema.safeParse(input);
   if (!parsed.success)
     throw new StoreError(
@@ -349,6 +502,17 @@ export async function writeProject(
     new Set(next.pages.map((p) => p.id)).size !== next.pages.length
   )
     throw new StoreError("Each page needs a unique slug.");
+  // A translation group holds at most one active page per language.
+  const groups = new Map<string, Set<string>>();
+  for (const page of next.pages.filter((p) => !p.deletedAt && p.translationGroup)) {
+    const locales = groups.get(page.translationGroup!) ?? new Set<string>();
+    if (locales.has(page.locale))
+      throw new StoreError(
+        "A page can have only one translation per language.",
+      );
+    locales.add(page.locale);
+    groups.set(page.translationGroup!, locales);
+  }
   const ids = new Set(next.pages.map((p) => p.id));
   if (!ids.has(next.layout.homePageId))
     throw new StoreError("Choose an existing home page.");
@@ -477,6 +641,7 @@ export async function writeProject(
           const group = entry.repeaters?.find((r) => r.id === id);
           if (
             !group ||
+            items.length > (group.max ?? 30) ||
             items.some((item) => item.template >= group.items.length) ||
             new Set(items.map((i) => i.id)).size !== items.length
           )
@@ -497,11 +662,12 @@ export async function writeProject(
   if (sql) {
     return (await sql.begin(async (tx) => {
       const [row] =
-        await tx`SELECT document FROM harbstone_project WHERE id='default' FOR UPDATE`;
+        await tx`SELECT document FROM harbstone_project WHERE id=${documentId} FOR UPDATE`;
+      if (!row) throw new StoreError("Website not found.", 404);
       const saved = prepare(
         normalizeProject(separateLayoutMenus(row.document)),
       );
-      await tx`UPDATE harbstone_project SET document=${tx.json(saved as unknown as postgres.JSONValue)} WHERE id='default'`;
+      await tx`UPDATE harbstone_project SET document=${tx.json(saved as unknown as postgres.JSONValue)} WHERE id=${documentId}`;
       return saved;
     })) as Project;
   }
@@ -513,24 +679,29 @@ export async function writeProject(
   const operation = (globalStore.cmsQueue ?? Promise.resolve())
     .catch(() => {})
     .then(async () => {
-      const current = await readProject();
+      const current = await readProject(siteId);
       const saved = prepare(current);
-      await mkdir(dataDirectory, { recursive: true, mode: 0o700 });
+      const directory = siteDirectory(siteId);
+      await mkdir(directory, { recursive: true, mode: 0o700 });
       await writeFile(
-        path.join(dataDirectory, "project.json.tmp"),
+        path.join(directory, "project.json.tmp"),
         JSON.stringify(saved),
         { mode: 0o600 },
       );
       await rename(
-        path.join(dataDirectory, "project.json.tmp"),
-        path.join(dataDirectory, "project.json"),
+        path.join(directory, "project.json.tmp"),
+        path.join(directory, "project.json"),
       );
       return saved;
     });
   globalStore.cmsQueue = operation;
   return operation;
 }
-export async function authorizeWrite(request: Request, ownerOnly = false) {
+// level: false = any signed-in account, "design" = owner or designer, true = owner only.
+export async function authorizeWrite(
+  request: Request,
+  ownerOnly: boolean | "design" = false,
+) {
   const origin = request.headers.get("origin");
   const host = request.headers.get("host") || new URL(request.url).host;
   if (origin && new URL(origin).host !== host)
@@ -546,7 +717,7 @@ export async function authorizeWrite(request: Request, ownerOnly = false) {
       503,
     );
   let identity = ownerIdentity();
-  if (!localAccess()) {
+  if (!localRequest(request.headers)) {
     const cookie = request.headers.get("cookie") || "";
     const token = cookie
       .split(";")
@@ -555,15 +726,54 @@ export async function authorizeWrite(request: Request, ownerOnly = false) {
       .slice("cms_session=".length);
     const session = sessionIdentity(token);
     const verified =
-      session?.role === "client"
+      session && session.role !== "super-admin"
         ? await accountIdentity(session.id, session.version)
         : session;
     if (!verified) throw new StoreError("Sign in before editing.", 401);
     identity = verified;
   }
-  if (ownerOnly && identity.role !== "super-admin")
+  if (ownerOnly === true && identity.role !== "super-admin")
     throw new StoreError("Only the super admin can access this feature.", 403);
+  if (ownerOnly === "design" && identity.role === "client")
+    throw new StoreError("Only the design team can access this feature.", 403);
   return identity;
+}
+// Address used for rate limits. Vercel overwrites the forwarding headers; elsewhere only
+// the last x-forwarded-for entry is written by our own proxy, the rest is client-supplied.
+export function clientIp(request: Request) {
+  const forwarded = (request.headers.get("x-forwarded-for") || "")
+    .split(",")
+    .map((value) => value.trim())
+    .filter(Boolean);
+  const ip = process.env.VERCEL
+    ? request.headers.get("x-real-ip") || forwarded[0]
+    : forwarded.at(-1);
+  return (ip || "local").slice(0, 64);
+}
+// Reads a JSON body with a hard size limit that does not rely on Content-Length.
+export async function readJson(
+  request: Request,
+  limit: number,
+): Promise<unknown> {
+  const chunks: Uint8Array[] = [];
+  let size = 0;
+  const reader = request.body?.getReader();
+  if (reader)
+    for (;;) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      size += value.length;
+      if (size > limit) {
+        await reader.cancel();
+        throw new StoreError("Request is too large.", 413);
+      }
+      chunks.push(value);
+    }
+  try {
+    return JSON.parse(Buffer.concat(chunks).toString("utf8"));
+  } catch {
+    throw new StoreError("Invalid request data.");
+  }
 }
 export function errorResponse(error: unknown) {
   return Response.json(
@@ -575,4 +785,15 @@ export function errorResponse(error: unknown) {
     },
     { status: error instanceof StoreError ? error.status : 500 },
   );
+}
+// Rejects cross-site browser requests to public write endpoints.
+export function assertSameOrigin(request: Request) {
+  const origin = request.headers.get("origin");
+  if (
+    origin &&
+    (origin === "null" ||
+      URL.parse(origin)?.host !==
+        (request.headers.get("host") || new URL(request.url).host))
+  )
+    throw new StoreError("Invalid origin.", 403);
 }

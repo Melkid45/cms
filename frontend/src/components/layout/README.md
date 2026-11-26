@@ -8,3 +8,6 @@ Footer: no author credit, fake social links, privacy promises, or newsletter for
 
 
 Header 6: floating rounded navigation bar; uses shared responsive navigation and menu behavior.
+
+Header v40 Overlay (anselat agent): transparent, over an inset photo hero (hero-v40/v41): logo, white pill menu, language switcher slot, accent call-to-action (#calc opens the calculator pop-up). Takes no space in the page flow; burger + blurred full-screen menu at <=1024px.
+Footer v40 Funding (anselat agent): call-to-action + address/phone/email row, logo + menu columns (menu titles shown), a funding/legal strip with a logo image (e.g. EU/LIAA), copyright and Back to top.

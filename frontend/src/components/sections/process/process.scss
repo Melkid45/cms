@@ -90,3 +90,8 @@
     &__detail .process__visual { min-height: 280px; }
   }
 }
+
+// No step numbers (01, 02, ...) anywhere: client rule, 2026-11-18. The number markup stays in the
+// templates so saved content keeps its field keys; it is simply never shown.
+.process__number, .process__card-top > .heading:first-child, .process__tab > .text:first-child { display: none; }
+.process__timeline-number { font-size: 0; }

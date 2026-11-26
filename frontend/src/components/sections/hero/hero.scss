@@ -142,3 +142,339 @@
     &--centered .hero__support { justify-self: start; }
   }
 }
+
+// V9: showcase. Headline above a stage that cycles through finished websites;
+// slides are stacked in one grid cell, so switching never shifts the layout.
+// Timing comes from the progress animation (site-canvas advances on animationend).
+.hero--showcase {
+  --showcase-duration: 6s;
+  --showcase-shadow: 0 18px 48px rgb(20 24 16 / 0.12);
+  container-type: inline-size;
+  height: auto;
+  min-height: calc(100svh - var(--header-height));
+  > .container { display: flex; flex-direction: column; gap: 32px; }
+  .hero__intro { display: grid; grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr); gap: var(--layout-gap); align-items: end; }
+  .hero__support { display: flex; flex-direction: column; align-items: flex-start; gap: 24px; max-width: 560px; justify-self: end; }
+  .hero__description { text-wrap: pretty; }
+  .hero__stage { flex: 1; min-height: 480px; display: flex; flex-direction: column; gap: 16px; padding: clamp(20px, 3vw, 40px) clamp(20px, 3vw, 40px) 12px; border-radius: var(--radius); background: var(--color-surface); overflow: hidden; }
+  .hero__slides { position: relative; flex: 1; min-height: 0; display: grid; }
+  .hero__slide { grid-area: 1 / 1; min-width: 0; min-height: 0; display: grid; grid-template-columns: minmax(0, 1fr) 340px; align-items: center; visibility: hidden; transition: visibility 0s linear 0.6s; }
+  .hero__frame { grid-area: 1 / 1 / 2 / 2; align-self: stretch; min-height: 0; display: flex; flex-direction: column; overflow: hidden; border-radius: var(--radius); background: white; box-shadow: var(--showcase-shadow); opacity: 0; transform: scale(0.97); transition: opacity 0.6s ease, transform 0.9s cubic-bezier(0.2, 0.7, 0.2, 1); }
+  .hero__frame-bar { position: relative; flex: none; display: flex; align-items: center; gap: 8px; min-width: 0; height: 40px; padding: 0 16px 0 72px; white-space: nowrap; }
+  .hero__frame-bar::before { content: ""; position: absolute; left: 16px; top: 15px; width: 44px; height: 10px; background: radial-gradient(circle at 5px 5px, var(--color-border) 4.5px, transparent 5px) 0 0 / 17px 10px repeat-x; }
+  .hero__site-name { font-weight: 600; overflow: hidden; text-overflow: ellipsis; }
+  .hero__site-niche { color: var(--color-muted); overflow: hidden; text-overflow: ellipsis; }
+  .hero__site-niche::before { content: "·"; margin-right: 8px; }
+  .hero__shot { position: relative; flex: 1; min-height: 0; background: var(--color-surface); }
+  .hero__shot-image { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: top; }
+  .hero__cards { grid-area: 1 / 2 / 2 / 3; position: relative; z-index: 1; display: flex; flex-direction: column; align-items: flex-start; gap: 12px; margin-left: -64px; }
+  .hero__cards > * { opacity: 0; transform: translateY(14px); transition: opacity 0.4s ease, transform 0.6s cubic-bezier(0.2, 0.7, 0.2, 1); }
+  .hero__card { width: 100%; display: flex; flex-direction: column; gap: 6px; padding: 20px 24px; border-radius: var(--radius); background: white; box-shadow: var(--showcase-shadow); }
+  .hero__card-label { color: var(--color-muted); }
+  .hero__card-text { text-wrap: pretty; }
+  .hero__visit { gap: 10px; min-height: 48px; padding: 12px 22px; border-radius: 999px; box-shadow: var(--showcase-shadow); }
+  // Visible slide: the first one before the script runs, then whichever is active.
+  .hero__stage:not(.is-enhanced) .hero__slide:first-child,
+  .hero__slide.is-active {
+    visibility: visible;
+    transition-delay: 0s;
+    .hero__frame { opacity: 1; transform: none; }
+    .hero__cards > * { opacity: 1; transform: none; }
+    .hero__cards > :nth-child(1) { transition-delay: 0.7s; }
+    .hero__cards > :nth-child(2) { transition-delay: 1.2s; }
+    .hero__cards > :nth-child(3) { transition-delay: 1.7s; }
+  }
+  .hero__stage:not(.is-enhanced) .hero__cards > * { transition-delay: 0s; }
+  .hero__progress { display: flex; justify-content: center; gap: 8px; min-height: 24px; }
+  .hero__progress:empty { visibility: hidden; }
+  .hero__bar { appearance: none; display: block; width: 56px; padding: 10px 0; border: 0; background: none; cursor: pointer; }
+  .hero__bar-track { display: block; height: 3px; overflow: hidden; border-radius: 3px; background: color-mix(in srgb, var(--color-ink) 14%, transparent); }
+  .hero__bar-fill { display: block; height: 100%; background: var(--color-ink); transform: scaleX(0); transform-origin: left; }
+  .hero__bar.is-done .hero__bar-fill { transform: scaleX(1); }
+  .hero__bar.is-active .hero__bar-fill { animation: hero-showcase-progress var(--showcase-duration) linear forwards; }
+  .hero__stage[data-paused] .hero__bar.is-active .hero__bar-fill { animation-play-state: paused; }
+  @container (max-width: 1200px) {
+    .hero__slide { grid-template-columns: minmax(0, 1fr) 300px; }
+  }
+  @container (max-width: 860px) {
+    .hero__intro { grid-template-columns: minmax(0, 1fr); gap: 24px; }
+    .hero__support { justify-self: start; }
+    .hero__description br { display: none; }
+    .hero__stage { flex: none; min-height: 0; padding: 16px 16px 8px; }
+    .hero__slide { grid-template-columns: minmax(0, 1fr); align-items: start; }
+    .hero__frame { grid-area: 1 / 1; align-self: start; }
+    .hero__shot { flex: none; aspect-ratio: 16 / 10; }
+    .hero__frame-bar { height: 32px; padding-left: 70px; }
+    .hero__frame-bar::before { top: 11px; }
+    .hero__cards { grid-area: 2 / 1; margin: -28px 12px 0; }
+    .hero__card { padding: 16px 18px; }
+  }
+}
+@keyframes hero-showcase-progress {
+  from { transform: scaleX(0); }
+  to { transform: scaleX(1); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .hero--showcase {
+    .hero__frame, .hero__cards > * { transition: none; }
+    .hero__bar.is-active .hero__bar-fill { animation: none; transform: scaleX(1); }
+  }
+}
+// Intro: a compact first screen without media (page title, lead, up to five highlights; empty highlights are hidden).
+.hero--intro {
+  container-type: inline-size;
+  height: auto;
+  min-height: 0;
+  padding-block: clamp(32px, 5vw, 72px) 0;
+  .hero__intro-body { display: flex; flex-direction: column; align-items: flex-start; gap: 20px; }
+  .hero__intro-body > .heading { max-width: 880px; }
+  .hero__description { max-width: 720px; color: var(--color-muted); }
+  .hero__highlights { display: flex; flex-wrap: wrap; gap: 8px; margin: 8px 0 0; padding: 0; list-style: none; }
+  .hero__highlight { display: inline-flex; align-items: center; gap: 8px; padding: 8px 14px; border-radius: 999px; background: var(--color-surface); }
+  .hero__highlight svg { flex: 0 0 18px; color: var(--color-interactive); }
+  .hero__highlight:has(> span:empty) { display: none; }
+  .hero__highlights:not(:has(> .hero__highlight > span:not(:empty))) { display: none; }
+  @container (max-width: 640px) {
+    .hero__highlight { padding: 6px 12px; }
+  }
+}
+
+// hero-v40 Inset Photo + hero-v41 Page Banner (anselat agent)
+.hero--inset, .hero--banner {
+  container-type: inline-size;
+  height: auto;
+  padding: clamp(0px, 1.4vw, 20px);
+  .hero__inset { position: relative; display: flex; flex-direction: column; justify-content: space-between; gap: 40px; overflow: hidden; isolation: isolate; border-radius: calc(var(--radius) * 2); background: #111111; color: #ffffff; padding: clamp(24px, 3vw, 50px); padding-top: calc(var(--overlay-header-space, 0px) + clamp(24px, 3vw, 50px)); }
+  .hero__media { position: absolute; inset: 0; z-index: -2; width: 100%; height: 100%; object-fit: cover; border-radius: 0; }
+  .hero__inset::before { content: ""; position: absolute; inset: 0; z-index: -1; background: linear-gradient(180deg, rgb(0 0 0 / 15%) 0%, rgb(0 0 0 / 70%) 100%); }
+  .button--accent { color: var(--color-ink); }
+}
+.hero--inset {
+  .hero__inset { min-height: max(560px, 100svh - clamp(0px, 1.4vw, 20px) * 2); }
+  .hero__inset-title { align-self: center; margin-block: auto; text-align: center; color: #ffffff; line-height: 1; padding-left: 0.95em; text-indent: -1.45em; }
+  .hero__inset-footer { display: flex; align-items: flex-end; justify-content: space-between; gap: 40px; }
+  .hero__inset-text { max-width: 40%; color: rgb(255 255 255 / 65%); font-weight: 300; }
+  .hero__inset-text:empty { display: none; }
+  .hero__inset-actions { display: flex; flex-wrap: wrap; gap: 20px; }
+  .hero__inset-actions a:empty { display: none; }
+  .hero__inset-ghost { background: transparent; color: #ffffff; border-color: #ffffff; }
+  .hero__inset-ghost::before { content: "\2197"; }
+  .hero__inset-ghost:hover { background: rgb(255 255 255 / 12%); }
+  @container (max-width: 860px) {
+    .hero__inset { min-height: 0; }
+    .hero__inset-title { padding: 80px 0; text-indent: 0; }
+    .hero__inset-footer { flex-direction: column; align-items: stretch; gap: 28px; }
+    .hero__inset-text { max-width: none; }
+    .hero__inset-actions { display: grid; grid-template-columns: 1fr 1fr; }
+  }
+  @container (max-width: 560px) { .hero__inset-actions { grid-template-columns: 1fr; } }
+}
+.hero--banner {
+  .hero__inset { justify-content: flex-end; min-height: 360px; }
+  .hero__media { opacity: 0.6; filter: blur(6px); transform: scale(1.1); }
+  .hero__inset::before { background: linear-gradient(180deg, rgb(0 0 0 / 0%) 0%, rgb(0 0 0 / 90%) 100%); }
+  .hero__banner-body { display: flex; flex-direction: column; gap: 28px; margin-top: clamp(40px, 8vw, 120px); }
+  .hero__banner-body .heading { color: #ffffff; line-height: 1; }
+  .hero__crumbs { display: flex; flex-wrap: wrap; gap: 0 6px; font-weight: 300; }
+  .hero__crumbs a { color: rgb(255 255 255 / 45%); transition: color .2s; }
+  .hero__crumbs a:hover { color: #ffffff; }
+  .hero__crumbs > *:not(:first-child)::before { content: "-"; margin-right: 6px; color: rgb(255 255 255 / 45%); }
+  .hero__crumbs > *:empty { display: none; }
+  .hero__tabs { display: flex; flex-wrap: wrap; gap: 16px 40px; }
+  .hero__tabs:not(:has(a:not(:empty))) { display: none; }
+  .hero__tabs a { position: relative; padding-bottom: 10px; color: rgb(255 255 255 / 60%); transition: color .3s; }
+  .hero__tabs a:empty { display: none; }
+  .hero__tabs a::after { content: ""; position: absolute; left: 50%; bottom: 0; width: 0; height: 2px; background: var(--color-accent); transform: translateX(-50%); transition: width .3s; }
+  .hero__tabs a:hover, .hero__tabs a.is-current { color: #ffffff; }
+  .hero__tabs a:hover::after, .hero__tabs a.is-current::after { width: 100%; }
+  .hero__meta { display: flex; flex-wrap: wrap; gap: 20px 6%; margin: 0; }
+  .hero__meta:not(:has(dd:not(:empty))) { display: none; }
+  .hero__meta-item:has(dd:empty) { display: none; }
+  .hero__meta dt { color: rgb(255 255 255 / 60%); font-weight: 300; }
+  .hero__meta dd { margin: 12px 0 0; color: #ffffff; }
+}
+.section-stack > .hero--inset, .section-stack > .hero--banner { padding-block: clamp(0px, 1.4vw, 20px); }
+// The base .hero height rules (incl. its media queries) must not apply to these heroes.
+.hero.hero--inset, .hero.hero--banner { height: auto; min-height: 0; }
+// Overlay header (header-v40) sits on top of these heroes: reserve its height inside the photo.
+.site-canvas:has(.site-header--overlay) .builder-sections > .hero--inset:first-child,
+.site-canvas:has(.site-header--overlay) .builder-sections > .hero--banner:first-child { --overlay-header-space: var(--header-height, 88px); }
+
+// hero-v30 (Diagonal): text on the left, photo on the right cut by a slanted edge
+// with an accent stripe along the cut. Photo bleeds to the top and right edges.
+// Up to four photos (empty ones are skipped) cross-fade in a loop, 3s each.
+.hero--diagonal {
+  container-type: inline-size;
+  --hero-cut: 22%;
+  --hero-stripe: 24px;
+  height: auto;
+  min-height: 0;
+  .hero__diagonal { position: relative; min-height: 640px; display: grid; align-items: center; }
+  .hero__diagonal-row { position: relative; z-index: 1; }
+  .hero__content { max-width: min(560px, 44%); display: flex; flex-direction: column; align-items: flex-start; gap: 28px; padding-block: 96px; }
+  .hero__description { max-width: 500px; text-wrap: pretty; }
+  .hero__visual { position: absolute; top: 0; right: 0; bottom: 0; width: 54%; margin: 0; }
+  .hero__visual::before { content: ""; position: absolute; inset: 0; background: var(--color-accent); clip-path: polygon(var(--hero-cut) 0, 100% 0, 100% 100%, 0 100%); }
+  .hero__media { position: absolute; inset: 0; width: 100%; height: 100%; border-radius: 0; object-fit: cover; clip-path: polygon(calc(var(--hero-cut) + var(--hero-stripe)) 0, 100% 0, 100% 100%, var(--hero-stripe) 100%); }
+  .hero__visual:has(> .hero__media:nth-of-type(2)) .hero__media { opacity: 0; animation-name: hero-diagonal-2; animation-duration: 6s; animation-iteration-count: infinite; }
+  .hero__visual:has(> .hero__media:nth-of-type(3)) .hero__media { animation-name: hero-diagonal-3; animation-duration: 9s; }
+  .hero__visual:has(> .hero__media:nth-of-type(4)) .hero__media { animation-name: hero-diagonal-4; animation-duration: 12s; }
+  .hero__media:nth-of-type(2) { animation-delay: 3s; }
+  .hero__media:nth-of-type(3) { animation-delay: 6s; }
+  .hero__media:nth-of-type(4) { animation-delay: 9s; }
+}
+@keyframes hero-diagonal-2 { 0%, 45% { opacity: 1; } 55%, 90% { opacity: 0; } 100% { opacity: 1; } }
+@keyframes hero-diagonal-3 { 0%, 30% { opacity: 1; } 36%, 94% { opacity: 0; } 100% { opacity: 1; } }
+@keyframes hero-diagonal-4 { 0%, 22% { opacity: 1; } 27%, 95% { opacity: 0; } 100% { opacity: 1; } }
+@media (prefers-reduced-motion: reduce) {
+  .hero--diagonal .hero__media { animation: none !important; }
+  .hero--diagonal .hero__media:first-of-type { opacity: 1; }
+}
+@container (max-width: 900px) {
+  .hero--diagonal {
+    .hero__diagonal { align-items: stretch; min-height: 0; }
+    .hero__content { max-width: none; padding-block: 32px 40px; }
+    .hero__visual { position: relative; width: 100%; height: 300px; }
+    .hero__visual::before { clip-path: polygon(0 14%, 100% 0, 100% 100%, 0 100%); }
+    .hero__media { clip-path: polygon(0 calc(14% + 10px), 100% 10px, 100% 100%, 0 100%); }
+  }
+}
+
+// hero-v20 (page-title): inner-page title — breadcrumbs (empty links hidden), heading, one lead line. Left aligned.
+.hero--page-title {
+  height: auto;
+  min-height: 0;
+  .hero__crumbs { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 12px; color: var(--color-muted); }
+  .hero__crumbs > :empty { display: none; }
+  .hero__crumbs > :not(:empty) ~ :not(:empty)::before { content: "/"; margin-right: 8px; color: var(--color-muted); }
+  .hero__crumbs a:hover { color: var(--color-ink); }
+  .hero__crumbs [aria-current] { color: var(--color-ink); }
+  .hero__description { max-width: 640px; margin-top: 10px; color: var(--color-muted); }
+  .hero__description:empty { display: none; }
+}
+// hero-v20: breadcrumbs-only title (product pages: the product block carries the heading).
+.hero--page-title .heading:empty { display: none; }
+
+// hero-v50 Full-bleed photo + hero-v52 Video background (library agent)
+// The picture fills the whole first screen edge to edge; text sits on a dark scrim, inside the page gutters.
+.hero.hero--fullbleed, .hero.hero--video {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  height: auto;
+  min-height: max(560px, calc(100svh - var(--header-height)));
+  padding: 0;
+  display: flex;
+  color: #ffffff;
+  background: #151515;
+  > .hero__media, > .hero__video { position: absolute; inset: 0; z-index: -2; width: 100%; height: 100%; object-fit: cover; border-radius: 0; }
+  &::before { content: ""; position: absolute; inset: 0; z-index: -1; pointer-events: none; }
+  .hero__content { gap: 28px; }
+  .heading { color: #ffffff; line-height: 1; }
+  .hero__description { max-width: 620px; color: rgb(255 255 255 / 86%); }
+  .hero__description:empty { display: none; }
+  .actions a:empty { display: none; }
+  .button--accent { color: var(--brand-on-accent, #111111); }
+  .hero__ghost { background: transparent; color: #ffffff; border-color: rgb(255 255 255 / 70%); }
+  .hero__ghost:hover { background: rgb(255 255 255 / 14%); }
+}
+.hero.hero--fullbleed {
+  align-items: flex-end;
+  &::before { background: linear-gradient(0deg, rgb(0 0 0 / 72%) 0%, rgb(0 0 0 / 38%) 45%, rgb(0 0 0 / 12%) 100%), linear-gradient(90deg, rgb(0 0 0 / 35%) 0%, rgb(0 0 0 / 0%) 60%); }
+  .hero__fullbleed-body { flex: none; padding-block: clamp(48px, 7vw, 120px); }
+  .hero__content { max-width: 980px; }
+}
+.hero.hero--video {
+  align-items: center;
+  text-align: center;
+  &::before { background: radial-gradient(ellipse at center, rgb(0 0 0 / 52%) 0%, rgb(0 0 0 / 30%) 70%), linear-gradient(0deg, rgb(0 0 0 / 40%) 0%, rgb(0 0 0 / 0%) 40%); }
+  .hero__video-body { flex: none; padding-block: clamp(64px, 8vw, 140px); }
+  .hero__content { align-items: center; max-width: 1000px; margin-inline: auto; }
+  .actions { justify-content: center; }
+  .hero__video-toggle { position: absolute; right: var(--page-gutter); bottom: clamp(16px, 2vw, 32px); display: grid; place-items: center; width: 44px; height: 44px; padding: 0; border: 0; border-radius: 999px; background: rgb(0 0 0 / 40%); color: #ffffff; cursor: pointer; transition: background .2s; }
+  .hero__video-toggle:hover { background: rgb(0 0 0 / 60%); }
+  .hero__video-toggle.is-paused svg { display: none; }
+  .hero__video-toggle.is-paused::before { content: ""; margin-left: 4px; border-style: solid; border-width: 8px 0 8px 13px; border-color: transparent transparent transparent currentColor; }
+  .hero__video:not([src]), .hero__video[src=""] { display: none; }
+  &:has(.hero__video:not([src])) .hero__video-toggle, &:has(.hero__video[src=""]) .hero__video-toggle { display: none; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .hero.hero--video .hero__video, .hero.hero--video .hero__video-toggle { display: none; }
+}
+
+// hero-v51 Tall split: text on the page grid, a tall photo bleeding to the right edge of the screen.
+.hero.hero--tall-split {
+  container-type: inline-size;
+  height: auto;
+  min-height: max(600px, calc(100svh - var(--header-height)));
+  padding: 0;
+  display: block;
+  .hero__tall { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: var(--layout-gap); min-height: inherit; }
+  .hero__tall-copy { display: flex; align-items: center; padding-left: max(var(--page-gutter), (100cqw - var(--container-width)) / 2); padding-block: clamp(40px, 6vw, 96px); }
+  .hero__content { gap: 28px; }
+  .hero__description:empty, .hero__note:empty, .actions a:empty { display: none; }
+  .hero__note { color: var(--color-muted); padding: 12px 18px; border-radius: var(--radius); background: var(--color-surface); }
+  .hero__tall-visual { position: relative; margin: 0; min-height: 100%; }
+  .hero__tall-visual > .hero__media { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; border-radius: calc(var(--radius) * 1.5) 0 0 calc(var(--radius) * 1.5); }
+  @container (max-width: 860px) {
+    .hero__tall { grid-template-columns: minmax(0, 1fr); gap: 32px; }
+    .hero__tall-copy { padding-inline: var(--page-gutter); padding-block: 32px 0; }
+    .hero__tall-visual { min-height: 0; height: clamp(320px, 110cqw, 520px); margin-inline: var(--page-gutter); }
+    .hero__tall-visual > .hero__media { border-radius: var(--radius); }
+  }
+}
+
+// hero-v70 Statement (landing agent, 2026-11-20): big centred bold title, lead, two buttons,
+// then one finished website shown whole (no crop) as a single link with a caption under the picture.
+.hero.hero--statement {
+  container-type: inline-size;
+  height: auto;
+  min-height: 0;
+  display: block;
+  padding-block: clamp(48px, 7vw, 120px) clamp(24px, 4vw, 64px);
+  .hero__statement { --container-width: 1400px; display: flex; flex-direction: column; gap: clamp(48px, 6vw, 96px); }
+  .hero__content { align-items: center; gap: clamp(20px, 2vw, 32px); max-width: 1180px; margin-inline: auto; text-align: center; }
+  .heading { line-height: 0.98; letter-spacing: -0.03em; }
+  .hero__description { max-width: 620px; }
+  .hero__description:empty { display: none; }
+  .actions { justify-content: center; margin-top: 8px; }
+  .actions a:empty { display: none; }
+  .hero__feature { display: flex; flex-direction: column; gap: 20px; color: inherit; text-decoration: none; }
+  .hero__feature-media { display: block; overflow: hidden; border-radius: 14px; background: var(--color-surface); box-shadow: 0 1px 3px rgb(0 0 0 / 6%), 0 18px 48px -24px rgb(0 0 0 / 22%); transition: box-shadow .35s ease; }
+  .hero__feature:hover .hero__feature-media { box-shadow: 0 2px 6px rgb(0 0 0 / 8%), 0 32px 72px -28px rgb(0 0 0 / 34%); }
+  .hero__feature-image { display: block; width: 100%; height: auto; }
+  .hero__feature-caption { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 16px; }
+  .hero__feature-name { letter-spacing: -0.02em; }
+  .hero__feature-niche { color: var(--color-muted); }
+  .hero__feature-link { display: inline-flex; align-items: center; gap: 8px; margin-left: auto; font-weight: 500; }
+  .hero__feature:hover .hero__feature-link { text-decoration: underline; text-underline-offset: 6px; }
+  @container (max-width: 640px) {
+    .hero__feature { gap: 14px; }
+    .hero__feature-media { border-radius: 10px; }
+    .hero__feature-link { width: 100%; margin-left: 0; }
+    .actions { width: 100%; flex-direction: column; }
+    .actions .button { width: 100%; }
+  }
+}
+
+// hero-v71 Opener (landing agent, 2026-11-20): big centred title, lead and two buttons, as tall as its content
+// (never stretched to the screen). It pulls the next block up to a short gap (36–56px instead of the usual
+// section gap), so e.g. the first projects-v71 Stack card shows on the first screen right under the buttons.
+.hero.hero--opener {
+  container-type: inline-size;
+  height: auto;
+  min-height: 0;
+  display: block;
+  padding-block: clamp(40px, 6vw, 96px) 0;
+  margin-bottom: calc(clamp(36px, 4vw, 56px) - var(--section-space));
+  .hero__content { align-items: center; gap: clamp(20px, 2vw, 28px); max-width: 1180px; margin-inline: auto; text-align: center; }
+  .heading { line-height: 0.98; letter-spacing: -0.03em; }
+  .hero__description { max-width: 620px; }
+  .hero__description:empty { display: none; }
+  .actions { justify-content: center; margin-top: 8px; }
+  .actions a:empty { display: none; }
+  @container (max-width: 640px) {
+    .actions { width: 100%; flex-direction: column; }
+    .actions .button { width: 100%; }
+  }
+}

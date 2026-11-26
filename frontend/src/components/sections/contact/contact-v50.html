@@ -1,0 +1,22 @@
+<link rel="stylesheet" href="./contact.scss" />
+<section class="section contact contact--booking" id="contact-50" aria-labelledby="contact-title-50"><div class="container contact__booking">
+<div class="contact__booking-card">
+  <div class="section__content"><h2 class="heading heading--lg" id="contact-title-50">Book a table</h2><p class="section__description text text--lg">Choose a day, a time and how many of you are coming. We confirm every booking by phone or e-mail.</p></div>
+  <form class="form contact__booking-form" data-contact-form aria-label="Booking request">
+    <div class="form__row"><label class="form__field text text--md">Date <input class="form__input" type="date" name="date" required /></label><label class="form__field text text--md">Time <input class="form__input" type="time" name="time" min="08:00" max="23:00" step="900" required /></label></div>
+    <div class="form__row"><label class="form__field text text--md">People <input class="form__input" type="number" name="people" min="1" max="30" value="2" inputmode="numeric" required /></label><label class="form__field text text--md">Your name <input class="form__input" name="name" autocomplete="name" placeholder="Anna Ozola" maxlength="160" required /></label></div>
+    <div class="form__row"><label class="form__field text text--md">Phone <input class="form__input" type="tel" name="phone" autocomplete="tel" placeholder="+371 2000 0000" maxlength="40" required /></label><label class="form__field text text--md">E-mail <input class="form__input" type="email" name="email" autocomplete="email" placeholder="anna@example.com" maxlength="254" /></label></div>
+    <label class="form__field text text--md">Comment <textarea class="form__input" name="message" rows="3" maxlength="2000" placeholder="A birthday, a high chair, an allergy…"></textarea></label>
+    <div class="form__bottom"><button class="button button--accent text text--sm" type="submit">Send booking request</button><span class="contact__booking-hint text text--sm">We reply within two hours during opening times.</span></div>
+    <p class="form__status text text--sm text--muted" role="status" aria-live="polite"></p>
+  </form>
+</div>
+<div class="contact__booking-side">
+  <div class="contact__booking-info">
+    <h3 class="heading heading--sm">Opening hours</h3>
+    <dl class="contact__booking-hours"><div><dt class="text text--md">Monday – Thursday</dt><dd class="text text--md">8:00 – 20:00</dd></div><div><dt class="text text--md">Friday</dt><dd class="text text--md">8:00 – 22:00</dd></div><div><dt class="text text--md">Saturday</dt><dd class="text text--md">9:00 – 22:00</dd></div><div><dt class="text text--md">Sunday</dt><dd class="text text--md">9:00 – 18:00</dd></div><div><dt class="text text--md">Holidays</dt><dd class="text text--md"></dd></div></dl>
+    <div class="contact__booking-address"><h3 class="heading heading--sm">12 Harbour Street, Riga</h3><p class="text text--md">Entrance from the courtyard. Parking on the street.</p><a class="text-link text text--md" href="tel:+37120000000">+371 2000 0000</a></div>
+  </div>
+  <div class="contact__booking-map"><a class="contact__osm-link text text--sm" href="https://www.openstreetmap.org/?mlat=56.9496&amp;mlon=24.1052#map=16/56.9496/24.1052" data-osm>Open the map</a></div>
+</div>
+</div></section>

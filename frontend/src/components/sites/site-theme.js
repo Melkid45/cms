@@ -1,5 +1,5 @@
-import { designVariables } from '../../../../admin/src/lib/builder/design.ts'
-import { fontStylesheet } from '../../../../admin/src/lib/builder/fonts.ts'
+import { designVariables } from './design.ts'
+import { fontStylesheet } from './fonts.ts'
 import '../../../../admin/src/components/builder/button-theme.scss'
 import './sites.scss'
 import { siteSettings as settings } from './site-settings.js'

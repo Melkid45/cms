@@ -103,3 +103,41 @@
     }
   }
 }
+
+// services-v30 (Link catalog): groups of services, each card = icon, title and a
+// list of links to the service pages. Empty link labels are hidden.
+.services--groups {
+  container-type: inline-size;
+  .services__groups { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 72px 48px; }
+  .services__group { display: grid; grid-template-columns: 80px minmax(0, 1fr); gap: 0 30px; align-items: start; }
+  .services__group-icon { width: 80px; height: 80px; object-fit: contain; }
+  .services__group-body { display: flex; flex-direction: column; gap: 40px; padding-top: 2px; }
+  .services__group-links { display: flex; flex-direction: column; align-items: flex-start; gap: 18px; }
+}
+.services__group-link { color: var(--color-interactive); text-decoration: underline; text-underline-offset: 3px; }
+.services__group-link:empty { display: none; }
+@container (max-width: 760px) {
+  .services--groups {
+    .services__groups { grid-template-columns: 1fr; gap: 48px; }
+    .services__group { grid-template-columns: 56px minmax(0, 1fr); gap: 0 16px; }
+    .services__group-icon { width: 56px; height: 56px; }
+    .services__group-body { gap: 24px; }
+  }
+}
+
+// services-v31 (Link accordion): a heading and folding groups (icon + title) that
+// open to a list of links. Uses the shared FAQ accordion behaviour (.faq__answer).
+.services--folds {
+  container-type: inline-size;
+  .services__folds-layout { display: flex; flex-direction: column; gap: 40px; max-width: 800px; }
+  .services__folds { display: flex; flex-direction: column; gap: 28px; }
+  .services__fold-summary { display: grid; grid-template-columns: 56px minmax(0, 1fr) 32px; align-items: center; gap: 20px; list-style: none; cursor: pointer; }
+  .services__fold-summary::-webkit-details-marker { display: none; }
+  .services__group-icon { width: 56px; height: 56px; object-fit: contain; }
+  .services__fold-mark { justify-self: end; width: 32px; height: 2px; background: var(--color-accent); }
+  .services__fold[open] .services__fold-mark, .services__fold[data-expanded="true"] .services__fold-mark { background: var(--color-ink); }
+  .services__fold-links { display: flex; flex-direction: column; align-items: flex-start; gap: 14px; padding: 24px 0 8px 76px; }
+}
+@container (max-width: 600px) {
+  .services--folds .services__fold-links { padding-left: 0; }
+}

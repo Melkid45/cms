@@ -9,10 +9,12 @@ import type { Project, Section } from "@/lib/builder/types";
 export function PreviewDialog({
   project,
   sections,
+  locale,
   onSelectSection,
 }: {
   project: Project;
   sections: Section[];
+  locale?: string;
   onSelectSection?: (id: string) => void;
 }) {
   const [width, setWidth] = useState("100%");
@@ -73,6 +75,7 @@ export function PreviewDialog({
             <SiteFrame
               project={project}
               sections={sections}
+              locale={locale}
               width={width}
               className="mx-auto block"
               onSelectSection={

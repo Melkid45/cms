@@ -1,6 +1,4 @@
-@use "cart";
-@use "button-theme";
-// Next bundles its own installed Manrope dependency through globals.css.
+// Fonts come from next/font in the root layouts app/site/layout.tsx and app/(admin)/layout.tsx (--font-inter, --font-playfair).
 // Shared frontend files must not depend on frontend/node_modules being installed.
 @use "../../../../frontend/src/styles/template/foundation" with (
   $include-fonts: false
@@ -20,10 +18,16 @@
 @use "../../../../frontend/src/components/sections/testimonials/testimonials";
 @use "../../../../frontend/src/components/sections/faq/faq";
 @use "../../../../frontend/src/components/sections/contact/contact";
-@use "../../../../frontend/src/components/sections/project-details/project-details";
+@use "../../../../frontend/src/components/sections/logos/logos";
+@use "../../../../frontend/src/components/sections/calculator/calculator";
 @use "../../../../frontend/src/components/sections/team/team";
+// Merged from origin/main: new families (team v1-v5 share team.scss above), exploration variants
+// (a <family>-explorations part loads with its family, lib/builder/site-css.ts), forms of the
+// form builder and service dialogs (connected-content), the cart window and the button looks.
+@use "../../../../frontend/src/components/sections/project-details/project-details";
 @use "../../../../frontend/src/components/sections/partners/partners";
 @use "../../../../frontend/src/components/sections/location/location";
+@use "../../../../frontend/src/components/sections/form/form";
 @use "../../../../frontend/src/components/sections/hero/hero-explorations";
 @use "../../../../frontend/src/components/sections/about/about-explorations";
 @use "../../../../frontend/src/components/sections/services/services-explorations";
@@ -31,12 +35,18 @@
 @use "../../../../frontend/src/components/sections/projects/projects-explorations";
 @use "../../../../frontend/src/components/sections/testimonials/testimonials-explorations";
 @use "connected-content";
-@use "../../../../frontend/src/components/sections/form/form";
+@use "cart";
+@use "button-theme";
+@use "store-controls";
+// Library-wide refresh rules must load after every section style.
+@use "../../../../frontend/src/styles/template/refresh";
 .site-canvas {
   min-height: 100vh;
   background: var(--color-bg);
   color: var(--color-ink);
-  font-family: var(--site-body-font, "Manrope Variable"), Manrope, sans-serif;
+  --font-body: var(--font-inter), Inter, sans-serif;
+  --font-heading: var(--font-playfair), "Playfair Display", Georgia, serif;
+  font-family: var(--font-body);
 }
 .builder-logo {
   width: auto;
@@ -125,19 +135,247 @@
     outline-offset: -3px;
   }
 }
+// Section tones (section.tone): a coloured band edge to edge, the page keeps its rhythm.
+// --brand-* hold the site's final palette (after custom CSS), so tones can swap the colour variables.
+.site-canvas {
+  --brand-ink: var(--color-ink);
+  --brand-bg: var(--color-bg);
+  --brand-accent: var(--color-accent);
+}
+.site-canvas [data-tone] {
+  background: var(--color-bg);
+  color: var(--color-ink);
+  padding-block: var(--section-space);
+}
+.site-canvas .section-stack > [data-tone] {
+  margin-block: calc(var(--section-space) * -1);
+  padding-block: var(--section-space);
+}
+.site-canvas .section-stack > [data-tone]:first-child { margin-top: 0; }
+.site-canvas .section-stack > [data-tone]:last-child { margin-bottom: 0; }
+.site-canvas [data-tone="tint"] {
+  --color-bg: color-mix(in srgb, var(--brand-bg) 93%, var(--brand-ink));
+  --color-surface: var(--brand-bg);
+}
+.site-canvas [data-tone="dark"] {
+  --color-ink: var(--brand-bg);
+  --color-bg: var(--brand-ink);
+  --color-surface: color-mix(in srgb, var(--brand-ink) 88%, var(--brand-bg));
+  --color-muted: color-mix(in srgb, var(--brand-bg) 70%, var(--brand-ink));
+  --color-border: color-mix(in srgb, var(--brand-bg) 20%, var(--brand-ink));
+  --color-interactive: var(--brand-bg);
+  --color-button-hover: color-mix(in srgb, var(--brand-bg) 85%, var(--brand-ink));
+}
+.site-canvas [data-tone="accent"] {
+  --color-ink: var(--brand-on-accent);
+  --color-bg: var(--brand-accent);
+  --color-surface: color-mix(in srgb, var(--brand-accent) 88%, var(--brand-on-accent));
+  --color-muted: color-mix(in srgb, var(--brand-on-accent) 75%, var(--brand-accent));
+  --color-border: color-mix(in srgb, var(--brand-on-accent) 22%, var(--brand-accent));
+  --color-interactive: var(--brand-on-accent);
+  --color-button-hover: color-mix(in srgb, var(--brand-on-accent) 85%, var(--brand-accent));
+}
+.site-canvas [data-tone="dark"] .button:not(.button--outline):not(.button--light),
+.site-canvas [data-tone="accent"] .button:not(.button--outline):not(.button--light) {
+  color: var(--color-bg);
+}
+// Multilingual websites: language switcher (rendered into [data-lang-switcher]
+// of header templates, only when two or more languages are enabled).
+.lang-switcher {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 15px;
+  line-height: 1;
+}
+.lang-switcher__link {
+  padding: 8px 8px;
+  border-radius: 999px;
+  color: var(--color-muted);
+  text-decoration: none;
+  font-weight: 500;
+}
+.lang-switcher__link:hover {
+  color: var(--color-ink);
+}
+.lang-switcher__link[aria-current] {
+  color: var(--color-ink);
+  font-weight: 700;
+}
+// Menus rendered as columns (nav[data-menu-expanded]): parent link + its children.
+.builder-menu-column {
+  display: grid;
+  align-content: start;
+  gap: 12px;
+}
+.builder-menu-column__links {
+  display: grid;
+  gap: 10px;
+}
+// Shop cart (components/builder/cart-widgets.ts): header link, toast, checkout list.
+.cart-link {
+  position: relative;
+  display: inline-grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  border-radius: 999px;
+  color: inherit;
+}
+.cart-link:hover {
+  background: var(--color-surface);
+}
+.cart-link__count {
+  position: absolute;
+  top: 2px;
+  right: 0;
+  min-width: 18px;
+  height: 18px;
+  padding: 0 5px;
+  border-radius: 999px;
+  background: var(--color-accent);
+  color: var(--brand-on-accent, #fff);
+  font: 600 11px/18px var(--font-body);
+  text-align: center;
+}
+.cart-link__count[hidden] {
+  display: none;
+}
+.cart-toast {
+  position: fixed;
+  z-index: 200;
+  left: 50%;
+  bottom: 24px;
+  transform: translateX(-50%);
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 16px;
+  max-width: calc(100vw - 32px);
+  padding: 14px 20px;
+  border-radius: 12px;
+  background: #111;
+  color: #fff;
+  font: 500 15px/1.4 var(--font-body, sans-serif);
+  box-shadow: 0 12px 32px rgb(0 0 0 / 25%);
+}
+.cart-toast[hidden] {
+  display: none;
+}
+.cart-toast__link {
+  color: inherit;
+  font-weight: 700;
+  text-decoration: underline;
+}
+.pricing__co-summary.is-cart > :not(.cart-lines, .cart-total, .pricing__co-foot) {
+  display: none;
+}
+.cart-lines {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+.cart-line {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto auto;
+  align-items: center;
+  gap: 4px 12px;
+}
+.cart-line__name {
+  font-weight: 600;
+}
+.cart-line__options {
+  color: var(--color-muted);
+}
+.cart-line__qty {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.cart-line__step {
+  width: 32px;
+  height: 32px;
+  border: 0;
+  border-radius: 999px;
+  background: var(--color-surface);
+  color: inherit;
+  cursor: pointer;
+}
+.cart-line__price {
+  font-weight: 600;
+  white-space: nowrap;
+}
+.cart-line__remove {
+  grid-column: 1 / -1;
+  justify-self: start;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--color-muted);
+  text-decoration: underline;
+  cursor: pointer;
+}
+.cart-total {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 16px;
+  margin: 8px 0 0;
+}
+.pricing__co-form.is-live .pricing__co-note {
+  display: none;
+}
+.cart-address[hidden],
+.pricing__co-pickup[hidden] {
+  display: none;
+}
+.cart-status:empty {
+  display: none;
+}
+.cart-total {
+  flex-wrap: wrap;
+}
+.cart-total__delivery {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  width: 100%;
+  color: var(--color-muted);
+}
+.cart-zone[hidden] {
+  display: none;
+}
 
-// Client copy can contain long names, URLs and identifiers without spaces.
-.site-canvas :where(h1,h2,h3,h4,p,li,dt,dd,a,button,label) {
-  overflow-wrap: anywhere;
+// library agent (2026-11-19): a toned band keeps the normal page gap to its neighbours,
+// so the content above/below no longer sits flush on the band edge (cards touching the band).
+// Only on websites that use a style preset (data-site-style): existing sites keep their spacing exactly.
+.site-canvas[data-site-style] .section-stack > [data-tone] {
+  margin-block: 0;
+  padding-block: calc(var(--section-space) * 0.8);
 }
-.site-canvas :where(.section__content,.section__heading,.section__description) {
-  min-width: 0;
+// perf/a11y (2026-11-19): websites with a style preset keep secondary text readable (4.5:1)
+// on accent-toned sections; the other websites (pixel-matched clones) are unchanged.
+.site-canvas[data-site-style] [data-tone="accent"] {
+  --color-muted: color-mix(in srgb, var(--brand-on-accent) 88%, var(--brand-accent));
 }
 
-// Explicit square mode includes older variants with fixed decorative radii.
-.site-canvas[data-corners="square"] :where(section, header, footer, dialog, img, figure, a, button, input, textarea, [class*="__card"], [class*="__panel"], [class*="__surface"], [class*="__visual"], [class*="__frame"], [class*="__row"]) {
-  border-radius: 0;
+.site-canvas .button[aria-disabled="true"] { opacity: .45; cursor: not-allowed; }
+
+.shop-payment-choice { display: grid; gap: 8px; margin-block: 16px; font-size: 14px;
+  select { width: 100%; min-height: 44px; padding: 10px 12px; border: 1px solid var(--color-border, #dedede); border-radius: var(--button-radius, 8px); background: var(--color-bg, white); color: var(--color-ink, #202020); font: inherit; }
 }
-.site-canvas :where(.button, .process__arrow, .testimonials__arrow) {
-  border-radius: var(--radius-button, 8px);
-}
+
+.site-menu__links .builder-menu-group { flex-direction: column; align-items: flex-start; gap: 24px; }
+
+// Checkout rows use the same compact type scale as the cart drawer.
+.pricing--checkout .cart-line { grid-template-columns: minmax(0, 1fr) auto; gap: 12px; padding-bottom: 24px; border-bottom: 1px solid var(--color-border); }
+.pricing--checkout .cart-line__qty { grid-column: 1; grid-row: 2; }
+.pricing--checkout .cart-line__price { grid-column: 2; grid-row: 1; font-weight: 500; }
+.pricing--checkout .cart-line__remove { grid-column: 2; grid-row: 2; justify-self: end; font-size: 12px; }
+.pricing--checkout .cart-total { font-size: 18px; font-weight: 500; }
+.pricing--checkout .cart-total .heading { font-family: var(--font-body); font-size: 22px; font-weight: 500; }
+.pricing--checkout .shop-payment-choice { margin: 4px 0; }
+.site-header--shop .cart-link { display: inline-flex; gap: 8px; width: auto; padding-inline: 10px; }
+.site-header--shop .cart-link__label { font-size: 14px; }
+.site-header--shop .cart-link__count { top: 0; right: 0; background: var(--color-ink); color: var(--color-bg); }
+.pricing__pd-variations { display: grid; gap: 16px; font-size: 14px; }

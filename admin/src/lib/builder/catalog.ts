@@ -22,21 +22,7 @@ export function createSection(
     ),
   };
 }
-export function safeUrl(value: string, image = false) {
-  if (!value || /[\u0000-\u0020\\]/.test(value)) return "";
-  if (value.startsWith("/") && !value.startsWith("//")) return value;
-  if (!image && value.startsWith("#")) return value;
-  try {
-    return (image
-      ? ["https:", "http:"]
-      : ["https:", "http:", "mailto:", "tel:"]
-    ).includes(new URL(value).protocol)
-      ? value
-      : "";
-  } catch {
-    return "";
-  }
-}
+export { safeUrl } from "./safe-url";
 export function switchSection(section: Section, variant: string): Section {
   const from = definition(section.variant),
     to = definition(variant);

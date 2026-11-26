@@ -2,12 +2,19 @@ import {
   authConfigured,
   createSession,
   credentialsMatch,
-  localAccess,
+  localRequest,
   ownerIdentity,
+  sessionCookie,
 } from "@/lib/builder/auth";
 import { accountLogin } from "@/lib/builder/accounts";
-import { StoreError, errorResponse } from "@/lib/builder/server";
+import {
+  StoreError,
+  clientIp,
+  errorResponse,
+  readJson,
+} from "@/lib/builder/server";
 import { limitSignIn } from "@/lib/builder/submissions";
+import { siteCookie } from "@/lib/builder/site-links";
 function sameOrigin(request: Request) {
   const origin = request.headers.get("origin");
   if (
@@ -20,27 +27,30 @@ function sameOrigin(request: Request) {
 export async function POST(request: Request) {
   try {
     sameOrigin(request);
-    if (localAccess()) return Response.json({ ok: true });
+    if (localRequest(request.headers)) return Response.json({ ok: true });
     if (process.env.NODE_ENV === "production" && !authConfigured())
       throw new StoreError(
         "Configure the owner email, password and authentication secret on the server.",
         503,
       );
-    const ip = request.headers.get("x-forwarded-for")?.split(",")[0] || "local";
-    await limitSignIn(ip);
-    const { email, password } = await request.json();
+    await limitSignIn(clientIp(request));
+    const { email, password } = ((await readJson(request, 4000)) ?? {}) as {
+      email?: unknown;
+      password?: unknown;
+    };
     const identity = credentialsMatch(email, password)
       ? ownerIdentity()
       : await accountLogin(email, password);
     if (!identity) throw new StoreError("Incorrect email or password.", 401);
-    return Response.json(
-      { ok: true },
-      {
-        headers: {
-          "Set-Cookie": `cms_session=${createSession(Date.now(), identity)}; HttpOnly; SameSite=Strict; Path=/; Max-Age=43200${process.env.NODE_ENV === "production" ? "; Secure" : ""}`,
-        },
-      },
+    const headers = new Headers({ "Cache-Control": "no-store" });
+    headers.append(
+      "Set-Cookie",
+      sessionCookie(request, createSession(Date.now(), identity), 43200),
     );
+    // The owner starts in studio mode (all clients), not inside a remembered website.
+    if (identity.role === "super-admin")
+      headers.append("Set-Cookie", `${siteCookie}=; Path=/; Max-Age=0; SameSite=Lax`);
+    return Response.json({ ok: true }, { headers });
   } catch (error) {
     return errorResponse(error);
   }
@@ -52,7 +62,7 @@ export async function DELETE(request: Request) {
       { ok: true },
       {
         headers: {
-          "Set-Cookie": `cms_session=; HttpOnly; SameSite=Strict; Path=/; Max-Age=0${process.env.NODE_ENV === "production" ? "; Secure" : ""}`,
+          "Set-Cookie": sessionCookie(request, "", 0),
         },
       },
     );

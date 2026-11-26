@@ -58,3 +58,89 @@ html:has(.gallery-dialog[open]) { overflow: hidden; }
   }
   .gallery-dialog { padding: 16px; width: calc(100% - 24px); }
 }
+
+// gallery-v40 Justified (anselat agent): photos in rows of two that share one height; the site
+// script sizes each photo by its proportions (without it: equal halves, 4:3).
+.gallery--justified {
+  container-type: inline-size;
+  .gallery__justified { --justified-gap: clamp(40px, 4vw, 60px); display: flex; flex-wrap: wrap; gap: var(--justified-gap); }
+  .gallery__photo { display: block; flex: 0 0 calc((100% - var(--justified-gap)) / 2); padding: 0; border: 0; overflow: hidden; border-radius: calc(var(--radius) * 2); background: var(--color-surface); cursor: zoom-in; aspect-ratio: 4 / 3; }
+  .gallery__photo:last-child:nth-child(odd) { flex-basis: 100%; aspect-ratio: 16 / 9; }
+  .gallery__image { width: 100%; height: 100%; object-fit: cover; }
+  // Optional heading (empty by default = hidden).
+  .gallery__justified-head:has(h2:empty) { display: none; }
+  // Phones: one photo per row in its own proportions (set by the site script; 4:3 without it).
+  @container (max-width: 760px) { .gallery__photo { flex-basis: 100% !important; } }
+}
+
+// gallery-v20 (carousel): heading + arrows, a horizontal scroll-snap row of square photos with an optional
+// badge, optional centred button. gallery-v21 (badged): the same tiles as a grid. Empty head/button are hidden.
+.gallery--carousel, .gallery--badged {
+  container-type: inline-size;
+  .gallery__carousel-head, .gallery__badged-head { display: flex; align-items: flex-end; justify-content: space-between; gap: 16px; margin-bottom: 20px; }
+  .gallery__carousel-copy, .gallery__badged-head { display: flex; flex-direction: column; gap: 6px; }
+  .gallery__badged-head { align-items: flex-start; }
+  .gallery__badged-head:has(h2:empty) { display: none; }
+  .gallery__carousel-copy:has(h2:empty) { visibility: hidden; }
+  .gallery__carousel-nav { display: flex; gap: 8px; }
+  .gallery__arrow { display: grid; place-items: center; width: 44px; height: 44px; padding: 0; border: 0; border-radius: 999px; background: var(--color-bg); color: var(--color-ink); box-shadow: 0 1px 3px rgb(0 0 0 / 0.12); cursor: pointer; transition: box-shadow .2s, opacity .2s; }
+  .gallery__arrow:hover { box-shadow: 0 6px 16px rgb(0 0 0 / 0.14); }
+  .gallery__arrow:disabled { opacity: .4; cursor: default; }
+  .gallery__carousel-track { display: grid; grid-auto-columns: calc((100% - 36px) / 4); grid-auto-flow: column; gap: 12px; overflow-x: auto; scroll-snap-type: x mandatory; scrollbar-width: none; }
+  .gallery__carousel-track::-webkit-scrollbar { display: none; }
+  .gallery__badged-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; }
+  .gallery__tile { position: relative; aspect-ratio: 1; overflow: hidden; border-radius: var(--radius); background: var(--color-surface); scroll-snap-align: start; cursor: zoom-in; }
+  .gallery__tile img { display: block; width: 100%; height: 100%; object-fit: cover; }
+  .gallery__badge { position: absolute; top: 10px; left: 10px; display: inline-flex; align-items: center; gap: 6px; padding: 3px 8px; border-radius: 7px; background: rgb(0 0 0 / 0.55); color: #ffffff; font-weight: 700; letter-spacing: 0.04em; }
+  .gallery__badge::before { content: ""; width: 6px; height: 6px; border-radius: 50%; background: #ef4444; }
+  .gallery__badge:empty { display: none; }
+  .gallery__more { display: flex; justify-content: center; margin-top: 22px; }
+  .gallery__more:has(a:empty) { display: none; }
+  @container (max-width: 900px) {
+    .gallery__carousel-track { grid-auto-columns: calc((100% - 12px) / 2); }
+    .gallery__badged-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  }
+  @container (max-width: 560px) {
+    .gallery__carousel-track { grid-auto-columns: 78%; }
+    .gallery__carousel-nav { display: none; }
+    .gallery__badged-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+  }
+}
+
+// gallery-v50 Compare (library agent): before/after pairs with a draggable divider.
+// The divider is a native range input stretched over the photos (mouse, touch and arrow keys work);
+// the site script writes its value into --pos. Without the script the divider stays in the middle.
+.gallery--compare {
+  container-type: inline-size;
+  .gallery__compare-head { display: grid; grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr); gap: var(--layout-gap); align-items: end; margin-bottom: clamp(32px, 4vw, 64px); }
+  .gallery__compare-head .section__description:empty { display: none; }
+  .gallery__compare-list { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 24px; }
+  .gallery__compare-list:has(> .gallery__compare:only-child) { grid-template-columns: minmax(0, 1fr); }
+  .gallery__compare { display: flex; flex-direction: column; gap: 14px; min-width: 0; }
+  .gallery__compare-title:empty { display: none; }
+  .gallery__compare-stage { --pos: 50%; position: relative; overflow: hidden; aspect-ratio: 3 / 2; border-radius: var(--radius); background: var(--color-surface); user-select: none; }
+  .gallery__compare-stage:has(.gallery__compare-range:focus-visible) { outline: 3px solid var(--color-interactive); outline-offset: 4px; }
+  .gallery__compare-after, .gallery__compare-before img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+  .gallery__compare-before { position: absolute; inset: 0; clip-path: inset(0 calc(100% - var(--pos)) 0 0); }
+  .gallery__compare-label { position: absolute; top: 14px; z-index: 1; padding: 4px 12px; border-radius: 999px; background: rgb(0 0 0 / 55%); color: #ffffff; font-weight: 600; pointer-events: none; }
+  .gallery__compare-label:empty { display: none; }
+  .gallery__compare-label--before { left: 14px; }
+  .gallery__compare-label--after { right: 14px; }
+  .gallery__compare-range { position: absolute; inset: 0; z-index: 3; width: 100%; height: 100%; margin: 0; opacity: 0; cursor: ew-resize; appearance: none; background: transparent; }
+  .gallery__compare-range::-webkit-slider-thumb { appearance: none; width: 48px; height: 400px; }
+  .gallery__compare-range::-moz-range-thumb { width: 48px; height: 400px; border: 0; }
+  .gallery__compare-handle { position: absolute; top: 0; bottom: 0; left: var(--pos); z-index: 2; width: 3px; margin-left: -1.5px; background: #ffffff; pointer-events: none; }
+  .gallery__compare-handle::after { content: ""; position: absolute; top: 50%; left: 50%; width: 44px; height: 44px; border-radius: 999px; background: #ffffff; box-shadow: 0 4px 16px rgb(0 0 0 / 25%); transform: translate(-50%, -50%); }
+  .gallery__compare-handle::before { content: "\2039\00a0\203A"; position: absolute; top: 50%; left: 50%; z-index: 1; color: #111111; font-size: 20px; font-weight: 700; line-height: 1; transform: translate(-50%, -55%); }
+  @container (max-width: 760px) {
+    .gallery__compare-head { grid-template-columns: minmax(0, 1fr); align-items: start; gap: 16px; }
+    .gallery__compare-list { grid-template-columns: minmax(0, 1fr); gap: 32px; }
+  }
+}
+
+// gallery-v20/v21 clips: a tile may carry a looping muted video, shown while it plays (hover / in view on touch).
+.gallery--carousel, .gallery--badged {
+  .gallery__tile-video { position: absolute; inset: 0; z-index: 0; width: 100%; height: 100%; object-fit: cover; opacity: 0; transition: opacity .3s; }
+  .gallery__tile.is-playing .gallery__tile-video { opacity: 1; }
+  .gallery__tile .gallery__badge { z-index: 1; }
+}

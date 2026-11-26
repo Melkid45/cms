@@ -78,3 +78,202 @@ html:has(.projects-dialog[open]) { overflow: hidden; }
     &__feature > .projects__media { min-height: 320px; }
   }
 }
+// Live sites: every card opens its own website.
+.projects--sites {
+  .projects__media { aspect-ratio: 16 / 10; box-shadow: 0 1px 2px #0000000f, 0 8px 24px #0000000d; transition: box-shadow .3s; }
+  .projects__site:hover .projects__image { transform: none; }
+  .projects__image { object-position: top; }
+  .projects__card-head { margin-top: 8px; }
+  .projects__site { display: flex; flex-direction: column; gap: 12px; color: inherit; text-decoration: none; }
+  .projects__site > .text-link { align-self: flex-start; }
+  .projects__site:hover .projects__media { box-shadow: 0 2px 4px #00000014, 0 16px 40px #0000001f; }
+  .projects__grid { row-gap: 48px; }
+}
+@media (max-width: 1100px) and (min-width: 768px) { .projects--sites .projects__grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+
+// projects-v40 Overlay Cards + projects-v41 Category Cards (anselat agent): photo tiles with the
+// title and a short text over a dark gradient; the whole tile is a link.
+.projects--overlay, .projects--category {
+  container-type: inline-size;
+  .projects__tile { min-width: 0; }
+  .projects__tile-link { position: relative; isolation: isolate; display: flex; align-items: flex-end; height: 100%; padding: clamp(26px, 3.5vw, 50px); overflow: hidden; border-radius: calc(var(--radius) * 2); background: #1a1a1a; color: #ffffff; }
+  .projects__tile-link::before { content: ""; position: absolute; inset: 0; z-index: -1; background: linear-gradient(180deg, rgb(0 0 0 / 0%) 0%, rgb(0 0 0 / 90%) 100%); }
+  .projects__tile-image { position: absolute; inset: 0; z-index: -2; width: 100%; height: 100%; object-fit: cover; transition: transform .6s ease; }
+  .projects__tile-link:hover .projects__tile-image { transform: scale(1.04); }
+  .projects__tile-copy { display: flex; flex-direction: column; gap: clamp(20px, 2.4vw, 40px); }
+  .projects__tile-title { color: #ffffff; line-height: 1.05; }
+  .projects__tile-text { color: rgb(255 255 255 / 65%); font-weight: 300; line-height: 1.5; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+  .projects__tile-text:empty { display: none; }
+}
+.projects--overlay {
+  overflow: hidden;
+  .projects__overlay-head { display: flex; align-items: center; justify-content: space-between; gap: 40px; margin-bottom: clamp(40px, 4vw, 70px); }
+  .projects__overlay-more { border-radius: 999px; color: var(--brand-on-accent, #111111); }
+  .projects__overlay-more::before { content: "\2197"; }
+  .projects__overlay-more:empty { display: none; }
+  // A row that scrolls sideways when there are more than two tiles.
+  .projects__overlay-row { display: grid; grid-auto-flow: column; grid-auto-columns: calc((100% - 50px) / 2); gap: 50px; overflow-x: auto; scroll-snap-type: x mandatory; scrollbar-width: none; overscroll-behavior-x: contain; }
+  .projects__overlay-row::-webkit-scrollbar { display: none; }
+  .projects__tile { aspect-ratio: 1; scroll-snap-align: start; }
+  @container (max-width: 760px) {
+    .projects__overlay-head { flex-direction: column; align-items: stretch; text-align: center; }
+    .projects__overlay-row { grid-auto-columns: 86%; gap: 20px; }
+  }
+}
+.projects--category {
+  .projects__category-head { display: grid; grid-template-columns: 1fr 1fr; align-items: end; gap: 50px; margin-bottom: clamp(60px, 7vw, 120px); }
+  .projects__category-head .heading { line-height: 1; }
+  .projects__category-head p:empty { display: none; }
+  .projects__category-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 50px; }
+  .projects__tile { aspect-ratio: 4 / 3; }
+  @container (max-width: 1000px) { .projects__category-grid { grid-template-columns: minmax(0, 1fr); } }
+  @container (max-width: 760px) { .projects__category-head { grid-template-columns: minmax(0, 1fr); gap: 32px; } .projects__tile { aspect-ratio: 3 / 4; } }
+}
+
+// projects-v70 Gallery (landing agent, 2026-11-20): big website cards in two columns, each card one link,
+// the picture shown whole at its own proportions (never cropped), name + niche under the picture.
+.projects.projects--gallery {
+  container-type: inline-size;
+  .projects__wrap { --container-width: 1400px; }
+  .projects__intro { display: flex; flex-direction: column; gap: 20px; max-width: 760px; margin-bottom: clamp(40px, 5vw, 80px); }
+  .projects__intro .heading { line-height: 1.04; letter-spacing: -0.035em; }
+  .projects__intro .section__description { max-width: 600px; color: var(--color-muted); }
+  .projects__intro .section__description:empty { display: none; }
+  .projects__gallery { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: clamp(48px, 5vw, 80px) clamp(20px, 2vw, 32px); }
+  .projects__work { min-width: 0; }
+  .projects__work-link { display: flex; flex-direction: column; gap: 12px; color: inherit; text-decoration: none; }
+  // No shadow: rounded top corners, the lower ~30% of the website fades into the page background.
+  // Shadow = drop-shadow of the masked picture: soft on top/left/right, gone at the bottom with the fade.
+  .projects__work-media { display: block; border-radius: 12px 12px 0 0; filter: drop-shadow(0 0 18px rgb(0 0 0 / 11%)); }
+  .projects__work-image { display: block; width: 100%; height: auto; border-radius: inherit; background: var(--color-surface); -webkit-mask-image: linear-gradient(to bottom, #000 68%, transparent 100%); mask-image: linear-gradient(to bottom, #000 68%, transparent 100%); }
+  .projects__work-caption { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 14px; }
+  .projects__work-name { letter-spacing: -0.02em; }
+  .projects__work-niche { color: var(--color-muted); }
+  // Caption bar (same logic as projects-v71): equal columns niche/domain | From request to live | Price | button;
+  // each cell = small label over a value; cells are subgrids of two shared rows, so all labels and all values start
+  // on one line. The button (a span: the whole card is already one link) fills its column over both rows.
+  .projects__work-caption { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); grid-template-rows: auto auto; column-gap: 24px; row-gap: 8px; padding-inline: clamp(16px, 5cqw, 32px); }
+  .projects__work-cell--action .projects__work-value { grid-row: 1 / span 2; align-self: stretch; align-items: stretch; }
+  .projects__work-button { flex: 1; min-height: 0; padding: 8px 14px; gap: 8px; text-align: center; line-height: 1.25; }
+  .projects__work-button svg { display: none; }
+  .projects__work-link:hover .projects__work-button { background: var(--color-button-hover); }
+  .projects__work-cell { display: grid; grid-row: span 2; grid-template-rows: subgrid; align-content: start; min-width: 0; }
+  .projects__work-label { align-self: start; color: var(--color-muted); line-height: 1.3; }
+  .projects__work-value { display: flex; flex-direction: column; align-items: flex-start; gap: 4px; align-self: start; min-width: 0; }
+  .projects__work-name, .projects__work-time-value, .projects__work-price { line-height: 1.1; letter-spacing: -0.02em; font-variant-numeric: lining-nums tabular-nums; }
+  .projects__work-cell:has(.projects__work-time-value:empty), .projects__work-cell:has(.projects__work-price:empty), .projects__work-niche:empty { display: none; }
+  // The card is the container: below 900px (every card of the two-column grid) the bar becomes 2 x 2
+  // (domain | time, price | button) on the same label/value rows, so values never squeeze into narrow columns.
+  .projects__work-link { container-type: inline-size; }
+  @container (max-width: 900px) {
+    .projects__work-caption { grid-template-columns: repeat(2, minmax(0, 1fr)); grid-template-rows: auto auto auto auto; row-gap: 8px; }
+    .projects__work-cell:nth-child(n + 3) { margin-top: 16px; }
+    .projects__work-cell--action .projects__work-value { min-height: 52px; }
+  }
+  .projects__more { display: flex; flex-wrap: wrap; justify-content: center; align-items: center; gap: 8px 16px; margin-top: clamp(48px, 5vw, 80px); text-align: center; }
+  .projects__more .text-link { font-weight: 500; }
+  .projects__more span:empty, .projects__more a:empty { display: none; }
+  @container (max-width: 760px) {
+    .projects__gallery { grid-template-columns: minmax(0, 1fr); gap: 44px; }
+    .projects__work-link { gap: 10px; }
+    .projects__work-media { border-radius: 10px 10px 0 0; }
+  }
+}
+
+// projects-v71 Stack (landing agent, 2026-11-20): website cards that stick near the top of the screen and
+// stack: each next card slides up over the previous one, which stays still and dims. Pure CSS: position:
+// sticky + scroll-driven animations (view timelines, up to 6 cards); without them the cards still stack, just
+// without the fades. Nothing animates with prefers-reduced-motion. Title/lead above are optional (hidden when empty).
+// Wide screens: the card spans the container (max 1500px) and is as tall as the screen allows; the website shows
+// from its top at near-natural size (cropped at the bottom), then a solid info bar: four equal columns
+// Website | From request to live | Price | button; each = small label over a value, on two shared rows.
+// Narrow screens (< 760px): the whole preview, then the bar as 2 columns (website and button full width).
+.projects.projects--stack {
+  container: v71-stack / inline-size;
+  padding-top: clamp(8px, 1.5vw, 24px);
+  .projects__stack-wrap { --container-width: 1500px; }
+  @media (max-width: 640px) { .projects__stack-wrap { --page-gutter: 16px; } }
+  .projects__intro { display: flex; flex-direction: column; gap: 20px; max-width: 760px; margin-bottom: clamp(40px, 5vw, 72px); }
+  .projects__intro .heading { line-height: 1.04; letter-spacing: -0.035em; }
+  .projects__intro .section__description { max-width: 600px; color: var(--color-muted); }
+  .projects__intro .section__description:empty { display: none; }
+  .projects__intro:has(> .heading:empty):has(> .section__description:empty) { display: none; }
+  // Each article is a scroll track: card height + --stack-dwell. The card is sticky inside it, so it stops and
+  // stays while the track scrolls (the website scrolls inside the preview, the bar rises in); the next article
+  // overlaps the end of this one by the card height, so the next card slides up over this one while it is still
+  // stuck and stops exactly on top of it (this one is released only then, hidden under it). Timelines: --layer = the article's own track; --stack-N = article N, used by card N-1 for the
+  // cover (up to 6 cards).
+  .projects__stack { display: flex; flex-direction: column; timeline-scope: --stack-2, --stack-3, --stack-4, --stack-5, --stack-6; }
+  // --stack-top = the measured header height (--header-height, set by the site runtime). The header centres its
+  // button, so this puts the card exactly as far below the button as the button is below the top of the window.
+  // Every card stops at the same top and has the same height: the next one covers the previous one completely.
+  .projects__layer { --stack-next: --stack-none; --stack-top: var(--header-height, 0px); --stack-dwell: 220svh; --card-h: calc((100vw - 32px) * 0.625 + 216px); position: relative; height: calc(var(--card-h) + var(--stack-dwell)); view-timeline-name: --layer; }
+  .projects__layer + .projects__layer { margin-top: calc(0px - var(--card-h)); }
+  // The last card has no follower: its track is only the inner-scroll phase, so it leaves with the page right
+  // after the website reaches its end (no idle scroll).
+  .projects__layer:last-child { --stack-dwell: 100svh; }
+  .projects__layer:nth-child(1) { --stack-next: --stack-2; }
+  .projects__layer:nth-child(2) { --stack-next: --stack-3; view-timeline-name: --layer, --stack-2; }
+  .projects__layer:nth-child(3) { --stack-next: --stack-4; view-timeline-name: --layer, --stack-3; }
+  .projects__layer:nth-child(4) { --stack-next: --stack-5; view-timeline-name: --layer, --stack-4; }
+  .projects__layer:nth-child(5) { --stack-next: --stack-6; view-timeline-name: --layer, --stack-5; }
+  .projects__layer:nth-child(6) { view-timeline-name: --layer, --stack-6; }
+  // The sticky unit = preview + info bar under it, on the page colour (a covered card never shows through).
+  .projects__layer-card { position: sticky; top: var(--stack-top); height: var(--card-h); display: flex; flex-direction: column; gap: 10px; padding-bottom: 4px; background: var(--color-bg); transform-origin: 50% 0; }
+  // Preview = the website's screen: rounded top corners, no hard bottom edge (the lower ~30% fades into the page);
+  // the shadow is a drop-shadow of the masked picture, so it fades out with it. The tall website screenshot fills
+  // the window (object-fit: cover) and scrolls inside it (object-position) while the card stays.
+  .projects__layer-shot { position: relative; display: block; flex: 1; min-height: 0; border-radius: 16px 16px 0 0; filter: drop-shadow(0 6px 14px rgb(0 0 0 / 12%)); }
+  .projects__layer-shot::after { content: ""; position: absolute; inset: 0; z-index: 2; border-radius: inherit; background: var(--color-ink); opacity: 0; pointer-events: none; -webkit-mask-image: linear-gradient(to bottom, #000 68%, transparent 100%); mask-image: linear-gradient(to bottom, #000 68%, transparent 100%); }
+  .projects__layer-image { display: block; width: 100%; height: 100%; object-fit: cover; object-position: 50% 0%; border-radius: inherit; background: var(--color-surface); -webkit-mask-image: linear-gradient(to bottom, #000 68%, transparent 100%); mask-image: linear-gradient(to bottom, #000 68%, transparent 100%); }
+  // Info bar: equal columns; every cell is a subgrid of the bar's two rows (label row, value row), so all
+  // labels start on one line and all values on the next. Same-size values (name, time, price).
+  // Side padding of the bar = the inner margin of a website (the caption starts where the site's content starts).
+  .projects__layer-bar { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); grid-auto-rows: auto; column-gap: 24px; row-gap: 8px; padding: 0 16px; }
+  .projects__layer-cell { display: grid; grid-row: span 2; grid-template-rows: subgrid; align-content: start; min-width: 0; }
+  .projects__layer-cell:first-child, .projects__layer-cell--action { grid-column: 1 / -1; }
+  .projects__layer-cell--action { margin-top: 8px; }
+  .projects__layer-label { align-self: start; color: var(--color-muted); line-height: 1.3; }
+  .projects__layer-value { display: flex; flex-direction: column; align-items: flex-start; gap: 4px; align-self: start; min-width: 0; }
+  .projects__layer-name, .projects__layer-time, .projects__layer-price { line-height: 1.05; letter-spacing: -0.03em; font-variant-numeric: lining-nums tabular-nums; }
+  .projects__layer-niche { color: var(--color-muted); }
+  .projects__layer-link { width: 100%; justify-content: space-between; gap: 10px; padding-inline: 24px; white-space: nowrap; }
+  .projects__layer-cell:has(.projects__layer-time:empty), .projects__layer-cell:has(.projects__layer-price:empty), .projects__layer-cell:has(.projects__layer-link:empty), .projects__layer-niche:empty { display: none; }
+  @container v71-stack (min-width: 760px) {
+    // Screen-tall card (but not taller than ~62% of the width): the preview takes what the bar leaves.
+    .projects__layer { --card-h: max(400px, min(calc(100svh - var(--header-height, 0px) - 24px), 62cqw)); }
+    .projects__layer-card { gap: 12px; }
+    .projects__layer-shot { border-radius: 24px 24px 0 0; }
+    .projects__layer-bar { grid-template-columns: repeat(4, minmax(0, 1fr)); grid-template-rows: auto auto; column-gap: 32px; padding: 0 clamp(24px, 3cqw, 40px); }
+    .projects__layer-cell:first-child, .projects__layer-cell--action { grid-column: auto; }
+    .projects__layer-cell--action { margin-top: 0; }
+    // Labels (e.g. the niche) stay on one line; a label longer than its column ends with an ellipsis.
+    .projects__layer-label { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    // The button has no label: it fills its column over both rows (top = label line, bottom = value bottom).
+    .projects__layer-cell--action .projects__layer-value { grid-row: 1 / span 2; align-self: stretch; align-items: stretch; }
+    .projects__layer-link { flex: 1; width: 100%; min-height: 0; justify-content: center; }
+  }
+}
+@keyframes v71-dim { to { opacity: 0.32; } }
+@keyframes v71-caption-out { to { opacity: 0; } }
+@keyframes v71-shrink { to { transform: scale(0.94); } }
+@keyframes v71-caption-in { from { opacity: 0; transform: translateY(28px); } }
+@keyframes v71-scroll-site { from { object-position: 50% 0%; } to { object-position: 50% 100%; } }
+@media (prefers-reduced-motion: no-preference) {
+  @supports (animation-timeline: view()) {
+    // Own track (--layer, cover offsets in lengths): the card stops when the article top reaches --stack-top
+    // (offset 100svh - top). The card arrives showing the very top of the website; only after it has stopped
+    // (+8svh) the website scrolls inside the preview; it ends 20svh
+    // before the next card starts to come in (that starts at offset --stack-dwell), so the previous
+    // card is completely still while it is covered. The bar rises in during the first 40svh of the stop.
+    .projects--stack .projects__layer-image { animation: v71-scroll-site linear both; animation-timeline: --layer; animation-range: cover calc(108svh - var(--stack-top)) cover calc(var(--stack-dwell) - 20svh); }
+    // Cover (timeline of the next article, from entering the screen to its stop): the previous card does not
+    // move: it shrinks a little from its top edge (transform-origin top centre, so its top stays put), its
+    // preview dims and its bar fades out; the picture inside stays still. The new card covers it completely.
+    // Last card: the inner scroll ends exactly when the card is released (offset 100svh - top + dwell).
+    .projects--stack .projects__layer:last-child .projects__layer-image { animation-range: cover calc(108svh - var(--stack-top)) cover calc(100svh - var(--stack-top) + var(--stack-dwell)); }
+    .projects--stack .projects__layer-card { animation: v71-shrink linear forwards; animation-timeline: var(--stack-next); animation-range: cover 0px cover calc(100svh - var(--stack-top)); }
+    .projects--stack .projects__layer-shot::after { animation: v71-dim linear forwards; animation-timeline: var(--stack-next); animation-range: cover 0px cover calc(100svh - var(--stack-top)); }
+    .projects--stack .projects__layer-bar { animation: v71-caption-in linear both, v71-caption-out linear forwards; animation-timeline: --layer, var(--stack-next); animation-range: cover calc(100svh - var(--stack-top)) cover calc(140svh - var(--stack-top)), cover 0px cover calc(45svh - var(--stack-top)); }
+  }
+}

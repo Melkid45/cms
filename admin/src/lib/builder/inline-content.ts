@@ -1,3 +1,4 @@
+import {keepCatalogInfo} from "./products/apply";
 import type { Project, Section, CmsService } from "./types";
 import { definition } from "./catalog";
 import { collectionItems } from "./collections";
@@ -28,7 +29,11 @@ export function connectedContent(
     for (const group of entry.repeaters || [])
       collections[group.id] = collectionItems(section, entry, group).map(
         (item) => {
-          const detail = item.detail || { mode: "none", body: "", formId: "" };
+          // Items without service settings keep their own links (services blocks of existing
+          // websites link to real pages); only items whose details were set up in the section
+          // editor get the service action (or lose the link with mode "none").
+          if (!item.detail) return item;
+          const detail = item.detail;
           const fields = entry.fields.filter((f) =>
             group.items[item.template]?.fields.includes(f.key),
           );
@@ -90,13 +95,13 @@ export function connectedContent(
     footer: bind(source.layout.footer),
   };
   return {
-    project: {
+    project: keepCatalogInfo(source,{
       ...source,
       pages,
       layout,
       formDefinitions: [...forms.values()],
       services: [...services.values()],
-    },
+    }),
     sections,
   };
 }

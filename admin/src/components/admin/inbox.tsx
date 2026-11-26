@@ -1,9 +1,11 @@
 "use client";
+import { Select, SelectOption } from "@/components/ui/select";
+import { withSite } from "@/lib/builder/site-client";
 import { useEffect, useState } from "react";
-import { Mail, Check, RefreshCw } from "lucide-react";
+import { Mail, Check, RefreshCw, Trash2 } from "lucide-react";
 import Link from "next/link";
 import type { Submission } from "@/lib/builder/submissions";
-import { PageHeader } from "@/components/admin/page-header";
+import { AdminPanel } from "@/components/admin/admin-panel";
 import { Button } from "@/components/ui/button";
 import { useAccess } from "@/components/admin/access-context";
 import { useProject } from "@/lib/builder/client";
@@ -23,9 +25,12 @@ export default function Submissions({
   const [query, setQuery] = useState(""),
     [notes, setNotes] = useState<Record<string, string>>({}),
     [saving, setSaving] = useState("");
+  const [hideFlagged, setHideFlagged] = useState(true),
+    [selected, setSelected] = useState<string[]>([]);
   const filtered = items.filter(
     (item) =>
       (!unread || !item.read) &&
+      (!hideFlagged || !item.flag) &&
       [item.pageTitle, ...Object.values(item.values), item.internalNote || ""]
         .join(" ")
         .toLowerCase()
@@ -35,7 +40,7 @@ export default function Submissions({
     setSaving(item.id);
     setError("");
     try {
-      const response = await fetch("/api/builder/submissions", {
+      const response = await fetch(withSite("/api/builder/submissions"), {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -61,9 +66,38 @@ export default function Submissions({
       setSaving("");
     }
   }
+  // Super admin only (the API checks it too): delete for good.
+  async function remove(ids: string[]) {
+    if (
+      !ids.length ||
+      !confirm(
+        ids.length === 1
+          ? "Delete this enquiry permanently?"
+          : `Delete ${ids.length} enquiries permanently?`,
+      )
+    )
+      return;
+    setSaving("delete");
+    setError("");
+    try {
+      const response = await fetch(withSite("/api/builder/submissions"), {
+        method: "DELETE",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ ids }),
+      });
+      const data = await response.json();
+      if (!response.ok) throw Error(data.error);
+      setItems((current) => current.filter((row) => !ids.includes(row.id)));
+      setSelected([]);
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Could not delete enquiries.");
+    } finally {
+      setSaving("");
+    }
+  }
   const load = async () => {
     try {
-      const response = await fetch("/api/builder/submissions", {
+      const response = await fetch(withSite("/api/builder/submissions"), {
         cache: "no-store",
       });
       const result = await response.json();
@@ -80,7 +114,7 @@ export default function Submissions({
   };
   useEffect(() => {
     let active = true;
-    fetch("/api/builder/submissions", { cache: "no-store" })
+    fetch(withSite("/api/builder/submissions"), { cache: "no-store" })
       .then(async (response) => {
         const data = await response.json();
         if (!response.ok) throw new Error(data.error);
@@ -97,11 +131,9 @@ export default function Submissions({
     };
   }, []);
   return (
-    <div>
-      <PageHeader
-        title={overview ? "Your enquiries" : "Inbox"}
-        description="Enquiries submitted through your published website."
-        action={
+    <AdminPanel
+      title={overview ? "Your enquiries" : "Inbox"}
+      toolbar={<div className="ml-auto flex flex-wrap items-center gap-2.5">{
           <div className="flex gap-2">
             <Button variant="outline" onClick={load}>
               <RefreshCw />
@@ -110,14 +142,14 @@ export default function Submissions({
             {isOwner && (
               <Button
                 nativeButton={false}
-                render={<Link href="/dashboard/settings/forms" />}
+                render={<Link href="/dashboard/settings/client" />}
               >
                 Form settings
               </Button>
             )}
           </div>
-        }
-      />
+        }</div>}
+    >
       <div className="mb-5 flex gap-2">
         <Input
           aria-label="Search enquiries"
@@ -138,6 +170,24 @@ export default function Submissions({
         >
           Unread ({items.filter((i) => !i.read).length})
         </Button>
+        <label className="flex items-center gap-2 px-2 text-sm">
+          <input
+            type="checkbox"
+            checked={hideFlagged}
+            onChange={(e) => setHideFlagged(e.target.checked)}
+          />
+          Hide spam and tests ({items.filter((i) => i.flag).length})
+        </label>
+        {isOwner && selected.length > 0 && (
+          <Button
+            variant="outline"
+            disabled={!!saving}
+            onClick={() => void remove(selected)}
+          >
+            <Trash2 />
+            Delete selected ({selected.length})
+          </Button>
+        )}
       </div>
       {error && (
         <p role="alert" className="mb-4 text-red-600">
@@ -148,9 +198,29 @@ export default function Submissions({
         {filtered.map((item) => (
           <article key={item.id} className="rounded-xl border bg-white p-6">
             <div className="mb-5 flex flex-wrap items-center gap-3">
-              <Mail className="size-5" />
+              {isOwner ? (
+                <input
+                  type="checkbox"
+                  aria-label={`Select enquiry from ${item.pageTitle}`}
+                  checked={selected.includes(item.id)}
+                  onChange={(e) =>
+                    setSelected((current) =>
+                      e.target.checked
+                        ? [...current, item.id]
+                        : current.filter((id) => id !== item.id),
+                    )
+                  }
+                />
+              ) : (
+                <Mail className="size-5" />
+              )}
               <h2 className="min-w-0 flex-1 break-words font-medium">
                 {item.pageTitle}
+                {item.flag && (
+                  <span className="ml-2 rounded-full bg-amber-50 px-2 py-0.5 text-xs text-amber-800">
+                    {item.flag === "spam" ? "Spam" : "Test"}
+                  </span>
+                )}
               </h2>
               <span className="text-xs text-neutral-500">
                 {new Date(item.createdAt).toLocaleString("en-GB", {
@@ -173,6 +243,31 @@ export default function Submissions({
                 <Check />
                 {item.read ? "Read" : "Mark as read"}
               </Button>
+              <Select
+                aria-label="Mark as spam or test"
+                className="h-9 "
+                value={String(item.flag || "")}
+                disabled={!!saving}
+                onValueChange={(selectedValue) =>
+                  void update(item, {
+                    flag: (selectedValue || null) as Submission["flag"],
+                  })}
+              >
+                <SelectOption value="">Real enquiry</SelectOption>
+                <SelectOption value="spam">Spam</SelectOption>
+                <SelectOption value="test">Test</SelectOption>
+              </Select>
+              {isOwner && (
+                <Button
+                  size="icon-sm"
+                  variant="ghost"
+                  aria-label="Delete enquiry"
+                  disabled={!!saving}
+                  onClick={() => void remove([item.id])}
+                >
+                  <Trash2 />
+                </Button>
+              )}
             </div>
             <dl className="grid gap-4 sm:grid-cols-2">
               {Object.entries(item.values).map(([name, value]) => (
@@ -238,6 +333,6 @@ export default function Submissions({
         )}
         {!loaded && <p>Loading messages…</p>}
       </div>
-    </div>
+    </AdminPanel>
   );
 }

@@ -1,6 +1,11 @@
 import { createSection, definitions } from "./catalog";
 import type { CmsPage, Project } from "./types";
-function page(slug: string, title: string, variants: string[]): CmsPage {
+function page(
+  slug: string,
+  title: string,
+  variants: string[],
+  base = "/site",
+): CmsPage {
   const sections = variants.map((variant, index) =>
     createSection(variant, `${slug}-${index}`),
   );
@@ -11,9 +16,9 @@ function page(slug: string, title: string, variants: string[]): CmsPage {
         const url = section.values[f.key];
         if (url.startsWith("/"))
           section.values[f.key] = url.includes("services")
-            ? "/site/services"
-            : "/site/studio";
-        if (url.startsWith("#hero")) section.values[f.key] = "/site/services";
+            ? `${base}/services`
+            : `${base}/studio`;
+        if (url.startsWith("#hero")) section.values[f.key] = `${base}/services`;
       }
       if (section.values[f.key] === "Explore another layout")
         section.values[f.key] = "Explore our services";
@@ -37,32 +42,43 @@ function page(slug: string, title: string, variants: string[]): CmsPage {
     updatedAt: "2026-10-27T00:00:00.000Z",
   };
 }
-export function seedProject(): Project {
+// siteKey prefixes internal sample links for websites other than the first one.
+export function seedProject(siteKey?: string): Project {
+  const base = siteKey ? `/site/${siteKey}` : "/site";
   const pages = [
-    page("home", "Home", [
-      "hero-v2",
-      "about-v1",
-      "services-v2",
-      "advantages-v3",
-      "testimonials-v1",
-      "faq-v1",
-      "contact-v3",
-    ]),
-    page("studio", "Studio", [
-      "hero-v3",
-      "about-v3",
-      "content-v1",
-      "gallery-v2",
-      "contact-v6",
-    ]),
-    page("services", "Services", [
-      "hero-v6",
-      "services-v6",
-      "process-v5",
-      "pricing-v5",
-      "faq-v4",
-      "contact-v7",
-    ]),
+    page(
+      "home",
+      "Home",
+      [
+        "hero-v2",
+        "about-v1",
+        "services-v2",
+        "advantages-v3",
+        "testimonials-v1",
+        "faq-v1",
+        "contact-v3",
+      ],
+      base,
+    ),
+    page(
+      "studio",
+      "Studio",
+      ["hero-v3", "about-v3", "content-v1", "gallery-v2", "contact-v6"],
+      base,
+    ),
+    page(
+      "services",
+      "Services",
+      [
+        "hero-v6",
+        "services-v6",
+        "process-v5",
+        "pricing-v5",
+        "faq-v4",
+        "contact-v7",
+      ],
+      base,
+    ),
   ];
   const updateHeading = (page: CmsPage, text: string) => {
     const section = page.sections[0];

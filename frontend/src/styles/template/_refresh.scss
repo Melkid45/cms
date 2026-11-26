@@ -1,0 +1,104 @@
+// Library refresh (2026-11-19, client feedback "sites look like a cheap template").
+// Loaded AFTER all section styles (admin/src/components/builder/site.scss), so it wins on equal specificity.
+// - no 1px hairline dividers: rows are separated by spacing, FAQ items become soft cards;
+// - no small uppercase eyebrow labels above headings (field kept so saved content stays valid);
+// - navigation and buttons one step larger.
+
+// Readable navigation and buttons.
+.site-header a.text--sm:not(.button),
+.site-header__nav a,
+.button.text--sm { font-size: 16px; }
+
+// Eyebrows read as an AI/template tell.
+.eyebrow { display: none; }
+
+// Dividers between rows: spacing instead of lines.
+.faq__item,
+.faq__item:first-child,
+.pricing__extra,
+.pricing__table tbody tr + tr,
+.pricing__horizontal,
+.pricing__horizontal-row,
+.services__catalog-item,
+.services__row,
+.services__row:last-child,
+.services__item,
+.services__item:last-child,
+.advantages__principle,
+.advantages__item,
+.advantages__row,
+.advantages__fact,
+.testimonials__journal > article,
+.testimonials__stories .testimonials__quote,
+.site-header__lower { border-color: transparent; }
+.advantages .advantages__card { border-top-color: transparent; }
+
+// FAQ: each question is a soft card.
+.faq__list { display: flex; flex-direction: column; gap: 12px; }
+.faq__item { background: var(--color-surface); border-radius: var(--radius, 8px); padding-inline: 24px; }
+// FAQ that already sits on a surface panel: cards take the page background instead.
+.faq__panel .faq__item,
+.faq--groups .faq__item { background: var(--color-bg); }
+@media (max-width: 767px) { .faq__columns { row-gap: 12px; } }
+// Outlined cards: a soft surface instead of a hairline frame.
+.advantages .advantages__item,
+.pricing__card,
+.pricing__table-wrap { border-color: transparent; background: var(--color-surface); }
+.pricing__card--accent { background: var(--color-accent); border-color: transparent; }
+.advantages__tab { border-color: transparent; background: var(--color-surface); }
+// Small print one step larger: descriptions under card titles were hard to read.
+.text--sm { font-size: 15px; }
+.advantages--grid .advantages__icon-wrap { background: var(--color-bg); }
+// Remaining row dividers across the library.
+.about__facts,
+.about__quote,
+.content__topic,
+.content__topic:last-child,
+.pricing--list .pricing__row,
+.process__row,
+.process__outcome,
+.projects__index-item,
+.projects__row,
+.hero__tags span { border-color: transparent; }
+// The featured plan sits on the accent colour: its text follows the accent, also inside dark sections.
+.pricing__card--accent {
+  --color-ink: var(--brand-on-accent, #111);
+  --color-muted: color-mix(in srgb, var(--brand-on-accent, #111) 72%, var(--color-accent));
+  --color-border: color-mix(in srgb, var(--brand-on-accent, #111) 22%, var(--color-accent));
+  --color-interactive: var(--brand-on-accent, #111);
+  --color-bg: var(--color-accent);
+  color: var(--color-ink);
+}
+
+// advantages-v30: counters sit on the page background, no card surface.
+.advantages.advantages--counters .advantages__item { background: none; }
+
+// library agent (v50…v59): button shape from the website style preset (Settings → Website style).
+// Only on websites that use a style preset (data-site-style), so existing sites keep their buttons exactly.
+.site-canvas[data-site-style] .button { border-radius: var(--button-radius, 8px); }
+
+// v70 blocks (landing agent, 2026-11-20): soft rise-in. The hero plays once on load; the other v70 blocks
+// rise as they scroll into view (CSS scroll-driven animation; browsers without it simply show them).
+// Nothing moves with prefers-reduced-motion.
+@keyframes v70-rise { from { opacity: 0; transform: translateY(28px); } to { opacity: 1; transform: none; } }
+// First screen starts at 1% opacity, not 0: Chrome then counts the hero text as painted at once (LCP).
+@keyframes v70-rise-first { from { opacity: 0.01; transform: translateY(28px); } to { opacity: 1; transform: none; } }
+@media (prefers-reduced-motion: no-preference) {
+  .hero--statement .hero__content > *, .hero--statement .hero__feature,
+  .hero--opener .hero__content > * { animation: v70-rise-first 0.9s cubic-bezier(0.2, 0.65, 0.25, 1) both; }
+  .hero--statement .hero__content > :nth-child(2), .hero--opener .hero__content > :nth-child(2) { animation-delay: 0.08s; }
+  .hero--statement .hero__content > :nth-child(3), .hero--opener .hero__content > :nth-child(3) { animation-delay: 0.16s; }
+  .hero--statement .hero__feature { animation-delay: 0.26s; }
+  @supports (animation-timeline: view()) {
+    .projects--gallery .projects__intro, .projects--gallery .projects__work, .projects--gallery .projects__more,
+    .advantages--panels .advantages__intro, .advantages--panels .advantages__point,
+    .content--quiet .content__quiet > *,
+    .pricing--plans .pricing__intro, .pricing--plans .pricing__plan,
+    .faq--stack .faq__intro, .faq--stack .faq__item,
+    .contact--closing .contact__closing {
+      animation: v70-rise linear both;
+      animation-timeline: view();
+      animation-range: entry 0% entry 55%;
+    }
+  }
+}

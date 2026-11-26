@@ -36,10 +36,13 @@ export function compileRepeaters(nodes, family) {
     const replacements = new Map();
     for (const items of matches) {
       const id = `items-${repeaters.length + 1}`;
+      // Item names for blocks whose family default would read wrong (library agent).
+      const cls = items[0].attrs?.class || "";
+      const named = cls.includes("pricing__dish") ? "Dishes" : cls.includes("pricing__line") ? "Price rows" : cls.includes("team__person") ? "People" : cls.includes("gallery__compare") ? "Comparisons" : "";
       repeaters.push({
         id,
-        label:
-          family === "faq"
+        label: named ||
+          (family === "faq"
             ? "Questions"
             : family === "gallery"
               ? "Images"
@@ -49,7 +52,15 @@ export function compileRepeaters(nodes, family) {
                   ? "Steps"
                   : family === "testimonials"
                     ? "Reviews"
-                    : "Cards",
+                    : family === "hero"
+                      ? "Slides"
+                      : "Cards"),
+        // Hero showcase slides are capped so the first screen stays short.
+        ...(family === "hero" ? { max: 5 } : {}),
+        // Shop catalogue grids (pricing-v21) hold a whole product range.
+        ...(items[0].attrs?.class?.includes("pricing__shop-card") && JSON.stringify(nodes).includes("data-catalog") ? { max: 80 } : {}),
+        // Option picker pop-ups (pricing-v25) list a whole range of cases/frames.
+        ...(items[0].attrs?.class?.includes("pricing__picker-option") ? { max: 40 } : {}),
         items: items.map((node) => ({
           node,
           fields: [...new Set(fieldKeys(node))],
@@ -65,7 +76,14 @@ export function compileRepeaters(nodes, family) {
         .map((c) => replacements.get(c) || visit(c)),
     };
   }
-  if (hasLinkedTabs || ["header", "footer", "hero"].includes(family))
+  // Hero compositions are fixed, except the showcase whose slides repeat.
+  const heroSlides =
+    family === "hero" && JSON.stringify(nodes).includes("hero__slide");
+  if (
+    hasLinkedTabs ||
+    ["header", "footer"].includes(family) ||
+    (family === "hero" && !heroSlides)
+  )
     return { nodes, repeaters };
   return { nodes: nodes.map(visit), repeaters };
 }

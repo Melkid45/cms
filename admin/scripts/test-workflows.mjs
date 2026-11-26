@@ -1,6 +1,11 @@
 import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 const base = process.env.CMS_TEST_URL || "http://127.0.0.1:3000";
+// Public pages live at /site/{site-key}/{slug} of the website selected for this browser.
+const { current: site } = await (
+  await fetch(base + "/api/builder/sites")
+).json();
+const sitePage = (slug) => `${base}/site/${site.key}/${slug}`;
 const hosting = await (await fetch(base + "/api/builder/hosting")).json();
 assert(!hosting.smtp, "Run workflow tests only with SMTP disabled.");
 const get = async () => {
@@ -48,9 +53,15 @@ const page = {
 };
 try {
   project = await save({ ...project, pages: [...project.pages, page] });
-  assert.equal((await fetch(base + "/site/" + slug)).status, 404);
+  assert.equal((await fetch(sitePage(slug))).status, 404);
   project = await save(project, id);
-  assert.equal((await fetch(base + "/site/" + slug)).status, 200);
+  assert.equal((await fetch(sitePage(slug))).status, 200);
+  const legacy = await fetch(base + "/site/" + slug, { redirect: "manual" });
+  assert.equal(legacy.status, 307, "Legacy /site/{slug} redirects");
+  assert.equal(
+    new URL(legacy.headers.get("location"), base).pathname,
+    `/site/${site.key}/${slug}`,
+  );
   const privateText = "UNPUBLISHED-" + crypto.randomUUID();
   const editable = project.pages.find((p) => p.id === id);
   editable.title = privateText;
@@ -58,21 +69,24 @@ try {
     entry.fields.find((f) => f.type === "heading").key
   ] = privateText;
   project = await save(project);
-  let html = await (await fetch(base + "/site/" + slug)).text();
+  let html = await (await fetch(sitePage(slug))).text();
   assert(
     !html.includes(privateText),
     "Draft content must not leak into HTML or React payload",
   );
   assert.equal(project.pages.find((p) => p.id === id).history.length, 2);
   project = await save(project, id);
-  html = await (await fetch(base + "/site/" + slug)).text();
+  html = await (await fetch(sitePage(slug))).text();
   assert(html.includes(privateText));
   project.pages.find((p) => p.id === id).title = "Demo — enquiry verification";
   project = await save(project, id);
-  const tokenResponse = await fetch(base + "/api/forms/token?pageId=" + id);
+  const tokenResponse = await fetch(
+    base + "/api/forms/token?pageId=" + id + "&site=" + site.id,
+  );
   const { token } = await tokenResponse.json();
   assert(token);
   const payload = {
+    site: site.id,
     pageId: id,
     sectionId: section.id,
     token,
@@ -119,13 +133,13 @@ try {
   );
   project.pages.find((p) => p.id === id).deletedAt = new Date().toISOString();
   project = await save(project);
-  assert.equal((await fetch(base + "/site/" + slug)).status, 404);
+  assert.equal((await fetch(sitePage(slug))).status, 404);
   delete project.pages.find((p) => p.id === id).deletedAt;
   project = await save(project);
-  assert.equal((await fetch(base + "/site/" + slug)).status, 200);
+  assert.equal((await fetch(sitePage(slug))).status, 200);
   project.pages.find((p) => p.id === id).sections[0].hidden = true;
   project = await save(project, id);
-  html = await (await fetch(base + "/site/" + slug)).text();
+  html = await (await fetch(sitePage(slug))).text();
   assert(!html.includes("<form"), "Hidden sections must not render");
   console.log(
     "Workflows: draft isolation, publish, private payload, history, soft-delete/restore, hidden sections, signed form tokens and durable Inbox verified.",

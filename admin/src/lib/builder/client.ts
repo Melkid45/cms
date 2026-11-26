@@ -1,6 +1,7 @@
 "use client";
 import { useEffect, useSyncExternalStore } from "react";
 import type { Project } from "./types";
+import { withSite } from "./site-client";
 let value: { project: Project | null; error: string } = {
   project: null,
   error: "",
@@ -18,11 +19,17 @@ const subscribe = (fn: () => void) => {
   };
 };
 const serverValue = { project: null, error: "" };
+// Drops the loaded website when the dashboard moves to another one.
+export function resetProject() {
+  emit(null);
+}
 export async function refreshProject() {
   if (pending) return pending;
   pending = (async () => {
     try {
-      const response = await fetch("/api/builder", { cache: "no-store" }),
+      const response = await fetch(withSite("/api/builder"), {
+          cache: "no-store",
+        }),
         data = await response.json();
       if (!response.ok) throw Error(data.error);
       emit(data);
@@ -46,7 +53,7 @@ export async function saveProject(
   if (publishId) query.set("publish", publishId);
   if (options?.autosave) query.set("autosave", "1");
   const response = await fetch(
-      "/api/builder" + (query.size ? `?${query}` : ""),
+      withSite("/api/builder" + (query.size ? `?${query}` : "")),
       {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
@@ -61,7 +68,7 @@ export async function saveProject(
 export async function uploadMedia(file: File) {
   const form = new FormData();
   form.append("file", file);
-  const response = await fetch("/api/builder/media", {
+  const response = await fetch(withSite("/api/builder/media"), {
       method: "POST",
       body: form,
     }),

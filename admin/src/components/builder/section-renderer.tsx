@@ -1,7 +1,17 @@
 /* eslint-disable @next/next/no-img-element */
-import { createElement, Fragment, type ReactNode } from "react";
+import { createElement, Fragment } from "react";
 import { definition, safeUrl } from "@/lib/builder/catalog";
 import { collectionItems } from "@/lib/builder/collections";
+import {
+  languageHome,
+  pageHref,
+  siteLanguages,
+  translationFor,
+  uiText,
+} from "@/lib/builder/i18n";
+import { richText } from "./rich-text";
+import { rootedHref } from "@/lib/builder/domains/names";
+import { responsiveImage } from "@/lib/builder/responsive-image";
 import type {
   ContentAction,
   Section,
@@ -9,6 +19,15 @@ import type {
   Project,
   MenuItem,
 } from "@/lib/builder/types";
+import {
+  catalogProductOf,
+  catalogFilterCount,
+  catalogProductNamed,
+  catalogProductByHref,
+  catalogPriceFormat,
+} from "@/lib/builder/products/apply";
+import { availableQty } from "@/lib/builder/products/shared";
+import { ProductVariations } from "./product-variations";
 import { SchemaForm } from "./schema-form";
 const camel = (key: string) =>
   key.replace(/-([a-z])/g, (_, letter) => letter.toUpperCase());
@@ -29,7 +48,52 @@ const names: Record<string, string> = {
   maxlength: "maxLength",
   autocomplete: "autoComplete",
   readonly: "readOnly",
+  inputmode: "inputMode",
+  autoplay: "autoPlay",
+  playsinline: "playsInline",
 };
+// True when the section's main heading would render without text (e.g. a breadcrumbs-only page title):
+// the page's H1 then moves to the next section (see SiteCanvas).
+export function mainHeadingIsEmpty(section: Section): boolean {
+  const entry = definition(section.variant);
+  const heading = entry && firstHeading(entry.nodes);
+  if (!entry || !heading) return true;
+  const text = (node: TemplateNode): string =>
+    (node.field
+      ? (section.values[node.field] ??
+        entry.fields.find((f) => f.key === node.field)?.value ??
+        "")
+      : "") + (node.children || []).map(text).join("");
+  return !text(heading).trim();
+}
+// Blocks whose scripts swap one picture's src for another (product thumbnails, configurator
+// options, services accordion) keep plain src images: a srcset would override the swap.
+const SWAPPING = [
+  "data-product",
+  "data-configurator",
+  "data-services-accordion",
+];
+// Blocks whose picture boxes follow the picture's own size: team (side photo with height 100% on
+// phones) and gallery-v40 (justified rows sized from each picture's ratio). A srcset makes that
+// size depend on the copy the browser picks (rounding of the resized copy), so rows move by a
+// pixel or more from load to load; these keep plain src images.
+const PLAIN_IMAGE_FAMILIES = ["team"];
+const PLAIN_IMAGE_VARIANTS = ["gallery-v40"];
+const swapping = new WeakMap<TemplateNode[], boolean>();
+function swapsImages(nodes: TemplateNode[]): boolean {
+  const known = swapping.get(nodes);
+  if (known !== undefined) return known;
+  const find = (list: TemplateNode[]): boolean =>
+    list.some(
+      (n) =>
+        SWAPPING.some((a) => n.attrs && a in n.attrs) ||
+        find(n.children || []) ||
+        false,
+    );
+  const result = find(nodes);
+  swapping.set(nodes, result);
+  return result;
+}
 function firstHeading(nodes: TemplateNode[]): TemplateNode | undefined {
   for (const node of nodes) {
     if (node.tag && /^h[1-6]$/.test(node.tag)) return node;
@@ -41,21 +105,41 @@ export function SectionRenderer({
   section,
   project,
   first = false,
+  lead = false,
   selectLabel,
-  headerAction,
+  siteKey,
+  siteId,
   pageId,
+  locale,
+  rootLinks = false,
 }: {
   section: Section;
   project: Project;
   first?: boolean;
+  // The page's first section (above the fold): its images load eagerly too.
+  lead?: boolean;
   selectLabel?: string;
-  headerAction?: ReactNode;
+  // Public key of the website; page links become /site/{siteKey}/{slug}.
+  siteKey?: string;
+  // Website id: forms of the form builder (section.form) send enquiries to this website.
+  siteId?: string;
+  // Current page and its language: menus, logo link and language switcher follow it.
   pageId?: string;
+  locale?: string;
+  // Request came in on the website's own domain: /site/{key}/… links become /… (custom domains).
+  rootLinks?: boolean;
 }) {
   const entry = definition(section.variant);
+  const link = (href: string) =>
+    rootLinks && siteKey ? rootedHref(project, siteKey, href) : href;
   if (!entry || section.hidden) return null;
   const suffix = section.id.replace(/[^a-zA-Z0-9_-]/g, "");
   const mainHeading = firstHeading(entry.nodes);
+  const languages = siteLanguages(project);
+  const currentLocale = locale || languages?.default;
+  const currentPage = project.pages.find((p) => p.id === pageId);
+  // Only the first eager image gets fetchpriority=high.
+  const priority = { used: false };
   const sharedContact = (value: string) => {
     if (!["header", "footer"].includes(entry.family)) return value;
     if (
@@ -63,15 +147,42 @@ export function SectionRenderer({
       /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)
     )
       return project.website.contactEmail;
-    if (project.website?.phone && /^\+?[\d ()-]{7,}$/.test(value))
+    if (project.website?.phone && /^\+?[\d ()-]{7,}$/.test(value)) {
+      // A local form of the same number ("24 400 900" for "+371 24 400 900") is kept as typed.
+      const digits = (s: string) => s.replace(/\D/g, "");
+      if (digits(project.website.phone).endsWith(digits(value))) return value;
       return project.website.phone;
+    }
     return value;
   };
-  const menuItems = (items: MenuItem[]): React.ReactNode =>
+  // Menus written for one language appear only on that language's pages.
+  const menuVisible = (menuLocale?: string) =>
+    !menuLocale || !languages || menuLocale === currentLocale;
+  const menuItems = (items: MenuItem[], expanded = false): React.ReactNode[] =>
     items.map((item) => {
       const page = project.pages.find((p) => p.id === item.pageId);
       if (item.pageId && (!page || page.deletedAt)) return null;
-      const href = page ? `/site/${page.slug}` : safeUrl(item.url);
+      const href = link(
+        page ? pageHref(project, siteKey, page) : safeUrl(item.url),
+      );
+      if (expanded)
+        return (
+          <div key={item.id} className="builder-menu-column">
+            {/* A menu item without a page or address is a heading, not a link (crawlable links). */}
+            {href ? (
+              <a href={href} className="builder-menu-column__title">
+                {item.label}
+              </a>
+            ) : (
+              <span className="builder-menu-column__title">{item.label}</span>
+            )}
+            {!!item.children.length && (
+              <div className="builder-menu-column__links">
+                {menuItems(item.children)}
+              </div>
+            )}
+          </div>
+        );
       return item.children.length ? (
         <details key={item.id} className="builder-submenu">
           <summary>{item.label}</summary>
@@ -80,19 +191,37 @@ export function SectionRenderer({
             {menuItems(item.children)}
           </div>
         </details>
-      ) : (
-        <a key={item.id} href={href || undefined}>
+      ) : href ? (
+        <a key={item.id} href={href}>
           {item.label}
         </a>
+      ) : (
+        <span key={item.id}>{item.label}</span>
       );
     });
+  let filterIndex = 0;
   function render(
     node: TemplateNode,
     index: number,
     values = section.values,
     instance = "",
-    actions: Record<string,ContentAction> = section.actions || {},
+    actions: Record<string, ContentAction> = section.actions || {},
   ): React.ReactNode {
+    if (
+      section.variant === "pricing-v21" &&
+      node.attrs &&
+      "data-catalog-group" in node.attrs
+    ) {
+      const count = catalogFilterCount(project);
+      if (count !== undefined && filterIndex++ >= count) return null;
+    }
+    // Shop header has a real language switcher; decorative EN/currency badges
+    // from the static demo are not website controls.
+    if (
+      section.variant === "header-v20" &&
+      node.attrs?.class?.split(" ").includes("site-header__pill")
+    )
+      return null;
     const rewriteId = (value: string) => `${suffix}${instance}-${value}`;
     if (node.repeat) {
       const group = entry!.repeaters?.find((r) => r.id === node.repeat);
@@ -128,6 +257,7 @@ export function SectionRenderer({
     const props: Record<string, unknown> = { key: index };
     if (node.tag === "section") {
       props["data-section-id"] = section.id;
+      if (section.tone) props["data-tone"] = section.tone;
       if (selectLabel) {
         props.tabIndex = 0;
         props.role = "button";
@@ -135,10 +265,35 @@ export function SectionRenderer({
       }
     }
     if (node.tag === "form") {
-      const form = section.form || project.formDefinitions?.find(f=>f.id===section.formId);
-      if(form) return <SchemaForm key={index} definition={form} pageId={pageId} sectionId={section.id}/>;
+      // A form of the form builder (section.form, or a website form chosen by id) replaces the
+      // template's own form fields; template forms stay as they are (site-runtime.tsx).
+      const form =
+        section.form ||
+        (section.formId
+          ? project.formDefinitions?.find((f) => f.id === section.formId)
+          : undefined);
+      if (form)
+        return (
+          <SchemaForm
+            key={index}
+            definition={form}
+            pageId={pageId}
+            sectionId={section.id}
+            siteId={siteId}
+            locale={locale}
+          />
+        );
       props["data-cms-form"] = section.id;
     }
+    if (
+      node.attrs?.class?.split(" ").includes("pricing__pd-group") &&
+      node.children?.some((n) =>
+        n.attrs?.class?.split(" ").includes("pricing__pd-pick"),
+      ) &&
+      pageId &&
+      catalogProductOf(project, pageId)?.variants?.length
+    )
+      return null;
     const attrs = { ...node.attrs };
     for (const [name, key] of Object.entries(node.bindings || {}))
       attrs[name] =
@@ -182,6 +337,11 @@ export function SectionRenderer({
           "multiple",
           "checked",
           "selected",
+          // Background video (hero-v52).
+          "autoplay",
+          "muted",
+          "loop",
+          "playsinline",
         ].includes(key)
       ) {
         props[name] = true;
@@ -195,7 +355,7 @@ export function SectionRenderer({
               ? `tel:${project.website.phone.replace(/[^+\d]/g, "")}`
               : value
           : value;
-        props.href = safeUrl(contact) || undefined;
+        props.href = link(safeUrl(contact)) || undefined;
         continue;
       }
       if (key === "src" || key === "poster" || key === "data-image") {
@@ -204,16 +364,31 @@ export function SectionRenderer({
       }
       props[name] = value;
     }
-    const action = node.bindings?.href ? actions[node.bindings.href] : undefined;
-    if(action?.type === "none" && node.tag === "a") return null;
-    if(action) {
-      const form=action.type === "form" && project.formDefinitions?.find(f=>f.id===action.target);
-      const service=action.type === "service" && project.services?.find(s=>s.id===action.target);
-      if(form || service) {
-        props.href=service ? `/site/services/${service.slug}` : "#enquiry";
-        props[form ? "data-content-form" : "data-content-service"]=action.target;
-        props["data-action-section"]=section.id;
-      } else { props.href=undefined; props["aria-disabled"]=true; }
+    // Button actions (action-picker.tsx): open a form or a service (dialog, drawer or page).
+    const action = node.bindings?.href
+      ? actions[node.bindings.href]
+      : undefined;
+    if (action?.type === "none" && node.tag === "a") return null;
+    if (action && action.type !== "none") {
+      const form =
+        action.type === "form" &&
+        project.formDefinitions?.find((f) => f.id === action.target);
+      const service =
+        action.type === "service" &&
+        project.services?.find((s) => s.id === action.target);
+      if (form || service) {
+        props.href = service
+          ? siteKey
+            ? link(`/site/${siteKey}/services/${service.slug}`)
+            : "#service"
+          : "#enquiry";
+        props[form ? "data-content-form" : "data-content-service"] =
+          action.target;
+        props["data-action-section"] = section.id;
+      } else {
+        props.href = undefined;
+        props["aria-disabled"] = true;
+      }
     }
     if (node.tag === "input") {
       if (attrs.value) {
@@ -230,9 +405,45 @@ export function SectionRenderer({
       props["aria-label"] = selectLabel;
     }
     if (node.tag === "img") {
-      props.loading = first ? "eager" : "lazy";
-      props.decoding = "async";
       if (!props.src) return null;
+      // Pictures of the opening section load eagerly (scripts such as the justified gallery measure
+      // them on mount; lazy loading there changed anselat's layout); the first one (usually the LCP
+      // element) also gets high priority. Everything else is lazy.
+      const eager = first || lead;
+      props.loading = eager ? "eager" : "lazy";
+      if (eager && !priority.used) {
+        priority.used = true;
+        props.fetchPriority ??= "high";
+      } else props.decoding ??= "async";
+      // Uploaded images: resized copies for small screens, only on images whose template sets
+      // width and height. With a srcset the browser takes the proportions from those attributes,
+      // so the height is set to the picture's own ratio (the width stays: CSS may use it) and
+      // the box is the same as without a srcset.
+      const responsive =
+        !props.srcSet &&
+        props.width &&
+        props.height &&
+        !PLAIN_IMAGE_FAMILIES.includes(entry!.family) &&
+        !PLAIN_IMAGE_VARIANTS.includes(entry!.id) &&
+        !swapsImages(entry!.nodes)
+          ? responsiveImage(String(props.src), project.media || [])
+          : null;
+      if (responsive) {
+        const ratio = responsive.width / responsive.height;
+        if (
+          Math.abs(Number(props.width) / Number(props.height) / ratio - 1) >=
+          0.001
+        )
+          props.height = Math.round((Number(props.width) / ratio) * 100) / 100;
+        props.srcSet = responsive.srcSet;
+        props.sizes = eager ? "100vw" : "auto, 100vw";
+      }
+    }
+    // Background video: nothing is downloaded before the page has loaded; site-widgets.ts
+    // starts it after the load event, the poster image stays the LCP element.
+    if (node.tag === "video" && node.attrs && "data-hero-video" in node.attrs) {
+      delete props.autoPlay;
+      props.preload = "none";
     }
     const tag = first && node === mainHeading ? "h1" : node.tag;
     if (
@@ -240,7 +451,12 @@ export function SectionRenderer({
       node.tag === "a" &&
       node.attrs?.href?.includes("composition-")
     ) {
-      props.href = `/site/${project.pages.find((p) => p.id === project.layout.homePageId)?.slug || "home"}`;
+      const home =
+        (currentLocale && languageHome(project, currentLocale)) ||
+        project.pages.find((p) => p.id === project.layout.homePageId);
+      props.href = link(
+        pageHref(project, siteKey, home || { slug: "home", locale: "" }),
+      );
       props["aria-label"] = `${project.brand.name} home`;
       const logo =
         entry!.family === "footer"
@@ -260,7 +476,40 @@ export function SectionRenderer({
         ),
       );
     }
+    if (node.attrs && "data-lang-switcher" in node.attrs) {
+      // Optional language switcher: empty on single-language websites.
+      if (!languages) return null;
+      const links = languages.enabled.flatMap((code) => {
+        const target = translationFor(project, currentPage, code);
+        if (!target && code !== currentLocale) return [];
+        const active = code === currentLocale;
+        return [
+          <a
+            key={code}
+            className="lang-switcher__link"
+            href={target ? link(pageHref(project, siteKey, target)) : undefined}
+            hrefLang={code}
+            lang={code}
+            aria-current={active ? "true" : undefined}
+          >
+            {code.toUpperCase()}
+          </a>,
+        ];
+      });
+      if (links.length < 2) return null;
+      return createElement(
+        node.tag,
+        {
+          ...props,
+          className: `lang-switcher ${node.attrs.class || ""}`.trim(),
+          role: "navigation",
+          "aria-label": uiText(currentLocale).language,
+        },
+        ...links,
+      );
+    }
     if (["header", "footer"].includes(entry!.family) && node.tag === "nav") {
+      const expanded = !!node.attrs && "data-menu-expanded" in node.attrs;
       const ids =
         entry!.family === "header"
           ? project.layout.headerMenus
@@ -270,12 +519,13 @@ export function SectionRenderer({
         props,
         ...ids.map((id) => {
           const menu = project.menus.find((m) => m.id === id);
-          return menu ? (
+          const items = menu ? menuItems(menu.items, expanded).filter(Boolean) : [];
+          return menu && items.length && menuVisible(menu.locale) ? (
             <div className="builder-menu-group" key={id}>
               {entry!.family === "footer" && ids.length > 1 && (
                 <p className="text text--sm text--muted">{menu.title}</p>
               )}
-              {menuItems(menu.items)}
+              {items}
             </div>
           ) : null;
         }),
@@ -290,6 +540,13 @@ export function SectionRenderer({
       );
       // Static prototype notices predate connected forms; the canvas supplies live status.
       if (value === "Preview form. No data is sent.") return null;
+      // Formatted text (lists, bold, links) renders as a block container.
+      if (node.attrs && "data-rich-text" in node.attrs)
+        return createElement(
+          "div",
+          { ...props, className: `rich-text ${props.className || ""}`.trim() },
+          ...richText(value, link),
+        );
       children = value.split("\n").map((line, i) => (
         <Fragment key={i}>
           {i > 0 && <br />}
@@ -314,17 +571,113 @@ export function SectionRenderer({
       ].includes(tag)
     )
       return createElement(tag, props);
+    if (node.attrs?.class?.split(" ").includes("pricing__pd-info") && pageId) {
+      const product = catalogProductOf(project, pageId);
+      if (product) {
+        const at =
+          node.children?.findIndex((n) =>
+            n.attrs?.class?.split(" ").includes("pricing__pd-buy"),
+          ) ?? -1;
+        const picker = (
+          <ProductVariations
+            key={`variations-${product.id}`}
+            productId={product.id}
+            hasVariants={!!product.variants?.length}
+            variants={(product.variants || [])
+              .filter((v) => !v.hidden)
+              .map((v) => ({
+                ...v,
+                qty: availableQty(v),
+                reserved: undefined,
+              }))}
+            price={product.price}
+            images={
+              product.images.length
+                ? product.images
+                : product.variants?.find((v) => v.images.length)?.images || []
+            }
+            qty={availableQty(product)}
+            stock={product.stock}
+            sku={product.sku}
+            format={catalogPriceFormat(project)}
+            locale={locale}
+          />
+        );
+        children = children || [];
+        children.splice(at < 0 ? children.length : at, 0, picker);
+      }
+    }
+    // Variant products must be configured on their product page, never silently added as a base SKU.
     if (
-      headerAction &&
-      entry?.family === "header" &&
-      attrs.class?.split(/\s+/).includes("site-header__actions")
+      tag === "article" &&
+      node.attrs?.class?.split(" ").includes("pricing__shop-card")
     ) {
-      return createElement(
-        tag,
-        props,
-        <Fragment key="header-action">{headerAction}</Fragment>,
+      const findTitle = (n: TemplateNode): TemplateNode | undefined =>
+        n.attrs?.class?.split(" ").includes("pricing__shop-title")
+          ? n
+          : n.children?.map(findTitle).find(Boolean);
+      const titleNode = findTitle(node);
+      const titleField =
+        titleNode?.field || titleNode?.children?.find((n) => n.field)?.field;
+      const findLink = (n: TemplateNode): TemplateNode | undefined =>
+        n.tag === "a" ? n : n.children?.map(findLink).find(Boolean);
+      const anchor = titleNode && findLink(titleNode);
+      const href = anchor?.bindings?.href
+        ? values[anchor.bindings.href] || ""
+        : anchor?.attrs?.href || "";
+      const product =
+        catalogProductByHref(project, href, locale || "en") ||
+        (titleField
+          ? catalogProductNamed(
+              project,
+              locale || "en",
+              values[titleField] || "",
+            )
+          : undefined);
+      if (product) {
+        props["data-catalog-product-id"] = product.id;
+        if (
+          !product.variants?.length &&
+          (product.stock === "out_of_stock" ||
+            (product.stock !== "to_order" && availableQty(product) === 0))
+        )
+          props["data-unavailable"] = "true";
+      }
+      if (product?.variants?.length) props["data-requires-variant"] = "true";
+    }
+    if (
+      section.variant === "pricing-v21" &&
+      node.attrs?.class === "container" &&
+      currentPage?.sections.find((s) => !s.hidden)?.id === section.id
+    ) {
+      children = [
+        <h1
+          key="catalog-heading"
+          className="pricing__catalog-heading heading heading--lg"
+        >
+          {currentPage.title}
+        </h1>,
         ...(children || []),
-      );
+      ];
+    }
+    if (
+      section.variant === "pricing-v22" &&
+      node.attrs?.class === "container"
+    ) {
+      const product = pageId ? catalogProductOf(project, pageId) : undefined;
+      const detail =
+        product?.text[(locale || "en") as keyof typeof product.text]
+          ?.description;
+      if (detail)
+        children = [
+          ...(children || []),
+          <p
+            key="product-description"
+            className="pricing__pd-description text text--md"
+          >
+            {detail}
+          </p>,
+        ];
     }
     return createElement(tag, props, ...(children || []));
   }

@@ -43,7 +43,7 @@ function Fields({
         <div
           key={field.key}
           className={
-            ["image", "heading", "textarea"].includes(field.type)
+            ["image", "video", "heading", "textarea"].includes(field.type)
               ? "space-y-2 sm:col-span-2"
               : "space-y-2"
           }
@@ -55,8 +55,9 @@ function Fields({
               onChange={(action) => onAction(field.key, action)}
             />
           )}
-          {actions?.[field.key] ? null : field.type === "image" ? (
+          {actions?.[field.key] ? null : field.type === "image" || field.type === "video" ? (
             <MediaPicker
+              kind={field.type}
               value={values[field.key] ?? field.value}
               onChange={(value) => onChange({ ...values, [field.key]: value })}
             />
@@ -88,7 +89,7 @@ function Fields({
 function category(field: Field) {
   if (field.type === "url" || field.role === "Button / link label")
     return "Buttons & links";
-  if (field.type === "image" || field.label === "Image description")
+  if (field.type === "image" || field.type === "video" || field.label === "Image description")
     return "Images";
   if (
     ["Main heading", "Display text", "Eyebrow", "Description"].includes(
@@ -233,6 +234,26 @@ export function SectionEditor({
             These fields are managed by your administrator.
           </p>
         )}
+        {!contentOnly && (
+          <label className="flex items-center justify-between gap-4 rounded-xl bg-white p-4 text-sm">
+            <span className="font-medium">Background</span>
+            <Select
+              aria-label="Section background"
+              value={String(section.tone || "")}
+              onValueChange={(selectedValue) =>
+                onChange({
+                  ...section,
+                  tone: (selectedValue || undefined) as Section["tone"],
+                })}
+              className="h-9 max-w-48"
+            >
+              <SelectOption value="">Page background</SelectOption>
+              <SelectOption value="tint">Tinted</SelectOption>
+              <SelectOption value="dark">Dark</SelectOption>
+              <SelectOption value="accent">Accent colour</SelectOption>
+            </Select>
+          </label>
+        )}
         {categories.map((name, index) => (
           <EditorDisclosure key={name} defaultOpen={index === 0} title={name}>
             <Fields
@@ -256,6 +277,7 @@ export function SectionEditor({
         ))}
         {repeaters.map((group) => {
           const items = collectionItems(section, entry, group);
+          const limit = group.max ?? 30;
           const canManage =
             !contentOnly || collectionEditable(section, entry, group);
           const allEditable = group.items.every((item) =>
@@ -283,7 +305,7 @@ export function SectionEditor({
                     type="button"
                     variant="outline"
                     size="sm"
-                    disabled={items.length >= 30}
+                    disabled={items.length >= limit}
                     onClick={() =>
                       update([...items, newCollectionItem(entry, group)])
                     }
@@ -332,10 +354,13 @@ export function SectionEditor({
                 const fields = visible.filter(
                   (f) =>
                     keys.includes(f.key) &&
+                    // Services items: without service settings the button keeps its own link;
+                    // a service preview replaces the link; "Hide the button" hides both.
                     !(
                       entry.family === "services" &&
+                      item.detail &&
                       (f.type === "url" ||
-                        ((item.detail?.mode || "none") === "none" &&
+                        (item.detail.mode === "none" &&
                           f.role === "Button / link label"))
                     ),
                 );
@@ -366,11 +391,17 @@ export function SectionEditor({
                         <div className="space-y-3 rounded-lg bg-neutral-50 p-3">
                           <Label>Service preview</Label>
                           <Select
-                            value={item.detail?.mode || "none"}
+                            value={item.detail?.mode || "link"}
                             onValueChange={(mode) =>
                               update(
                                 items.map((i) =>
-                                  i.id === item.id
+                                  i.id === item.id && mode === "link"
+                                    ? (() => {
+                                        const rest = { ...i };
+                                        delete rest.detail;
+                                        return rest;
+                                      })()
+                                    : i.id === item.id
                                     ? {
                                         ...i,
                                         detail: {
@@ -386,7 +417,8 @@ export function SectionEditor({
                               )
                             }
                           >
-                            <SelectOption value="none">Don’t open</SelectOption>
+                            <SelectOption value="link">Use the button link</SelectOption>
+                            <SelectOption value="none">Hide the button</SelectOption>
                             <SelectOption value="modal">
                               Centered modal
                             </SelectOption>
@@ -517,7 +549,7 @@ export function SectionEditor({
                             variant="ghost"
                             size="icon-sm"
                             aria-label={`Duplicate item ${index + 1}`}
-                            disabled={items.length >= 30}
+                            disabled={items.length >= limit}
                             onClick={() =>
                               update([
                                 ...items.slice(0, index + 1),
@@ -578,8 +610,8 @@ export function SectionEditor({
               })}
               {canManage && (
                 <p className="text-xs text-neutral-400">
-                  1–30 items. Remove, duplicate or reorder without changing the
-                  layout.
+                  1–{limit} items. Remove, duplicate or reorder without changing
+                  the layout.
                 </p>
               )}
             </div>

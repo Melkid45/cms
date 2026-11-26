@@ -51,7 +51,6 @@ export function ClientPageEditor({ initial }: { initial: CmsPage }) {
     <div>
       <PageHeader
         title={page.title}
-        description="Edit your content or drag sections to change their order."
         action={
           <PreviewDialog
             project={project}

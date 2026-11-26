@@ -1,17 +1,30 @@
 "use client";
 /* eslint-disable @next/next/no-img-element */
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { X } from "lucide-react";
-import type { Project, CmsService } from "@/lib/builder/types";
-import { safeUrl } from "@/lib/builder/catalog";
+import type { CmsForm, CmsService } from "@/lib/builder/types";
+import { safeUrl } from "@/lib/builder/safe-url";
 import { SchemaForm } from "./schema-form";
+// Dialogs of button actions (forms, services in modal/drawer mode) for the website canvas.
+// Gets only the published forms and services (not the whole project), so public pages ship
+// no more data than they show.
 export function ContentDialogs({
-  project,
+  forms,
+  services,
   pageId,
+  siteId,
+  locale,
 }: {
-  project: Project;
+  forms: CmsForm[];
+  services: CmsService[];
   pageId?: string;
+  siteId?: string;
+  locale?: string;
 }) {
+  const project = useMemo(
+    () => ({ formDefinitions: forms, services }),
+    [forms, services],
+  );
   const ref = useRef<HTMLDialogElement>(null);
   const opener = useRef<HTMLElement | null>(null);
   const timer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
@@ -151,6 +164,8 @@ export function ContentDialogs({
             pageId={pageId}
             sectionId={active?.sectionId}
             serviceId={active?.serviceId}
+            siteId={siteId}
+            locale={locale}
           />
         )}
       </div>
