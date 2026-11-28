@@ -65,7 +65,7 @@ export function Segmented({
     cn(
       "flex flex-1 items-center justify-center rounded-xl px-4 text-sm font-medium whitespace-nowrap transition-colors",
       active === id
-        ? "bg-white text-black shadow-[0_1px_3px_rgb(0_0_0/0.08)]"
+        ? "bg-neutral-900 text-white hover:bg-neutral-800"
         : "text-neutral-500 hover:text-black",
     );
   return (

@@ -8,6 +8,7 @@ import { LOCALES, pagePrefix, type Locale } from "../i18n";
 import type { Project } from "../types";
 import { PRODUCT_BLOCK } from "./apply";
 import {
+  catalogAttributes,
   emptyCatalog,
   emptyText,
   LIMITS,
@@ -166,7 +167,7 @@ export const productInput = z.object({
     .default([]),
   hidden: z.boolean().default(false),
   filters: z
-    .record(z.string().regex(/^[a-z0-9-]{1,40}$/), z.string().trim().max(60))
+    .record(z.string().regex(/^[a-z0-9-]{1,40}$/), z.string().trim().max(1000))
     .refine((v) => Object.keys(v).length <= 10)
     .default({}),
   options: z
@@ -195,6 +196,21 @@ export const productInput = z.object({
 });
 export type ProductInput = z.infer<typeof productInput>;
 export const settingsInput = z.object({
+  filterVisibility: z.enum(["auto", "show", "hide"]).default("auto"),
+  attributes: z
+    .array(
+      z.object({
+        key: z.string().regex(/^[a-z0-9-]{1,40}$/),
+        label: z.string().trim().min(1).max(60),
+        values: z.array(z.string().trim().min(1).max(60)).max(100),
+      }),
+    )
+    .max(40)
+    .refine(
+      (a) => new Set(a.map((x) => x.key)).size === a.length,
+      "Attribute keys must be unique",
+    )
+    .optional(),
   templates: z.partialRecord(z.enum(LOCALES), z.string().max(100)).default({}),
   filters: z
     .array(
@@ -374,6 +390,7 @@ export async function createProduct(
       revision: 0,
     } as Product;
     catalog.products.push(product);
+    catalog.settings.attributes = catalogAttributes(catalog);
     return product;
   });
 }
@@ -404,10 +421,12 @@ export async function updateProduct(
       revision: before.revision + 1,
     } as Product;
     catalog.products[at] = product;
+    catalog.settings.attributes = catalogAttributes(catalog);
     return product;
   });
 }
 export const quickPatch = z.object({
+  category: z.string().trim().max(100).optional(),
   id: z.string().min(1).max(40),
   revision: z.number().int().nonnegative(),
   price: money.optional(),
@@ -492,7 +511,15 @@ export async function saveSettings(
       );
   }
   return mutate(siteId, (catalog) => {
-    catalog.settings = settings;
+    const previous = catalogAttributes(catalog);
+    for (const a of settings.attributes || []) {
+      const old = previous.find((x) => x.key === a.key);
+      a.values = [...new Set([...a.values, ...(old?.values || [])])];
+    }
+    catalog.settings = {
+      ...settings,
+      attributes: settings.attributes ?? previous,
+    };
     return catalog.settings;
   });
 }

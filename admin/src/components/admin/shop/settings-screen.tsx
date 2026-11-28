@@ -19,67 +19,92 @@ import type { CatalogSettings } from "@/lib/builder/products/shared";
 
 export default function ShopSettingsScreen() {
   const { canDesign, role } = useAccess();
+  const [tab, setTab] = useState(role === "designer" ? "catalog" : "delivery");
   const { data, setData, error } = useCatalog();
   const saved = (settings: CatalogSettings) =>
     setData(
       (current) =>
         current && { ...current, catalog: { ...current.catalog, settings } },
     );
+  const tabs = [
+    ...(canDesign
+      ? [
+          { id: "catalog", label: "Catalog" },
+          { id: "cart", label: "Cart" },
+        ]
+      : [{ id: "catalog", label: "Categories" }]),
+    ...(role !== "designer"
+      ? [
+          { id: "delivery", label: "Delivery" },
+          { id: "checkout", label: "Checkout" },
+          { id: "payments", label: "Payments" },
+        ]
+      : []),
+  ];
   return (
-    <AdminPanel title="Shop settings" className="space-y-8">
-      {role !== "designer" && (
-        <>
-          <OperationalSettings />
-          <PaymentSettings />
-        </>
-      )}
-      {error && (
-        <p role="alert" className="text-sm text-red-600">
-          {error}
-        </p>
-      )}
-      {!data ? (
-        <p className="text-sm text-neutral-500">
-          {error ? "Could not load shop settings." : "Loading shop settings…"}
-        </p>
-      ) : canDesign ? (
-        <details className="border-t pt-5">
-          <summary className="cursor-pointer text-sm font-semibold">
-            Catalog templates & filters
-          </summary>
-          <div className="pt-5">
-            <CatalogSettingsPanel data={data} onSaved={saved} />
-          </div>
-        </details>
-      ) : (
-        <ClientCategories
-          data={data}
-          onSaved={(settings, revision) =>
-            setData(
-              (current) =>
-                current && {
-                  ...current,
-                  catalog: { ...current.catalog, settings, revision },
-                },
-            )
-          }
-        />
-      )}
-      {canDesign && (
-        <section
-          id="cart"
-          className="scroll-mt-6 border-t border-neutral-100 pt-6"
+    <AdminPanel title="Shop settings">
+      <div className="grid items-start gap-6 lg:grid-cols-[200px_minmax(0,1fr)]">
+        <nav
+          aria-label="Shop settings"
+          className="flex flex-wrap gap-1 rounded-xl border bg-white p-2 lg:sticky lg:top-6 lg:flex-col"
         >
-          <details>
-            <summary className="cursor-pointer text-sm font-semibold">
-              Cart appearance & checkout layout
-            </summary>
-            <div className="pt-5">
+          {tabs.map((t) => (
+            <Button
+              key={t.id}
+              variant={tab === t.id ? "secondary" : "ghost"}
+              className="justify-start"
+              aria-current={tab === t.id ? "page" : undefined}
+              onClick={() => setTab(t.id)}
+            >
+              {t.label}
+            </Button>
+          ))}
+        </nav>
+        <div className="min-w-0 rounded-xl border bg-white p-5 sm:p-6">
+          {error && (
+            <p role="alert" className="mb-4 text-sm text-red-600">
+              {error}
+            </p>
+          )}
+          <div hidden={tab !== "catalog"}>
+            {!data ? (
+              <p className="text-sm text-muted-foreground">Loading…</p>
+            ) : canDesign ? (
+              <CatalogSettingsPanel data={data} onSaved={saved} />
+            ) : (
+              <ClientCategories
+                data={data}
+                onSaved={(settings, revision) =>
+                  setData(
+                    (current) =>
+                      current && {
+                        ...current,
+                        catalog: { ...current.catalog, settings, revision },
+                      },
+                  )
+                }
+              />
+            )}
+          </div>
+          {canDesign && (
+            <div hidden={tab !== "cart"}>
               <ShopSettings />
             </div>
-          </details>
-        </section>
-      )}
+          )}
+          {role !== "designer" && (
+            <>
+              <div hidden={tab !== "delivery" && tab !== "checkout"}>
+                <OperationalSettings
+                  group={tab === "checkout" ? "checkout" : "delivery"}
+                />
+              </div>
+              <div hidden={tab !== "payments"}>
+                <PaymentSettings />
+              </div>
+            </>
+          )}
+        </div>
+      </div>
     </AdminPanel>
   );
 }

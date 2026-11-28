@@ -24,7 +24,11 @@ function Toggle({
     </label>
   );
 }
-export function OperationalSettings() {
+export function OperationalSettings({
+  group = "delivery",
+}: {
+  group?: "delivery" | "checkout";
+}) {
   const [saved, setSaved] = useState<CommerceSettings | null>(null),
     [draft, setDraft] = useState<CommerceSettings | null>(null),
     [busy, setBusy] = useState(false),
@@ -78,10 +82,13 @@ export function OperationalSettings() {
         }
       }}
     >
-      <h2 className="font-semibold">Store settings</h2>
-      <fieldset disabled={busy} className="grid min-w-0 gap-8 lg:grid-cols-2">
-        <section className="space-y-4">
-          <h3 className="text-sm font-semibold">Currency & delivery</h3>
+      <h2 className="font-semibold">
+        {group === "delivery"
+          ? "Currency & delivery"
+          : "Checkout & notifications"}
+      </h2>
+      <fieldset disabled={busy} className="min-w-0 space-y-6">
+        <section hidden={group !== "delivery"} className="space-y-4">
           <div className="space-y-2">
             <Label>Store currency</Label>
             <Select
@@ -233,8 +240,7 @@ export function OperationalSettings() {
             </Select>
           </div>
         </section>
-        <section className="space-y-4">
-          <h3 className="text-sm font-semibold">Checkout</h3>
+        <section hidden={group !== "checkout"} className="space-y-4">
           <Toggle
             label="Require phone number"
             checked={s.checkout.phoneRequired}

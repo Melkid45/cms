@@ -204,6 +204,7 @@ export default function ShopOrders() {
       {!selected && (
         <div className="mb-5 flex flex-wrap gap-2">
           <Button
+            aria-pressed={!filter}
             variant={filter ? "ghost" : "secondary"}
             onClick={() => setFilter("")}
           >
@@ -212,6 +213,7 @@ export default function ShopOrders() {
           {STATUSES.map((s) => (
             <Button
               key={s.value}
+              aria-pressed={filter === s.value}
               variant={filter === s.value ? "secondary" : "ghost"}
               onClick={() => setFilter(s.value)}
             >

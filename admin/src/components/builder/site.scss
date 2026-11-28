@@ -379,3 +379,11 @@
 .site-header--shop .cart-link__label { font-size: 14px; }
 .site-header--shop .cart-link__count { top: 0; right: 0; background: var(--color-ink); color: var(--color-bg); }
 .pricing__pd-variations { display: grid; gap: 16px; font-size: 14px; }
+
+.header-contacts { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+.header-contacts__link { display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: 40px; padding: 8px; border-radius: var(--button-radius, 8px); font-size: 14px; line-height: 1.2; }
+.header-contacts__link:hover { background: var(--color-surface); }
+.header-contacts__link svg { flex-shrink: 0; }
+.site-header:has(.header-contacts) .site-header__row { flex-wrap: wrap; }
+.site-header:has(.header-contacts) .site-header__actions { flex-wrap: wrap; }
+@media(max-width:1024px) { .site-header:has(.header-contacts) .site-header__actions { flex: 1; justify-content: flex-end; } .header-contacts { order: 2; flex-basis: 100%; justify-content: flex-end; } }

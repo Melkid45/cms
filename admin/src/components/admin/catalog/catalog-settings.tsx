@@ -4,7 +4,11 @@ import { useState } from "react";
 import { Plus, Trash2, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { LIMITS, type CatalogSettings } from "@/lib/builder/products/shared";
+import {
+  catalogAttributes,
+  LIMITS,
+  type CatalogSettings,
+} from "@/lib/builder/products/shared";
 import { catalogFetch, type CatalogData } from "./use-catalog";
 
 // Template pages, filter groups, price format, "included" label, categories (design roles).
@@ -17,16 +21,32 @@ export function CatalogSettingsPanel({
   onSaved: (settings: CatalogSettings) => void;
   onClose?: () => void;
 }) {
-  const [s, setS] = useState<CatalogSettings>(data.catalog.settings),
-    [categories, setCategories] = useState(data.catalog.settings.categories.join(", ")),
+  const [s, setS] = useState<CatalogSettings>({
+      ...data.catalog.settings,
+      attributes: catalogAttributes(data.catalog),
+    }),
+    [categories, setCategories] = useState(
+      data.catalog.settings.categories.join(", "),
+    ),
     [busy, setBusy] = useState(false),
     [error, setError] = useState("");
   async function save() {
     setBusy(true);
     setError("");
     try {
-      const body = { ...s, categories: categories.split(",").map((c) => c.trim()).filter(Boolean) };
-      onSaved(await catalogFetch<CatalogSettings>("/api/builder/catalog/settings", { method: "PUT", body: JSON.stringify(body) }));
+      const body = {
+        ...s,
+        categories: categories
+          .split(",")
+          .map((c) => c.trim())
+          .filter(Boolean),
+      };
+      onSaved(
+        await catalogFetch<CatalogSettings>("/api/builder/catalog/settings", {
+          method: "PUT",
+          body: JSON.stringify(body),
+        }),
+      );
     } catch (e) {
       setError(e instanceof Error ? e.message : "Could not save.");
     } finally {
@@ -39,25 +59,46 @@ export function CatalogSettingsPanel({
       <div className="mb-5 flex items-start gap-3">
         <div className="flex-1">
           <h2 className="font-medium">Catalogue settings</h2>
-          <p className="mt-1 text-sm text-neutral-500">How products appear on the website.</p>
+          <p className="mt-1 text-sm text-neutral-500">
+            How products appear on the website.
+          </p>
         </div>
-        {onClose && <Button size="icon-sm" variant="ghost" aria-label="Close settings" onClick={onClose}>
-          <X />
-        </Button>}
+        {onClose && (
+          <Button
+            size="icon-sm"
+            variant="ghost"
+            aria-label="Close settings"
+            onClick={onClose}
+          >
+            <X />
+          </Button>
+        )}
       </div>
       <div className="grid gap-6 lg:grid-cols-2">
         <div>
           <h3 className="mb-1 text-sm font-medium">Product page template</h3>
-          <p className="mb-3 text-xs text-neutral-500">Products without their own page get a page with the blocks of this one (per language).</p>
+          <p className="mb-3 text-xs text-neutral-500">
+            Products without their own page get a page with the blocks of this
+            one (per language).
+          </p>
           {data.locales.map((l) => (
             <label key={l} className="mb-2 flex items-center gap-3 text-sm">
               <span className="w-8 uppercase text-neutral-500">{l}</span>
               <Select
                 className="h-9 flex-1"
-                value={String(s.templates[l as keyof CatalogSettings["templates"]] || "")}
-                onValueChange={(selectedValue) => setS({ ...s, templates: { ...s.templates, [l]: selectedValue } })}
+                value={String(
+                  s.templates[l as keyof CatalogSettings["templates"]] || "",
+                )}
+                onValueChange={(selectedValue) =>
+                  setS({
+                    ...s,
+                    templates: { ...s.templates, [l]: selectedValue },
+                  })
+                }
               >
-                <SelectOption value="">First product page of this language</SelectOption>
+                <SelectOption value="">
+                  First product page of this language
+                </SelectOption>
                 {data.productPages
                   .filter((p) => p.locale === l)
                   .map((p) => (
@@ -72,29 +113,179 @@ export function CatalogSettingsPanel({
         <div>
           <h3 className="mb-1 text-sm font-medium">Filters</h3>
           <p className="mb-3 text-xs text-neutral-500">
-            Up to {LIMITS.filters} groups, in the order of the catalogue&apos;s filter groups. Chips are made from the products&apos; values; the group titles stay as written on the page.
+            Choose up to {LIMITS.filters} shared attributes. Values come from
+            your products.
           </p>
+          <label className="mb-4 block space-y-2 text-sm">
+            <span>Filter visibility</span>
+            <Select
+              aria-label="Filter visibility"
+              value={s.filterVisibility || "auto"}
+              onValueChange={(v) =>
+                setS({ ...s, filterVisibility: v as "auto" | "show" | "hide" })
+              }
+            >
+              <SelectOption value="auto">
+                Automatic · from 8 products
+              </SelectOption>
+              <SelectOption value="show">Always show</SelectOption>
+              <SelectOption value="hide">Hide</SelectOption>
+            </Select>
+          </label>
           {s.filters.map((f, i) => (
             <div key={i} className="mb-2 flex gap-2">
-              <Input aria-label="Filter key" placeholder="key, e.g. cpu" value={f.key} onChange={(e) => setS({ ...s, filters: s.filters.map((x, j) => (j === i ? { ...x, key: e.target.value.toLowerCase() } : x)) })} />
-              <Input aria-label="Filter name" placeholder="Name in the admin" value={f.label} onChange={(e) => setS({ ...s, filters: s.filters.map((x, j) => (j === i ? { ...x, label: e.target.value } : x)) })} />
-              <Button size="icon" variant="ghost" aria-label="Remove filter" onClick={() => setS({ ...s, filters: s.filters.filter((_, j) => j !== i) })}>
+              <Select
+                aria-label="Filter attribute"
+                value={f.key}
+                onValueChange={(key) =>
+                  setS({
+                    ...s,
+                    filters: s.filters.map((x, j) =>
+                      j === i
+                        ? {
+                            key,
+                            label:
+                              s.attributes?.find((a) => a.key === key)?.label ||
+                              key,
+                          }
+                        : x,
+                    ),
+                  })
+                }
+              >
+                <SelectOption value="">Choose attribute</SelectOption>
+                {(s.attributes || [])
+                  .filter(
+                    (a) =>
+                      a.key === f.key ||
+                      !s.filters.some((x) => x.key === a.key),
+                  )
+                  .map((a) => (
+                    <SelectOption key={a.key} value={a.key}>
+                      {a.label}
+                    </SelectOption>
+                  ))}
+              </Select>
+              <Input
+                aria-label="Filter name"
+                placeholder="Name in the admin"
+                value={f.label}
+                onChange={(e) =>
+                  setS({
+                    ...s,
+                    filters: s.filters.map((x, j) =>
+                      j === i ? { ...x, label: e.target.value } : x,
+                    ),
+                  })
+                }
+              />
+              <Button
+                size="icon"
+                variant="ghost"
+                aria-label="Remove filter"
+                onClick={() =>
+                  setS({ ...s, filters: s.filters.filter((_, j) => j !== i) })
+                }
+              >
                 <Trash2 />
               </Button>
             </div>
           ))}
           {s.filters.length < LIMITS.filters && (
-            <Button size="sm" variant="outline" onClick={() => setS({ ...s, filters: [...s.filters, { key: "", label: "" }] })}>
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={() =>
+                setS({ ...s, filters: [...s.filters, { key: "", label: "" }] })
+              }
+            >
               <Plus />
               Add filter
             </Button>
           )}
         </div>
+        <div className="lg:col-span-2 space-y-3">
+          <h3 className="text-sm font-medium">Shared attributes</h3>
+          {(s.attributes || []).map((a, i) => (
+            <div key={i} className="grid gap-2 sm:grid-cols-3">
+              <Input
+                disabled={
+                  data.catalog.products.some((p) => a.key in p.filters) ||
+                  data.catalog.settings.filters.some((f) => f.key === a.key)
+                }
+                aria-label="Attribute key"
+                placeholder="Key"
+                value={a.key}
+                onChange={(e) =>
+                  setS({
+                    ...s,
+                    attributes: s.attributes?.map((x, j) =>
+                      i === j ? { ...x, key: e.target.value.toLowerCase() } : x,
+                    ),
+                  })
+                }
+              />
+              <Input
+                aria-label="Attribute name"
+                placeholder="Name"
+                value={a.label}
+                onChange={(e) =>
+                  setS({
+                    ...s,
+                    attributes: s.attributes?.map((x, j) =>
+                      i === j ? { ...x, label: e.target.value } : x,
+                    ),
+                  })
+                }
+              />
+              <Input
+                aria-label={`Values for ${a.key}`}
+                placeholder="Values, separated by commas"
+                value={a.values.join(", ")}
+                onChange={(e) =>
+                  setS({
+                    ...s,
+                    attributes: s.attributes?.map((x, j) =>
+                      i === j
+                        ? {
+                            ...x,
+                            values: e.target.value
+                              .split(",")
+                              .map((v) => v.trim())
+                              .filter(Boolean),
+                          }
+                        : x,
+                    ),
+                  })
+                }
+              />
+            </div>
+          ))}
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() =>
+              setS({
+                ...s,
+                attributes: [
+                  ...(s.attributes || []),
+                  { key: "", label: "", values: [] },
+                ],
+              })
+            }
+          >
+            Add attribute
+          </Button>
+        </div>
         <div>
           <label className={`${label} mt-4`} htmlFor="cat-categories">
             Categories (comma separated)
           </label>
-          <Input id="cat-categories" value={categories} onChange={(e) => setCategories(e.target.value)} />
+          <Input
+            id="cat-categories"
+            value={categories}
+            onChange={(e) => setCategories(e.target.value)}
+          />
         </div>
         <div>
           <span className={label}>Option without surcharge is shown as</span>
@@ -102,9 +293,18 @@ export function CatalogSettingsPanel({
             <label key={l} className="mb-2 flex items-center gap-3 text-sm">
               <span className="w-8 uppercase text-neutral-500">{l}</span>
               <Input
-                value={s.includedLabel[l as keyof CatalogSettings["includedLabel"]] || ""}
+                value={
+                  s.includedLabel[
+                    l as keyof CatalogSettings["includedLabel"]
+                  ] || ""
+                }
                 placeholder="Included"
-                onChange={(e) => setS({ ...s, includedLabel: { ...s.includedLabel, [l]: e.target.value } })}
+                onChange={(e) =>
+                  setS({
+                    ...s,
+                    includedLabel: { ...s.includedLabel, [l]: e.target.value },
+                  })
+                }
               />
             </label>
           ))}

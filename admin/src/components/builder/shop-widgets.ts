@@ -100,6 +100,13 @@ export function mountShopWidgets(el: HTMLElement, signal: AbortSignal) {
       undo.push(() => (o.hidden = o.disabled = false));
     });
     const empty = root.querySelector<HTMLElement>("[data-catalog-empty]");
+    const mode = root.dataset.filterVisibility || "auto";
+    root.classList.toggle("is-unfiltered", mode === "hide" || (mode === "auto" && cards.length < 8) || cards.length === 0);
+    const emptyReset = document.createElement("button");
+    emptyReset.type = "button"; emptyReset.className = "button text text--sm"; emptyReset.textContent = "Clear filters";
+    if (empty && cards.length) { empty.append(emptyReset); on(emptyReset,"click",()=>root.querySelector<HTMLButtonElement>("[data-catalog-reset]")?.click()); }
+    if (empty && !cards.length) setText(empty, "No products available yet.");
+    undo.push(()=>{root.classList.remove("is-unfiltered");emptyReset.remove();});
     const prices = info.map((x) => x.price).filter((p) => !Number.isNaN(p));
     const lo = prices.length ? Math.min(...prices) : 0;
     const hi = prices.length ? Math.ceil(Math.max(...prices) / 100) * 100 : 0;

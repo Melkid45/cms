@@ -12,6 +12,7 @@ export interface ProductPage {
   published: boolean;
 }
 export interface CatalogData {
+  pageAddresses?: {id:string;slug:string;locale:string}[];
   currency?:string;
   catalog: Catalog;
   siteKey: string;

@@ -287,10 +287,11 @@ function SourcePicker({
               <button
                 key={id}
                 type="button"
+                aria-pressed={tab === id}
                 onClick={() => setTab(id)}
                 className={cn(
                   "h-8 rounded-md px-3 text-sm whitespace-nowrap",
-                  tab === id ? "bg-white font-medium shadow-sm" : "text-neutral-600",
+                  tab === id ? "bg-neutral-900 font-medium text-white" : "text-neutral-600",
                 )}
               >
                 {label}

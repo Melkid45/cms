@@ -1,9 +1,12 @@
 "use client";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Select, SelectOption } from "@/components/ui/select";
 /* eslint-disable @next/next/no-img-element */
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useMemo, useState } from "react";
 import {
+  Copy,
   Download,
   ExternalLink,
   Pencil,
@@ -25,7 +28,6 @@ import {
 } from "@/components/admin/catalog/use-catalog";
 import {
   availableQty,
-  formatPrice,
   productName,
   STOCK,
   STOCK_LABELS,
@@ -39,7 +41,10 @@ type Panel = "" | "import";
 const field =
   "h-8 rounded-md bg-neutral-100 px-2 text-sm outline-none focus:bg-white focus:ring-2 focus:ring-neutral-300";
 export default function CatalogPage() {
+  const router=useRouter();
   const { data, setData, error, setError, reload } = useCatalog();
+  const [selected, setSelected] = useState<string[]>([]);
+  const [bulkCategory, setBulkCategory] = useState("");
   const [query, setQuery] = useState(""),
     [category, setCategory] = useState(""),
     [stock, setStock] = useState<Stock | "hidden" | "">(""),
@@ -111,6 +116,72 @@ export default function CatalogPage() {
       });
     } catch (e) {
       setError(e instanceof Error ? e.message : "Could not save.");
+    } finally {
+      setBusy("");
+    }
+  }
+  async function bulk(change: { hidden?: boolean; category?: string }) {
+    setBusy("bulk");
+    setError("");
+    let done = 0;
+    try {
+      for (const p of products || [])
+        if (selected.includes(p.id)) {
+          await catalogFetch("/api/builder/catalog", {
+            method: "PATCH",
+            body: JSON.stringify({ id: p.id, revision: p.revision, ...change }),
+          });
+          done++;
+        }
+      setSelected([]);
+    } catch (e) {
+      setError(
+        `${done} updated. ${e instanceof Error ? e.message : "Could not save."}`,
+      );
+    } finally {
+      await reload();
+      setBusy("");
+    }
+  }
+  async function duplicate(p: Product) {
+    setBusy(p.id);
+    setError("");
+    try {
+      const text = Object.fromEntries(
+        Object.entries(p.text).map(([locale, t]) => {
+          if (!t) return [locale, t];
+          const base = `${t.slug}-copy`;
+          let slug = base,
+            n = 2;
+          const used = new Set(
+            (products || []).flatMap((p) =>
+              Object.values(p.text).map((t) => t?.slug),
+            ),
+          );
+          while (used.has(slug)) slug = `${base}-${n++}`;
+          return [locale, { ...t, name: `${t.name} (copy)`, slug }];
+        }),
+      );
+      const copy = await catalogFetch<Product>("/api/builder/catalog", {
+        method: "POST",
+        body: JSON.stringify({
+          ...p,
+          sku: "",
+          hidden: true,
+          pages: {},
+          text,
+          variants: p.variants?.map((v) => ({
+            ...v,
+            id: crypto.randomUUID(),
+            sku: "",
+            reserved: 0,
+          })),
+        }),
+      });
+      await reload();
+      router.push(`/dashboard/shop/products/${copy.id}`);
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Could not duplicate.");
     } finally {
       setBusy("");
     }
@@ -241,10 +312,75 @@ export default function CatalogPage() {
           {error}
         </p>
       )}
+      <div aria-label="Product bulk actions" className="mb-4 flex min-h-16 flex-wrap items-center gap-2 rounded-xl bg-neutral-100 p-3">
+          <span className="mr-2 min-w-24 rounded-lg bg-white px-3 py-2 text-sm font-medium tabular-nums">
+            {selected.length} selected
+          </span>
+          <Button
+            size="sm"
+            variant="outline"
+            disabled={!!busy || selected.length === 0}
+            onClick={() => void bulk({ hidden: false })}
+          >
+            Show
+          </Button>
+          <Button
+            size="sm"
+            variant="outline"
+            disabled={!!busy || selected.length === 0}
+            onClick={() => void bulk({ hidden: true })}
+          >
+            Hide
+          </Button>
+          <div className="w-48">
+            <Input
+              disabled={!!busy || selected.length === 0}
+              aria-label="Category for selected products"
+              placeholder="Category"
+              list="bulk-categories"
+              value={bulkCategory}
+              onChange={(e) => setBulkCategory(e.target.value)}
+            />
+            <datalist id="bulk-categories">
+              {categories.map((c) => (
+                <option key={c} value={c} />
+              ))}
+            </datalist>
+          </div>
+          <Button
+            size="sm"
+            variant="outline"
+            disabled={!!busy || selected.length === 0 || !bulkCategory.trim()}
+            onClick={() => void bulk({ category: bulkCategory.trim() })}
+          >
+            Apply category
+          </Button>
+          <Button className="ml-auto" size="sm" variant="ghost" disabled={!!busy || selected.length === 0} onClick={() => setSelected([])}>
+            Clear
+          </Button>
+        </div>
       <div className="overflow-x-auto rounded-xl bg-white shadow-sm">
         <table className="w-full min-w-[860px] text-sm">
           <thead className="text-left text-xs text-neutral-500">
             <tr>
+              <th className="w-10 px-3">
+                <Checkbox
+                  aria-label="Select visible products"
+                  checked={
+                    shown.length > 0 &&
+                    shown.every((p) => selected.includes(p.id))
+                  }
+                  onCheckedChange={(checked) =>
+                    setSelected(
+                      checked
+                        ? [...new Set([...selected, ...shown.map((p) => p.id)])]
+                        : selected.filter(
+                            (id) => !shown.some((p) => p.id === id),
+                          ),
+                    )
+                  }
+                />
+              </th>
               <th className="px-4 py-3 font-normal">Product</th>
               <th className="px-2 py-3 font-normal">Price</th>
               <th className="px-2 py-3 font-normal">Old price</th>
@@ -260,6 +396,19 @@ export default function CatalogPage() {
               const href = data ? productHref(data, p, locale) : "";
               return (
                 <tr key={p.id} className={i % 2 ? "" : "bg-neutral-50/70"}>
+                  <td className="px-3">
+                    <Checkbox
+                      aria-label={`Select ${productName(p, locale)}`}
+                      checked={selected.includes(p.id)}
+                      onCheckedChange={(checked) =>
+                        setSelected(
+                          checked
+                            ? [...selected, p.id]
+                            : selected.filter((id) => id !== p.id),
+                        )
+                      }
+                    />
+                  </td>
                   <td className="px-4 py-2">
                     <div className="flex items-center gap-3">
                       {p.images[0] ? (
@@ -269,7 +418,7 @@ export default function CatalogPage() {
                           className="size-11 shrink-0 rounded-md bg-neutral-100 object-contain"
                         />
                       ) : (
-                        <span className="size-11 shrink-0 rounded-md bg-neutral-100" />
+                        <span className="size-11 shrink-0 rounded-md bg-neutral-100" title="No photo" />
                       )}
                       <div className="min-w-0">
                         <Link
@@ -282,6 +431,8 @@ export default function CatalogPage() {
                           {[
                             p.sku && `SKU ${p.sku}`,
                             p.category,
+                            !p.images.length && !p.variants?.some(v=>v.images.length) && "No photo",
+                            p.variants?.length && p.variants.every(v=>v.hidden||v.stock==="out_of_stock"||(v.stock!=="to_order"&&availableQty(v)===0)) && "No available variants",
                             Object.keys(p.text).join(" · ").toUpperCase(),
                           ]
                             .filter(Boolean)
@@ -295,7 +446,11 @@ export default function CatalogPage() {
                       aria-label={`Price of ${productName(p, locale)}`}
                       inputMode="decimal"
                       className={`${field} w-24`}
-                      value={p.variants?.length?String(Math.min(...p.variants.map(v=>v.price))):draft.price ?? String(p.price)}
+                      value={
+                        p.variants?.length
+                          ? String(Math.min(...p.variants.map((v) => v.price)))
+                          : (draft.price ?? String(p.price))
+                      }
                       disabled={busy === p.id || !!p.variants?.length}
                       onChange={(e) =>
                         setDrafts((all) => ({
@@ -405,6 +560,16 @@ export default function CatalogPage() {
                       <Button
                         size="icon-sm"
                         variant="ghost"
+                        aria-label={`Duplicate ${productName(p, locale)}`}
+                        title="Duplicate product"
+                        disabled={!!busy}
+                        onClick={() => void duplicate(p)}
+                      >
+                        <Copy />
+                      </Button>
+                      <Button
+                        size="icon-sm"
+                        variant="ghost"
                         aria-label={`Delete ${productName(p, locale)}`}
                         disabled={busy === p.id}
                         onClick={() => void remove(p)}
@@ -429,13 +594,6 @@ export default function CatalogPage() {
           <p className="p-6 text-sm text-neutral-500">Loading…</p>
         )}
       </div>
-      {data && (
-        <p className="mt-3 text-xs text-neutral-500">
-          Prices in {data?.currency||"EUR"}, e.g.{" "}
-          {formatPrice(1199, data.catalog.settings.priceFormat)}. Changes are
-          live on the website at once.
-        </p>
-      )}
     </AdminPanel>
   );
 }

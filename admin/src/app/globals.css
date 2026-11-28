@@ -190,3 +190,15 @@
 .design-color-picker::-webkit-color-swatch-wrapper { padding: 0; }
 .design-color-picker::-webkit-color-swatch { border: 0; border-radius: 999px; }
 .design-color-picker::-moz-color-swatch { border: 0; border-radius: 999px; }
+
+/* Persistent selection, shared by admin tabs and view switches. */
+.admin-surface :is([role="tab"][aria-selected="true"], button[aria-pressed="true"], [data-slot="button"][aria-current="page"]) {
+  background-color: #171717;
+  color: #fff;
+  border-color: #171717;
+  box-shadow: none;
+}
+.admin-surface :is([role="tab"][aria-selected="true"], button[aria-pressed="true"], [data-slot="button"][aria-current="page"]):hover {
+  background-color: #292929;
+  color: #fff;
+}

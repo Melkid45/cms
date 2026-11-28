@@ -90,7 +90,14 @@ export interface Product {
   updatedAt: string;
   revision: number;
 }
+export interface CatalogAttribute {
+  key: string;
+  label: string;
+  values: string[];
+}
 export interface CatalogSettings {
+  filterVisibility?: "auto" | "show" | "hide";
+  attributes?: CatalogAttribute[];
   // Product page used as the pattern for products without their own page, per language.
   templates: Partial<Record<Locale, string>>;
   // Up to four filter groups (chip groups of the catalogue block, in order).
@@ -222,3 +229,31 @@ export const productName = (p: Product, locale?: string) =>
   Object.values(p.text).find((t) => t?.name)?.name ||
   p.sku ||
   "Untitled product";
+
+// Includes legacy filter values without rewriting existing products.
+export function catalogAttributes(catalog: Catalog): CatalogAttribute[] {
+  const map = new Map<string, CatalogAttribute>();
+  for (const a of catalog.settings.attributes || [])
+    map.set(a.key, { ...a, values: [...a.values] });
+  for (const f of catalog.settings.filters)
+    if (!map.has(f.key)) map.set(f.key, { ...f, values: [] });
+  for (const p of catalog.products)
+    for (const [key, value] of Object.entries(p.filters)) {
+      if (!value.trim()) continue;
+      if (!map.has(key)) map.set(key, { key, label: key, values: [] });
+      const a = map.get(key)!;
+      for (const item of attributeValues(value))
+        if (!a.values.some((v) => v.toLowerCase() === item.toLowerCase()))
+          a.values.push(item);
+    }
+  return [...map.values()];
+}
+
+export const attributeValues = (value = "") => [
+  ...new Set(
+    value
+      .split("|")
+      .map((v) => v.trim())
+      .filter(Boolean),
+  ),
+];

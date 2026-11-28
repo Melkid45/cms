@@ -349,6 +349,7 @@ export function SeoAssistant() {
           <button
             key={t}
             type="button"
+            aria-pressed={tab === t}
             className={chip(tab === t)}
             onClick={() => {
               setTab(t);

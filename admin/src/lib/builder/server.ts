@@ -1,3 +1,4 @@
+import { headerContactHref } from "./header-contacts";
 import "server-only";
 import { FONT_PAIR_IDS } from "./font-pairs";
 import {
@@ -211,6 +212,7 @@ const schema = z.object({
     )
     .max(20),
   layout: z.object({
+    contacts: z.array(z.object({icon:z.enum(["send","message","phone","link","mail","globe","camera","users","play","business","location","arrow","support","mobile"]).optional(),id:z.string().min(1).max(100),type:z.enum(["telegram","whatsapp","phone","link"]),value:z.string().trim().max(500),label:z.string().trim().max(80),display:z.enum(["icon","text","both"])})).max(6).refine(items=>items.every(c=>!c.value||!!headerContactHref(c)),"Check header contact addresses.").optional(),
     header: section,
     footer: section,
     // Multilingual websites keep one set of menus per language (each menu shows on its language's pages).

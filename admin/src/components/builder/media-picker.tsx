@@ -11,10 +11,12 @@ export function MediaPicker({
   onChange,
   label,
   kind = "image",
+  presentation = "inline",
 }: {
   value: string;
   onChange: (url: string) => void;
   label?: string;
+  presentation?: "inline" | "tile";
   // "video": background video field (hero-v52) — lists and uploads MP4/WebM files only.
   kind?: "image" | "video";
 }) {
@@ -28,38 +30,80 @@ export function MediaPicker({
   const input = useRef<HTMLInputElement>(null);
   return (
     <div className="space-y-2">
-      <div className="flex items-center gap-3">
-        {value &&
-          (video ? (
-            <video
-              src={value}
-              muted
-              preload="metadata"
-              className="h-16 w-24 rounded-md border bg-neutral-100 object-cover"
-            />
-          ) : (
-            <img
-              src={value}
-              alt="Selected image"
-              className="h-16 w-24 rounded-md border bg-neutral-100 object-contain"
-            />
-          ))}
-        <Button type="button" variant="outline" onClick={() => setOpen(true)}>
-          <ImagePlus />
-          {label || (video ? "Choose video" : "Choose image")}
-        </Button>
-        {value && (
-          <Button
+      {presentation === "tile" && !video ? (
+        <div className="group relative">
+          <button
             type="button"
-            variant="ghost"
-            size="icon-sm"
-            aria-label={video ? "Remove video" : "Remove image"}
-            onClick={() => onChange("")}
+            onClick={() => setOpen(true)}
+            aria-label={label || "Choose image"}
+            className="flex h-28 w-full flex-col items-center justify-center gap-2 overflow-hidden rounded-lg border border-dashed bg-neutral-50 text-xs text-neutral-500 transition-colors hover:border-neutral-400 hover:bg-neutral-100"
           >
-            <X />
-          </Button>
-        )}
-      </div>
+            {value ? (
+              <img
+                src={value}
+                alt={label || "Product photo"}
+                className="h-full w-full object-contain p-2"
+              />
+            ) : (
+              <>
+                <ImagePlus className="size-5" />
+                <span>{label || "Add photo"}</span>
+              </>
+            )}
+          </button>
+          {value && (
+            <Button
+              type="button"
+              size="icon-sm"
+              variant="secondary"
+              className="absolute right-1 top-1 size-6"
+              aria-label="Remove image"
+              onClick={() => onChange("")}
+            >
+              <X className="size-3" />
+            </Button>
+          )}
+        </div>
+      ) : (
+        <>
+          <div className="flex items-center gap-3">
+            {value &&
+              (video ? (
+                <video
+                  src={value}
+                  muted
+                  preload="metadata"
+                  className="h-16 w-24 rounded-md border bg-neutral-100 object-cover"
+                />
+              ) : (
+                <img
+                  src={value}
+                  alt="Selected image"
+                  className="h-16 w-24 rounded-md border bg-neutral-100 object-contain"
+                />
+              ))}
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => setOpen(true)}
+            >
+              <ImagePlus />
+              {label || (video ? "Choose video" : "Choose image")}
+            </Button>
+            {value && (
+              <Button
+                type="button"
+                variant="ghost"
+                size="icon-sm"
+                aria-label={video ? "Remove video" : "Remove image"}
+                onClick={() => onChange("")}
+              >
+                <X />
+              </Button>
+            )}
+          </div>
+        </>
+      )}
       <Dialog.Root open={open} onOpenChange={setOpen}>
         <Dialog.Portal>
           <Dialog.Backdrop className="fixed inset-0 z-50 bg-black/40" />
@@ -112,7 +156,11 @@ export function MediaPicker({
                   onClick={() => input.current?.click()}
                 >
                   <Upload />
-                  {busy ? "Uploading…" : video ? "Upload video" : "Upload image"}
+                  {busy
+                    ? "Uploading…"
+                    : video
+                      ? "Upload video"
+                      : "Upload image"}
                 </Button>
                 <Dialog.Close
                   render={<Button type="button" size="icon" variant="ghost" />}

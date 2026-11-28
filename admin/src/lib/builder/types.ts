@@ -148,7 +148,9 @@ export interface Brand {
   containerWidth?: 1440 | 1600 | 1820 | 1920;
   density?: "compact" | "standard" | "spacious";
 }
+export interface HeaderContact { icon?:string; id:string; type:"telegram"|"whatsapp"|"phone"|"link"; value:string; label:string; display:"icon"|"text"|"both"; }
 export interface Layout {
+  contacts?: HeaderContact[];
   header: Section;
   footer: Section;
   headerMenus: string[];

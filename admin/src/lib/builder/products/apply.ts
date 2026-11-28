@@ -24,6 +24,7 @@ import { collectionItems } from "../collections";
 import { pageHref, type Locale } from "../i18n";
 import { normalizePath } from "../seo/schema";
 import {
+  attributeValues,
   discountLabel,
   availableQty,
   formatPrice,
@@ -39,6 +40,8 @@ export const GRID_BLOCK = "pricing-v21";
 export const CARD_BLOCK = "pricing-v20";
 // Pages filled from the catalogue → product, per applied project (checkout stock check, JSON-LD).
 const formats = new WeakMap<Project, string>();
+const filterModes = new WeakMap<Project, string>();
+export const catalogFilterMode = (project: Project) => filterModes.get(project);
 const filterCounts = new WeakMap<Project, number>();
 export const catalogFilterCount = (project: Project) =>
   filterCounts.get(project);
@@ -75,6 +78,8 @@ export const catalogProductNamed = (
 ) => namedProducts.get(project)?.get(`${locale}:${name}`);
 // Keeps those lookups on a derived copy (publicProject() of an applied project).
 export function keepCatalogInfo<T extends Project>(from: Project, to: T): T {
+  const mode = filterModes.get(from);
+  if (mode) filterModes.set(to, mode);
   const count = filterCounts.get(from);
   if (count !== undefined) filterCounts.set(to, count);
   const format = formats.get(from);
@@ -251,7 +256,7 @@ export function applyCatalog(
       set(
         19,
         settings.filters
-          .map((f) => p.filters[f.key])
+          .flatMap((f) => attributeValues(p.filters[f.key]))
           .filter(Boolean)
           .join(", "),
       );
@@ -339,13 +344,14 @@ export function applyCatalog(
       out[`text-${7 + n * 10}`] = filter.label;
       const cheapest = new Map<string, number>();
       for (const p of visible(locale)) {
-        const value = p.filters[filter.key];
-        if (value)
-          cheapest.set(
-            value,
-            Math.min(cheapest.get(value) ?? Infinity, p.price),
-          );
+        for (const value of attributeValues(p.filters[filter.key]))
+          if (value)
+            cheapest.set(
+              value,
+              Math.min(cheapest.get(value) ?? Infinity, p.price),
+            );
       }
+      if (cheapest.size < 2) out[`text-${7 + n * 10}`] = "";
       const list = [...cheapest].sort((a, b) => a[1] - b[1]).map(([v]) => v);
       for (let c = 0; c < 8; c++) {
         const key = `text-${9 + n * 10 + c}`;
@@ -396,6 +402,7 @@ export function applyCatalog(
       : {}),
   };
   formats.set(result, settings.priceFormat);
+  filterModes.set(result, settings.filterVisibility || "auto");
   filterCounts.set(result, settings.filters.length);
   pageProducts.set(result, owned);
   namedProducts.set(

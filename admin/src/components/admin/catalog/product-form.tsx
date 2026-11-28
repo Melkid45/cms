@@ -1,5 +1,6 @@
 "use client";
 import { ProductVariantsEditor } from "./product-variants";
+import { ProductAttributes } from "./product-attributes";
 import { Select, SelectOption } from "@/components/ui/select";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -24,6 +25,7 @@ import {
   type ProductVariant,
   availableQty,
   type ProductText,
+  catalogAttributes,
   type Spec,
   type Stock,
 } from "@/lib/builder/products/shared";
@@ -167,7 +169,25 @@ export function ProductForm({ id }: { id: string }) {
   const t = draft.text[lang];
   const setText = (patch: Partial<ProductText>) =>
     setDraft({ ...draft, text: { ...draft.text, [lang]: { ...t, ...patch } } });
-  const filters = data.catalog.settings.filters;
+  const uniqueSlug = (name: string) => {
+    const base = slugify(name);
+    if (!base) return "";
+    const used = new Set([
+      ...data.catalog.products
+        .filter((p) => p.id !== id)
+        .flatMap((p) => Object.values(p.text).map((t) => t?.slug || "")),
+      ...(data.pageAddresses || data.productPages)
+        .filter(
+          (p) => p.id !== product?.pages[lang as keyof typeof product.pages],
+        )
+        .map((p) => p.slug),
+    ]);
+    let next = base,
+      number = 2;
+    while (used.has(next)) next = `${base}-${number++}`;
+    return next;
+  };
+  const filters = catalogAttributes(data.catalog);
   async function save() {
     if (!draft) return;
     setBusy(true);
@@ -192,9 +212,7 @@ export function ProductForm({ id }: { id: string }) {
         images: draft.images.filter(Boolean),
         hidden: draft.hidden,
         filters: Object.fromEntries(
-          Object.entries(draft.filters).filter(
-            ([k, v]) => v.trim() && filters.some((f) => f.key === k),
-          ),
+          Object.entries(draft.filters).filter(([, v]) => v.trim()),
         ),
         options: draft.options,
         text,
@@ -303,10 +321,92 @@ export function ProductForm({ id }: { id: string }) {
       )}
       {saved && <p className="mb-4 text-green-700">{saved}</p>}
       <div className="space-y-5">
+        <div className="grid items-stretch gap-5 xl:grid-cols-[minmax(0,1.4fr)_minmax(320px,1fr)]">
+          <section className={card}>
+            <div className="mb-4 flex flex-wrap gap-1">
+              {data.locales.map((l) => (
+                <Button
+                  key={l}
+                  size="sm"
+                  aria-pressed={l === lang}
+                  variant={l === lang ? "secondary" : "ghost"}
+                  onClick={() => setLang(l)}
+                >
+                  {l.toUpperCase()}
+                  {!draft.text[l]?.name && (
+                    <span className="text-neutral-400"> · empty</span>
+                  )}
+                </Button>
+              ))}
+            </div>
+            <div className="grid gap-4 sm:grid-cols-2">
+              <div>
+                <label className={label} htmlFor="p-name">
+                  Name
+                </label>
+                <Input
+                  id="p-name"
+                  value={t.name}
+                  onChange={(e) => setText({ name: e.target.value })}
+                  onBlur={() => {
+                    if ((isNew && !touched[lang]) || !t.slug)
+                      setText({ slug: uniqueSlug(t.name) });
+                  }}
+                />
+              </div>
+              <div>
+                <label className={label} htmlFor="p-slug">
+                  Address (after the website address)
+                </label>
+                <Input
+                  id="p-slug"
+                  onBlur={() => {
+                    if (t.slug) setText({ slug: uniqueSlug(t.slug) });
+                  }}
+                  value={t.slug}
+                  onChange={(e) => {
+                    setTouched({ ...touched, [lang]: true });
+                    setText({
+                      slug: e.target.value
+                        .toLowerCase()
+                        .replace(/[^a-z0-9-]/g, "-"),
+                    });
+                  }}
+                />
+              </div>
+            </div>
+          </section>
+          <section className={`${card} flex flex-col`}>
+            <h3 className="mb-1 text-sm font-medium">Photos</h3>
+            <p className="mb-3 text-xs text-neutral-500">
+              From the media library; the first one is the main photo (up to{" "}
+              {LIMITS.images}).
+            </p>
+            <div className="mt-auto grid grid-cols-2 gap-3 sm:grid-cols-3">
+              {[...draft.images, ""].slice(0, LIMITS.images).map((url, i) => (
+                <MediaPicker
+                  key={i}
+                  presentation="tile"
+                  value={url}
+                  label={i === 0 ? "Main photo" : "Add photo"}
+                  onChange={(next) => {
+                    const images = draft.images.slice();
+                    if (next) images[i] = next;
+                    else images.splice(i, 1);
+                    setDraft({ ...draft, images: images.filter(Boolean) });
+                  }}
+                />
+              ))}
+            </div>
+          </section>
+        </div>
         <section className={`${card} grid gap-4 sm:grid-cols-2 lg:grid-cols-4`}>
+          <h3 className="col-span-full font-medium">Pricing & inventory</h3>
           <div>
             <label className={label} htmlFor="p-price">
-              {draft.variants.length?`Default price for new variations, ${data.currency||"EUR"}`:`Price, ${data.currency||"EUR"}`}
+              {draft.variants.length
+                ? `Default price for new variations, ${data.currency || "EUR"}`
+                : `Price, ${data.currency || "EUR"}`}
             </label>
             <Input
               id="p-price"
@@ -320,7 +420,7 @@ export function ProductForm({ id }: { id: string }) {
               Old price (crossed out)
             </label>
             <Input
-              disabled={draft.variants.length>0}
+              disabled={draft.variants.length > 0}
               id="p-old"
               inputMode="decimal"
               value={draft.oldPrice}
@@ -332,7 +432,7 @@ export function ProductForm({ id }: { id: string }) {
               Stock
             </label>
             <Select
-              disabled={draft.variants.length>0}
+              disabled={draft.variants.length > 0}
               id="p-stock"
               className="h-9 "
               value={String(draft.stock)}
@@ -391,23 +491,6 @@ export function ProductForm({ id }: { id: string }) {
               ))}
             </datalist>
           </div>
-          {filters.map((f) => (
-            <div key={f.key}>
-              <label className={label} htmlFor={`p-f-${f.key}`}>
-                Filter: {f.label || f.key}
-              </label>
-              <Input
-                id={`p-f-${f.key}`}
-                value={draft.filters[f.key] || ""}
-                onChange={(e) =>
-                  setDraft({
-                    ...draft,
-                    filters: { ...draft.filters, [f.key]: e.target.value },
-                  })
-                }
-              />
-            </div>
-          ))}
           <label className="flex items-center gap-3 self-end pb-1 text-sm">
             <Switch
               checked={!draft.hidden}
@@ -420,100 +503,19 @@ export function ProductForm({ id }: { id: string }) {
         </section>
 
         <section className={card}>
-          <h3 className="mb-1 text-sm font-medium">Photos</h3>
-          <p className="mb-3 text-xs text-neutral-500">
-            From the media library; the first one is the main photo (up to{" "}
-            {LIMITS.images}).
-          </p>
-          <div className="grid gap-3 sm:grid-cols-2">
-            {[...draft.images, ""].slice(0, LIMITS.images).map((url, i) => (
-              <MediaPicker
-                key={i}
-                value={url}
-                label={i === 0 ? "Main photo" : "Add photo"}
-                onChange={(next) => {
-                  const images = draft.images.slice();
-                  if (next) images[i] = next;
-                  else images.splice(i, 1);
-                  setDraft({ ...draft, images: images.filter(Boolean) });
-                }}
-              />
-            ))}
+          <div className="col-span-full">
+            <ProductAttributes
+              attributes={filters}
+              values={draft.filters}
+              onChange={(values) => setDraft({ ...draft, filters: values })}
+            />
           </div>
         </section>
 
         <section className={card}>
-          <div className="mb-4 flex flex-wrap gap-1">
-            {data.locales.map((l) => (
-              <Button
-                key={l}
-                size="sm"
-                variant={l === lang ? "secondary" : "ghost"}
-                onClick={() => setLang(l)}
-              >
-                {l.toUpperCase()}
-                {!draft.text[l]?.name && (
-                  <span className="text-neutral-400"> · empty</span>
-                )}
-              </Button>
-            ))}
-          </div>
-          <div className="grid gap-4 sm:grid-cols-2">
-            <div>
-              <label className={label} htmlFor="p-name">
-                Name
-              </label>
-              <Input
-                id="p-name"
-                value={t.name}
-                onChange={(e) =>
-                  setText({
-                    name: e.target.value,
-                    ...(isNew && !touched[lang]
-                      ? { slug: slugify(e.target.value) }
-                      : {}),
-                  })
-                }
-              />
-            </div>
-            <div>
-              <label className={label} htmlFor="p-slug">
-                Address (after the website address)
-              </label>
-              <Input
-                id="p-slug"
-                value={t.slug}
-                onChange={(e) => {
-                  setTouched({ ...touched, [lang]: true });
-                  setText({
-                    slug: e.target.value
-                      .toLowerCase()
-                      .replace(/[^a-z0-9-]/g, "-"),
-                  });
-                }}
-              />
-            </div>
-            <div>
-              <label className={label} htmlFor="p-sub">
-                Line above the name
-              </label>
-              <Input
-                id="p-sub"
-                value={t.subtitle}
-                onChange={(e) => setText({ subtitle: e.target.value })}
-              />
-            </div>
-            <div>
-              <label className={label} htmlFor="p-badge">
-                Card badge
-              </label>
-              <Input
-                id="p-badge"
-                placeholder="e.g. Top"
-                value={t.badge}
-                onChange={(e) => setText({ badge: e.target.value })}
-              />
-            </div>
+          <h3 className="mb-4 font-medium">Description</h3>
+          <div className="grid gap-4">
+            {" "}
             <div className="sm:col-span-2">
               <label className={label} htmlFor="p-summary">
                 Summary under the name
@@ -536,112 +538,146 @@ export function ProductForm({ id }: { id: string }) {
                 onChange={(e) => setText({ description: e.target.value })}
               />
             </div>
-            <div>
-              <label className={label} htmlFor="p-alt">
-                Photo description
-              </label>
-              <Input
-                id="p-alt"
-                placeholder={t.name}
-                value={t.imageAlt}
-                onChange={(e) => setText({ imageAlt: e.target.value })}
-              />
-            </div>
-            <div>
-              <label className={label} htmlFor="p-note">
-                Line next to the price
-              </label>
-              <Input
-                id="p-note"
-                value={t.priceNote}
-                onChange={(e) => setText({ priceNote: e.target.value })}
-              />
-            </div>
-            <div>
-              <label className={label} htmlFor="p-seo-t">
-                SEO title
-              </label>
-              <Input
-                id="p-seo-t"
-                placeholder={t.name}
-                value={t.seoTitle}
-                onChange={(e) => setText({ seoTitle: e.target.value })}
-              />
-            </div>
-            <div>
-              <label className={label} htmlFor="p-seo-d">
-                SEO description ({"{price}"} = current price)
-              </label>
-              <Input
-                id="p-seo-d"
-                placeholder={t.summary}
-                value={t.seoDescription}
-                onChange={(e) => setText({ seoDescription: e.target.value })}
-              />
-            </div>
           </div>
-          <div className="mt-6 grid gap-6 lg:grid-cols-2">
-            <SpecRows
-              title="Key facts"
-              hint="Next to the photo on the product page."
-              rows={t.topSpecs}
-              max={LIMITS.topSpecs}
-              onChange={(rows) => setText({ topSpecs: rows })}
-            />
-            <SpecRows
-              title="Card facts"
-              hint="On product cards in lists."
-              rows={t.cardSpecs}
-              max={LIMITS.cardSpecs}
-              onChange={(rows) => setText({ cardSpecs: rows })}
-            />
-            <div className="lg:col-span-2">
-              <SpecRows
-                title="Specification"
-                hint="Table on the product page."
-                rows={t.specs}
-                max={LIMITS.specs}
-                onChange={(rows) => setText({ specs: rows })}
-              />
-            </div>
-          </div>
-          {canDesign && (
-            <div className="mt-6">
-              <label className={label} htmlFor="p-page">
-                Page of this product ({lang.toUpperCase()})
-              </label>
-              <Select
-                id="p-page"
-                className="h-9 max-w-md"
-                value={String(draft.pages[lang] || "")}
-                onValueChange={(selectedValue) =>
-                  setDraft({
-                    ...draft,
-                    pages: { ...draft.pages, [lang]: selectedValue },
-                  })
-                }
-              >
-                <SelectOption value="">
-                  Built from the template page
-                </SelectOption>
-                {data.productPages
-                  .filter((p) => p.locale === lang)
-                  .map((p) => (
-                    <SelectOption key={p.id} value={String(p.id)}>
-                      {p.title} (/{p.slug})
-                    </SelectOption>
-                  ))}
-              </Select>
-            </div>
-          )}
         </section>
+        <details className={card}>
+          <summary className="cursor-pointer font-medium">
+            Additional content, specifications & SEO
+          </summary>
+          <div className="mt-5">
+            <div className="grid gap-4 sm:grid-cols-2">
+              <div>
+                <label className={label} htmlFor="p-sub">
+                  Line above the name
+                </label>
+                <Input
+                  id="p-sub"
+                  value={t.subtitle}
+                  onChange={(e) => setText({ subtitle: e.target.value })}
+                />
+              </div>
+              <div>
+                <label className={label} htmlFor="p-badge">
+                  Card badge
+                </label>
+                <Input
+                  id="p-badge"
+                  placeholder="e.g. Top"
+                  value={t.badge}
+                  onChange={(e) => setText({ badge: e.target.value })}
+                />
+              </div>
+              <div>
+                <label className={label} htmlFor="p-alt">
+                  Photo description
+                </label>
+                <Input
+                  id="p-alt"
+                  placeholder={t.name}
+                  value={t.imageAlt}
+                  onChange={(e) => setText({ imageAlt: e.target.value })}
+                />
+              </div>
+              <div>
+                <label className={label} htmlFor="p-note">
+                  Line next to the price
+                </label>
+                <Input
+                  id="p-note"
+                  value={t.priceNote}
+                  onChange={(e) => setText({ priceNote: e.target.value })}
+                />
+              </div>
+              <div>
+                <label className={label} htmlFor="p-seo-t">
+                  SEO title
+                </label>
+                <Input
+                  id="p-seo-t"
+                  placeholder={t.name}
+                  value={t.seoTitle}
+                  onChange={(e) => setText({ seoTitle: e.target.value })}
+                />
+              </div>
+              <div>
+                <label className={label} htmlFor="p-seo-d">
+                  SEO description ({"{price}"} = current price)
+                </label>
+                <Input
+                  id="p-seo-d"
+                  placeholder={t.summary}
+                  value={t.seoDescription}
+                  onChange={(e) => setText({ seoDescription: e.target.value })}
+                />
+              </div>
+            </div>
+            <div className="mt-6 grid gap-6 lg:grid-cols-2">
+              <SpecRows
+                title="Key facts"
+                hint="Next to the photo on the product page."
+                rows={t.topSpecs}
+                max={LIMITS.topSpecs}
+                onChange={(rows) => setText({ topSpecs: rows })}
+              />
+              <SpecRows
+                title="Card facts"
+                hint="On product cards in lists."
+                rows={t.cardSpecs}
+                max={LIMITS.cardSpecs}
+                onChange={(rows) => setText({ cardSpecs: rows })}
+              />
+              <div className="lg:col-span-2">
+                <SpecRows
+                  title="Specification"
+                  hint="Table on the product page."
+                  rows={t.specs}
+                  max={LIMITS.specs}
+                  onChange={(rows) => setText({ specs: rows })}
+                />
+              </div>
+            </div>
+            {canDesign && (
+              <div className="mt-6">
+                <label className={label} htmlFor="p-page">
+                  Page of this product ({lang.toUpperCase()})
+                </label>
+                <Select
+                  id="p-page"
+                  className="h-9 max-w-md"
+                  value={String(draft.pages[lang] || "")}
+                  onValueChange={(selectedValue) =>
+                    setDraft({
+                      ...draft,
+                      pages: { ...draft.pages, [lang]: selectedValue },
+                    })
+                  }
+                >
+                  <SelectOption value="">
+                    Built from the template page
+                  </SelectOption>
+                  {data.productPages
+                    .filter((p) => p.locale === lang)
+                    .map((p) => (
+                      <SelectOption key={p.id} value={String(p.id)}>
+                        {p.title} (/{p.slug})
+                      </SelectOption>
+                    ))}
+                </Select>
+              </div>
+            )}
+          </div>
+        </details>
 
         <ProductVariantsEditor
           variants={draft.variants}
           onChange={(variants) => setDraft({ ...draft, variants })}
-          currency={data.currency||"EUR"} basePrice={Number(draft.price)}
+          currency={data.currency || "EUR"}
+          basePrice={Number(draft.price)}
         />
-        <section className={card} hidden={draft.variants.length > 0}>
+        <details className={card} hidden={draft.variants.length > 0}>
+          <summary className="cursor-pointer font-medium">
+            Additional price options
+          </summary>
           <h3 className="mb-1 text-sm font-medium">Options with a surcharge</h3>
           <p className="mb-3 text-xs text-neutral-500">
             Up to {LIMITS.options} groups of {LIMITS.choices} choices on the
@@ -732,7 +768,7 @@ export function ProductForm({ id }: { id: string }) {
               Option group
             </Button>
           )}
-        </section>
+        </details>
       </div>
     </div>
   );

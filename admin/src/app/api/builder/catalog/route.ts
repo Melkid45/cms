@@ -39,6 +39,7 @@ export async function GET(request: Request) {
     return Response.json(
       {
         catalog,
+        pageAddresses: project.pages.filter(p => !p.deletedAt).map(p => ({id:p.id, slug:p.slug, locale:p.locale})),
         currency: commerce.currency,
         siteKey: site.key,
         languages: project.languages ?? null,

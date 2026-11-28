@@ -75,6 +75,7 @@ export async function checkShopInventory({
   );
   const simple = await json(
     await request("/api/builder/catalog", "POST", {
+      filters: {material:"Oak | Walnut"},
       sku: "INV-SIMPLE",
       price: 100,
       qty: 1,
@@ -82,6 +83,8 @@ export async function checkShopInventory({
       pages: { en: "inventory-simple" },
     }),
   );
+  const attributesDoc = await json(await request("/api/builder/catalog"));
+  assert(attributesDoc.catalog.settings.attributes.some(a => a.key === "material" && a.values.includes("Oak") && a.values.includes("Walnut")), "Product values join the shared attribute dictionary atomically");
   const variants = await json(
     await request("/api/builder/catalog", "POST", {
       sku: "INV-PARENT",
@@ -629,6 +632,12 @@ export async function checkShopInventory({
   );
   assert(!html.includes("12 options"), "A catalog product never inherits the demo frame picker");
   assert(!html.includes("Two-year warranty"), "Untouched template warranty claims are not merchant product data");
+  const configDoc = await json(await request("/api/builder/catalog"));
+  const filterSettings = configDoc.catalog.settings;
+  const updatedFilters = await json(await request("/api/builder/catalog/settings", "PUT", {...filterSettings, filterVisibility:"hide"}));
+  assert.equal(updatedFilters.filterVisibility, "hide", "Catalog visibility is persisted");
+  assert.equal((await request("/api/builder/catalog/settings", "PUT", {...filterSettings,filterVisibility:"invalid"})).status,400);
+  await json(await request("/api/builder/catalog/settings", "PUT", {...filterSettings,filterVisibility:"auto"}));
   const csv = await (await request("/api/builder/catalog/export")).text();
   assert(
     csv.includes("variants") && csv.includes("INV-BLACK-M"),

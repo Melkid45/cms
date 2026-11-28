@@ -27,6 +27,7 @@ import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectOption } from "@/components/ui/select";
+import { HeaderContactsEditor } from "./header-contacts-editor";
 import { SectionEditor } from "./section-editor";
 import { PreviewDialog } from "./preview-dialog";
 export function LayoutEditor() {
@@ -47,6 +48,7 @@ export function LayoutEditor() {
 function Editor({ project }: { project: Project }) {
   const { save } = useProject();
   const siteKey = useSiteKey();
+  const [area, setArea] = useState<"header" | "footer" | "general">("header");
   const [layout, setLayout] = useState(project.layout),
     [menus, setMenus] = useState(project.menus),
     [notice, setNotice] = useState(""),
@@ -208,38 +210,68 @@ function Editor({ project }: { project: Project }) {
   return (
     <AdminPanel
       title="Site layout"
-      toolbar={<div className="ml-auto flex flex-wrap items-center gap-2.5">{
-          <div className="flex gap-3">
-            <PreviewDialog
-              project={draft}
-              sections={project.pages[0]?.sections || []}
-            />
-            <Button
-              disabled={busy}
-              onClick={async () => {
-                setBusy(true);
-                try {
-                  await save(draft);
-                  setNotice(
-                    "Layout and menus saved. Every page now uses these settings.",
-                  );
-                } catch (e) {
-                  setNotice(e instanceof Error ? e.message : "Could not save");
-                } finally {
-                  setBusy(false);
-                }
-              }}
-            >
-              <Save />
-              {busy ? "Saving…" : "Save layout"}
-            </Button>
-          </div>
-        }</div>}
+      toolbar={
+        <div className="ml-auto flex flex-wrap items-center gap-2.5">
+          {
+            <div className="flex gap-3">
+              <PreviewDialog
+                project={draft}
+                sections={project.pages[0]?.sections || []}
+              />
+              <Button
+                disabled={busy}
+                onClick={async () => {
+                  setBusy(true);
+                  try {
+                    await save(draft);
+                    setNotice(
+                      "Layout and menus saved. Every page now uses these settings.",
+                    );
+                  } catch (e) {
+                    setNotice(
+                      e instanceof Error ? e.message : "Could not save",
+                    );
+                  } finally {
+                    setBusy(false);
+                  }
+                }}
+              >
+                <Save />
+                {busy ? "Saving…" : "Save layout"}
+              </Button>
+            </div>
+          }
+        </div>
+      }
     >
       <p role="status" className="mb-5 text-sm">
         {notice}
       </p>
-      <div className="mb-6 space-y-3 rounded-xl border bg-white p-5">
+      <div
+        className="mb-6 flex gap-2 rounded-xl border bg-white p-2"
+        role="tablist"
+        aria-label="Layout settings"
+      >
+        {(["header", "footer", "general"] as const).map((key) => (
+          <Button
+            key={key}
+            role="tab"
+            aria-selected={area === key}
+            variant={area === key ? "secondary" : "ghost"}
+            onClick={() => setArea(key)}
+          >
+            {key === "header"
+              ? "Header"
+              : key === "footer"
+                ? "Footer"
+                : "General"}
+          </Button>
+        ))}
+      </div>
+      <div
+        hidden={area !== "general"}
+        className="mb-6 space-y-3 rounded-xl border bg-white p-5"
+      >
         <p className="text-sm font-medium">Languages</p>
         <div className="flex flex-wrap gap-3">
           {LOCALES.map((code) => {
@@ -313,259 +345,278 @@ function Editor({ project }: { project: Project }) {
           </Select>
         </label>
       </div>
-      {(["header", "footer"] as const).map((type) => (
-        <Card key={type} className="mb-6">
-          <CardHeader>
-            <CardTitle>{type === "header" ? "Header" : "Footer"}</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-6">
-            <div className="grid gap-4 md:grid-cols-3">
-              {definitions
-                .filter((d) => d.family === type)
-                .map((d) => (
-                  <button
-                    type="button"
-                    key={d.id}
-                    onClick={() =>
-                      setLayout({
-                        ...layout,
-                        [type]: createSection(d.id, layout[type].id),
-                      })
-                    }
-                    className={`overflow-hidden rounded-xl border text-left ${layout[type].variant === d.id ? "ring-1 ring-black" : ""}`}
-                  >
-                    <img
-                      src={d.thumbnail}
-                      alt={`${type} ${d.label}`}
-                      className="aspect-[16/7] w-full bg-neutral-100 object-contain object-center"
-                    />
-                    <span className="block border-t p-3 text-sm">
-                      {d.label}
-                    </span>
-                  </button>
-                ))}
-            </div>
-            <div className="space-y-3">
-              <p className="text-sm font-medium">Navigation groups</p>
-              <div className="flex flex-wrap gap-3">
-                {menus
-                  .filter((menu) => menu.placement === type)
-                  .map((menu) => (
-                    <label
-                      key={menu.id}
-                      className="flex items-center gap-2 rounded-lg border px-3 py-2 text-sm"
+      {(["header", "footer"] as const)
+        .filter((type) => area === type)
+        .map((type) => (
+          <Card key={type} className="mb-6">
+            <CardHeader>
+              <CardTitle>{type === "header" ? "Header" : "Footer"}</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              <div className="grid gap-4 md:grid-cols-3">
+                {definitions
+                  .filter((d) => d.family === type)
+                  .map((d) => (
+                    <button
+                      type="button"
+                      key={d.id}
+                      onClick={() =>
+                        setLayout({
+                          ...layout,
+                          [type]: createSection(d.id, layout[type].id),
+                        })
+                      }
+                      className={`overflow-hidden rounded-xl border text-left ${layout[type].variant === d.id ? "ring-1 ring-black" : ""}`}
                     >
-                      <input
-                        type="checkbox"
-                        checked={layout[`${type}Menus`].includes(menu.id)}
-                        onChange={(e) =>
-                          setLayout({
-                            ...layout,
-                            [`${type}Menus`]: e.target.checked
-                              ? [...layout[`${type}Menus`], menu.id]
-                              : layout[`${type}Menus`].filter(
-                                  (id) => id !== menu.id,
-                                ),
-                          })
-                        }
+                      <img
+                        src={d.thumbnail}
+                        alt={`${type} ${d.label}`}
+                        className="aspect-[16/7] w-full bg-neutral-100 object-contain object-center"
                       />
-                      {menu.title}
-                    </label>
+                      <span className="block border-t p-3 text-sm">
+                        {d.label}
+                      </span>
+                    </button>
                   ))}
               </div>
-              <p className="text-xs text-neutral-400">
-                Choose one or more {type} menus. Edit their items in the {type}{" "}
-                navigation panel below.
-              </p>
-            </div>
-            <Button
-              type="button"
-              variant="outline"
-              onClick={() => setEdit(edit === type ? "" : type)}
-            >
-              {edit === type ? "Hide" : "Edit"} {type} content
-            </Button>
-            {edit === type && multilingual && (
-              <label className="grid max-w-xs gap-2 text-sm">
-                Texts for language
-                <Select
-                  value={textLocale || defaultLocale}
-                  onValueChange={setTextLocale}
-                >
-                  {multilingual.enabled.map((code) => (
-                    <SelectOption key={code} value={code}>
-                      {LOCALE_NAMES[code]}
-                      {code === defaultLocale ? " (default)" : ""}
-                    </SelectOption>
-                  ))}
-                </Select>
-              </label>
-            )}
-            {edit === type && (
-              <SectionEditor
-                key={textLocale}
-                section={layoutSection(type)}
-                onChange={(section) => setLayoutSection(type, section)}
-              />
-            )}
-          </CardContent>
-        </Card>
-      ))}
-      {(["header", "footer"] as const).map((placement) => (
-        <Card key={placement} className="mb-6" data-menu-placement={placement}>
-          <CardHeader>
-            <div className="flex items-center justify-between">
-              <div>
-                <CardTitle>
-                  {placement === "header"
-                    ? "Header navigation"
-                    : "Footer navigation"}
-                </CardTitle>
-                <p className="mt-1 text-xs text-neutral-500">
-                  Independent menus for the {placement}.
+              <div className="space-y-3">
+                <p className="text-sm font-medium">Navigation groups</p>
+                <div className="flex flex-wrap gap-3">
+                  {menus
+                    .filter((menu) => menu.placement === type)
+                    .map((menu) => (
+                      <label
+                        key={menu.id}
+                        className="flex items-center gap-2 rounded-lg border px-3 py-2 text-sm"
+                      >
+                        <input
+                          type="checkbox"
+                          checked={layout[`${type}Menus`].includes(menu.id)}
+                          onChange={(e) =>
+                            setLayout({
+                              ...layout,
+                              [`${type}Menus`]: e.target.checked
+                                ? [...layout[`${type}Menus`], menu.id]
+                                : layout[`${type}Menus`].filter(
+                                    (id) => id !== menu.id,
+                                  ),
+                            })
+                          }
+                        />
+                        {menu.title}
+                      </label>
+                    ))}
+                </div>
+                <p className="text-xs text-neutral-400">
+                  Choose one or more {type} menus. Edit their items in the{" "}
+                  {type} navigation panel below.
                 </p>
               </div>
               <Button
+                type="button"
                 variant="outline"
-                onClick={() =>
-                  setMenus([
-                    ...menus,
-                    {
-                      id: crypto.randomUUID(),
-                      title: "New menu",
-                      items: [],
-                      placement,
-                    },
-                  ])
-                }
+                onClick={() => setEdit(edit === type ? "" : type)}
               >
-                <Plus />
-                New {placement} menu
+                {edit === type ? "Hide" : "Edit"} {type} content
               </Button>
-            </div>
-          </CardHeader>
-          <CardContent className="space-y-6">
-            {menus
-              .filter((menu) => menu.placement === placement)
-              .map((menu) => (
-                <div
-                  key={menu.id}
-                  className="space-y-3 rounded-xl border bg-neutral-50 p-4"
+              {edit === type && multilingual && (
+                <label className="grid max-w-xs gap-2 text-sm">
+                  Texts for language
+                  <Select
+                    value={textLocale || defaultLocale}
+                    onValueChange={setTextLocale}
+                  >
+                    {multilingual.enabled.map((code) => (
+                      <SelectOption key={code} value={code}>
+                        {LOCALE_NAMES[code]}
+                        {code === defaultLocale ? " (default)" : ""}
+                      </SelectOption>
+                    ))}
+                  </Select>
+                </label>
+              )}
+              {edit === type && (
+                <SectionEditor
+                  key={textLocale}
+                  section={layoutSection(type)}
+                  onChange={(section) => setLayoutSection(type, section)}
+                />
+              )}
+            </CardContent>
+          </Card>
+        ))}
+      {area === "header" && (
+        <div className="mb-6">
+          <HeaderContactsEditor
+            value={layout.contacts || []}
+            onChange={(contacts) => setLayout({ ...layout, contacts })}
+          />
+        </div>
+      )}
+      {(["header", "footer"] as const)
+        .filter((placement) => area === placement)
+        .map((placement) => (
+          <Card
+            key={placement}
+            className="mb-6"
+            data-menu-placement={placement}
+          >
+            <CardHeader>
+              <div className="flex items-center justify-between">
+                <div>
+                  <CardTitle>
+                    {placement === "header"
+                      ? "Header navigation"
+                      : "Footer navigation"}
+                  </CardTitle>
+                  <p className="mt-1 text-xs text-neutral-500">
+                    Independent menus for the {placement}.
+                  </p>
+                </div>
+                <Button
+                  variant="outline"
+                  onClick={() =>
+                    setMenus([
+                      ...menus,
+                      {
+                        id: crypto.randomUUID(),
+                        title: "New menu",
+                        items: [],
+                        placement,
+                      },
+                    ])
+                  }
                 >
-                  <div className="flex items-center gap-3">
-                    <Input
-                      aria-label="Menu name"
-                      value={menu.title}
-                      className="max-w-sm bg-white font-medium"
-                      onChange={(e) =>
-                        setMenus(
-                          menus.map((m) =>
-                            m.id === menu.id
-                              ? { ...m, title: e.target.value }
-                              : m,
-                          ),
-                        )
-                      }
-                    />
-                    {multilingual && (
-                      <Select
-                        aria-label="Menu language"
-                        value={menu.locale || ""}
-                        onValueChange={(locale) =>
+                  <Plus />
+                  New {placement} menu
+                </Button>
+              </div>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              {menus
+                .filter((menu) => menu.placement === placement)
+                .map((menu) => (
+                  <div
+                    key={menu.id}
+                    className="space-y-3 rounded-xl border bg-neutral-50 p-4"
+                  >
+                    <div className="flex items-center gap-3">
+                      <Input
+                        aria-label="Menu name"
+                        value={menu.title}
+                        className="max-w-sm bg-white font-medium"
+                        onChange={(e) =>
                           setMenus(
                             menus.map((m) =>
                               m.id === menu.id
-                                ? { ...m, locale: locale || undefined }
+                                ? { ...m, title: e.target.value }
                                 : m,
                             ),
                           )
                         }
-                      >
-                        <SelectOption value="">All languages</SelectOption>
-                        {multilingual.enabled.map((code) => (
-                          <SelectOption key={code} value={code}>
-                            {LOCALE_NAMES[code]}
-                          </SelectOption>
-                        ))}
-                      </Select>
-                    )}
-                    <Button
-                      variant="outline"
-                      onClick={() => {
-                        setTarget(menu.id);
-                        const all = (items: MenuItem[]): string[] =>
-                          items.flatMap((i) => [i.pageId, ...all(i.children)]);
-                        setChosen(all(menu.items));
-                      }}
-                    >
-                      <Plus />
-                      Choose pages
-                    </Button>
-                    <Button
-                      variant="ghost"
-                      size="icon-sm"
-                      aria-label={`Delete menu ${menu.title}`}
-                      onClick={() => {
-                        setMenus(menus.filter((m) => m.id !== menu.id));
-                        setLayout({
-                          ...layout,
-                          headerMenus: layout.headerMenus.filter(
-                            (id) => id !== menu.id,
-                          ),
-                          footerMenus: layout.footerMenus.filter(
-                            (id) => id !== menu.id,
-                          ),
-                        });
-                      }}
-                    >
-                      <Trash2 />
-                    </Button>
-                  </div>
-                  {renderItems(menu, menu.items)}
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() =>
-                      patchMenu(menu.id, [
-                        ...menu.items,
-                        {
-                          id: crypto.randomUUID(),
-                          label: "New link",
-                          pageId: "",
-                          url: "https://example.com",
-                          children: [],
-                        },
-                      ])
-                    }
-                  >
-                    <Plus />
-                    Add external link
-                  </Button>
-                  {menu.items
-                    .filter((i) => !i.pageId)
-                    .map((item) => (
-                      <label key={item.id} className="grid gap-2 text-xs">
-                        {item.label} · destination
-                        <Input
-                          value={item.url}
-                          onChange={(e) =>
-                            patchMenu(
-                              menu.id,
-                              menu.items.map((i) =>
-                                i.id === item.id
-                                  ? { ...i, url: e.target.value }
-                                  : i,
+                      />
+                      {multilingual && (
+                        <Select
+                          aria-label="Menu language"
+                          value={menu.locale || ""}
+                          onValueChange={(locale) =>
+                            setMenus(
+                              menus.map((m) =>
+                                m.id === menu.id
+                                  ? { ...m, locale: locale || undefined }
+                                  : m,
                               ),
                             )
                           }
-                        />
-                      </label>
-                    ))}
-                </div>
-              ))}
-          </CardContent>
-        </Card>
-      ))}
+                        >
+                          <SelectOption value="">All languages</SelectOption>
+                          {multilingual.enabled.map((code) => (
+                            <SelectOption key={code} value={code}>
+                              {LOCALE_NAMES[code]}
+                            </SelectOption>
+                          ))}
+                        </Select>
+                      )}
+                      <Button
+                        variant="outline"
+                        onClick={() => {
+                          setTarget(menu.id);
+                          const all = (items: MenuItem[]): string[] =>
+                            items.flatMap((i) => [
+                              i.pageId,
+                              ...all(i.children),
+                            ]);
+                          setChosen(all(menu.items));
+                        }}
+                      >
+                        <Plus />
+                        Choose pages
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="icon-sm"
+                        aria-label={`Delete menu ${menu.title}`}
+                        onClick={() => {
+                          setMenus(menus.filter((m) => m.id !== menu.id));
+                          setLayout({
+                            ...layout,
+                            headerMenus: layout.headerMenus.filter(
+                              (id) => id !== menu.id,
+                            ),
+                            footerMenus: layout.footerMenus.filter(
+                              (id) => id !== menu.id,
+                            ),
+                          });
+                        }}
+                      >
+                        <Trash2 />
+                      </Button>
+                    </div>
+                    {renderItems(menu, menu.items)}
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() =>
+                        patchMenu(menu.id, [
+                          ...menu.items,
+                          {
+                            id: crypto.randomUUID(),
+                            label: "New link",
+                            pageId: "",
+                            url: "https://example.com",
+                            children: [],
+                          },
+                        ])
+                      }
+                    >
+                      <Plus />
+                      Add external link
+                    </Button>
+                    {menu.items
+                      .filter((i) => !i.pageId)
+                      .map((item) => (
+                        <label key={item.id} className="grid gap-2 text-xs">
+                          {item.label} · destination
+                          <Input
+                            value={item.url}
+                            onChange={(e) =>
+                              patchMenu(
+                                menu.id,
+                                menu.items.map((i) =>
+                                  i.id === item.id
+                                    ? { ...i, url: e.target.value }
+                                    : i,
+                                ),
+                              )
+                            }
+                          />
+                        </label>
+                      ))}
+                  </div>
+                ))}
+            </CardContent>
+          </Card>
+        ))}
       <Dialog.Root
         open={!!target}
         onOpenChange={(open) => {

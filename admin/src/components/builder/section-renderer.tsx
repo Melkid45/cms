@@ -1,3 +1,5 @@
+import { contactIcons, defaultContactIcon } from "./contact-icons";
+import { headerContactHref } from "@/lib/builder/header-contacts";
 /* eslint-disable @next/next/no-img-element */
 import { createElement, Fragment } from "react";
 import { definition, safeUrl } from "@/lib/builder/catalog";
@@ -22,6 +24,7 @@ import type {
 import {
   catalogProductOf,
   catalogFilterCount,
+  catalogFilterMode,
   catalogProductNamed,
   catalogProductByHref,
   catalogPriceFormat,
@@ -519,7 +522,9 @@ export function SectionRenderer({
         props,
         ...ids.map((id) => {
           const menu = project.menus.find((m) => m.id === id);
-          const items = menu ? menuItems(menu.items, expanded).filter(Boolean) : [];
+          const items = menu
+            ? menuItems(menu.items, expanded).filter(Boolean)
+            : [];
           return menu && items.length && menuVisible(menu.locale) ? (
             <div className="builder-menu-group" key={id}>
               {entry!.family === "footer" && ids.length > 1 && (
@@ -678,6 +683,53 @@ export function SectionRenderer({
             {detail}
           </p>,
         ];
+    }
+    if (section.variant === "pricing-v21" && tag === "section")
+      props["data-filter-visibility"] = catalogFilterMode(project) || "auto";
+    if (
+      entry!.family === "header" &&
+      node.attrs?.class?.split(" ").includes("site-header__actions") &&
+      project.layout.contacts?.length
+    ) {
+      children = [
+        ...(children || []),
+        <div key="header-contacts" className="header-contacts">
+          {project.layout.contacts.map((contact) => {
+            const href = headerContactHref(contact);
+            if (!href) return null;
+            const Icon =
+              contactIcons[
+                (contact.icon ||
+                  defaultContactIcon[contact.type]) as keyof typeof contactIcons
+              ] || contactIcons.link;
+            const label =
+              contact.label ||
+              (contact.type === "phone"
+                ? contact.value
+                : {
+                    telegram: "Telegram",
+                    whatsapp: "WhatsApp",
+                    link: "Website",
+                  }[contact.type]);
+            return (
+              <a
+                key={contact.id}
+                className={`header-contacts__link header-contacts__link--${contact.display}`}
+                href={href}
+                aria-label={label}
+                {...(contact.type !== "phone"
+                  ? { target: "_blank", rel: "noopener noreferrer" }
+                  : {})}
+              >
+                {contact.display !== "text" && (
+                  <Icon size={20} aria-hidden="true" />
+                )}
+                {contact.display !== "icon" && <span>{label}</span>}
+              </a>
+            );
+          })}
+        </div>,
+      ];
     }
     return createElement(tag, props, ...(children || []));
   }

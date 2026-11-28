@@ -45,7 +45,7 @@ export function Tasks() {
       <ErrorLine error={error} />
       <div className="mb-4 flex flex-wrap gap-2">
         {VIEWS.map((v) => (
-          <Button key={v.id} variant={view === v.id ? "secondary" : "ghost"} onClick={() => setView(v.id)}>
+          <Button key={v.id} aria-pressed={view === v.id} variant={view === v.id ? "secondary" : "ghost"} onClick={() => setView(v.id)}>
             {v.label} ({pick(v.id).length})
           </Button>
         ))}

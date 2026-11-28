@@ -547,3 +547,29 @@
 .pricing__pd-pick:has(.pricing__pd-pick-copy > :first-child:empty),
 .pricing__pd-info > .pricing__pd-label:empty { display: none; }
 .pricing__pd-description { max-width: 75ch; margin-top: 40px; white-space: pre-line; color: var(--color-muted); }
+
+// Empty and small catalogs keep the same grid without reserving a filter column.
+.pricing--catalog.is-unfiltered .pricing__catalog { grid-template-columns: minmax(0, 1fr); }
+.pricing--catalog.is-unfiltered .pricing__filters,
+.pricing--catalog.is-unfiltered .pricing__filters-toggle { display: none; }
+.pricing--catalog.is-unfiltered .pricing__shop-grid { grid-template-columns: repeat(auto-fill, minmax(min(100%, 270px), 1fr)); }
+.pricing--catalog .pricing__filter-group:has(legend:empty) { display: none; }
+.pricing--catalog .pricing__empty:not([hidden]) { display: flex; flex-direction: column; align-items: center; gap: 24px; }
+.pricing__pd-table:not(:has(dd:not(:empty))),
+.pricing__pd-table-title:has(+ .pricing__pd-table:not(:has(dd:not(:empty)))),
+.pricing__pd-specs:not(:has(dd:not(:empty))),
+.pricing__pd-info > p:empty { display: none; }
+.pricing__shop-media:not(:has(img))::before,
+.pricing__pd-main:not(:has(img))::before { content: "No photo"; position: absolute; inset: 0; display: grid; place-items: center; color: var(--color-muted); font: 14px var(--font-body); }
+.pricing__pd-main { position: relative; }
+@media (max-width: 600px) { .pricing--catalog.is-unfiltered .pricing__shop-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+// Match the automatic mode before JavaScript mounts, avoiding a sidebar layout shift.
+.pricing--catalog[data-filter-visibility="hide"] .pricing__catalog,
+.pricing--catalog[data-filter-visibility="auto"]:not(:has([data-catalog-grid] article:nth-of-type(8))) .pricing__catalog { grid-template-columns: minmax(0, 1fr); }
+.pricing--catalog[data-filter-visibility="hide"] :is(.pricing__filters,.pricing__filters-toggle),
+.pricing--catalog[data-filter-visibility="auto"]:not(:has([data-catalog-grid] article:nth-of-type(8))) :is(.pricing__filters,.pricing__filters-toggle) { display: none; }
+.pricing--catalog[data-filter-visibility="hide"] .pricing__shop-grid,
+.pricing--catalog[data-filter-visibility="auto"]:not(:has([data-catalog-grid] article:nth-of-type(8))) .pricing__shop-grid { grid-template-columns: repeat(auto-fill, minmax(min(100%, 270px), 1fr)); }
+@media (max-width: 600px) {
+  .pricing--catalog[data-filter-visibility] .pricing__shop-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
